@@ -1,37 +1,56 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Header from "./components/common/Header";
-import Dashboard from "./pages/Dashboard/Dashboard";
-import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register";
-import LoanApplication from "./pages/Loans/LoanApplication";
-import LoanStatus from "./pages/Loans/LoanStatus";
-import SupportTickets from "./pages/Support/SupportTickets";
-import CreateTicket from "./pages/Support/CreateTicket";
-import LoansDashboard from "./pages/Loans/LoansDashboard";
-import LoanCalculator from "./pages/Loans/LoanCalculator";
+import React from 'react'
+import { BrowserRouter as Router } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
+import { NotificationProvider } from './contexts/NotificationContext'
+import { SocketProvider } from './contexts/SocketContext'
+import AppRoutes from './routes/AppRoutes'
+import RoleSwitcher from './components/dev/RoleSwitcher'
+import './App.css'
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/loans/apply" element={<LoanApplication />} />
-          <Route path="/loans/status" element={<LoanStatus />} />
-          <Route path="/support" element={<SupportTickets />} />
-          <Route path="/support/create" element={<CreateTicket />} />
-          <Route path="/loans" element={<LoansDashboard />} />
-          <Route path="/loans/apply" element={<LoanApplication />} />
-          <Route path="/loans/calculator" element={<LoanCalculator />} />
-        </Routes>
-      </div>
+      <ThemeProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <SocketProvider>
+              <div className="min-h-screen bg-gray-50">
+                <AppRoutes />
+                <Toaster 
+                  position="top-right"
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      background: '#363636',
+                      color: '#fff',
+                    },
+                    success: {
+                      duration: 3000,
+                      iconTheme: {
+                        primary: '#10b981',
+                        secondary: '#fff',
+                      },
+                    },
+                    error: {
+                      duration: 4000,
+                      iconTheme: {
+                        primary: '#ef4444',
+                        secondary: '#fff',
+                      },
+                    },
+                  }}
+                />
+                {/* Role switcher - only visible in development */}
+                <RoleSwitcher />
+              </div>
+            </SocketProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App
