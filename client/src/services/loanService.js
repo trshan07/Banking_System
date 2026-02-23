@@ -2,7 +2,20 @@ import api from './api'
 
 export const loanService = {
   async applyForLoan(loanData) {
-    return api.post('/loans/apply', loanData)
+    // Simulate API call
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('Loan application submitted:', loanData)
+        resolve({ 
+          success: true, 
+          applicationId: 'LN-' + Date.now(),
+          message: 'Application submitted successfully' 
+        })
+      }, 2000)
+    })
+    
+    // Actual API call when backend is ready:
+    // return api.post('/loans/apply', loanData)
   },
 
   async getMyLoans() {
@@ -23,18 +36,5 @@ export const loanService = {
     return api.post(`/loans/${id}/documents`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-  },
-
-  // Admin endpoints
-  async getAllLoans(filters) {
-    return api.get('/loans/admin/all', { params: filters })
-  },
-
-  async updateLoanStatus(id, status, remarks) {
-    return api.patch(`/loans/admin/${id}/status`, { status, remarks })
-  },
-
-  async assignLoanOfficer(id, officerId) {
-    return api.patch(`/loans/admin/${id}/assign`, { officerId })
   }
 }
