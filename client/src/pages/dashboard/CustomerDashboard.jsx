@@ -48,10 +48,10 @@ const CustomerDashboard = () => {
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">
+            <h1 className="text-2xl font-bold mb-2 text-primary-600">
               Welcome back, {user?.name?.split(' ')[0] || 'Customer'}!
             </h1>
-            <p className="text-primary-100">Here's what's happening with your accounts today.</p>
+            <p className="text-primary-400">Here's what's happening with your accounts today.</p>
           </div>
           <button 
             onClick={refreshData}

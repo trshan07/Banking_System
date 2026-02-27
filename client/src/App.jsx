@@ -6,7 +6,7 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { NotificationProvider } from './contexts/NotificationContext'
 import { SocketProvider } from './contexts/SocketContext'
 import AppRoutes from './routes/AppRoutes'
-import RoleSwitcher from './components/dev/RoleSwitcher'
+//import RoleSwitcher from './components/dev/RoleSwitcher'
 import './App.css'
 
 function App() {
@@ -43,7 +43,7 @@ function App() {
                   }}
                 />
                 {/* Role switcher - only visible in development */}
-                <RoleSwitcher />
+              {/* <RoleSwitcher />*/} 
               </div>
             </SocketProvider>
           </NotificationProvider>

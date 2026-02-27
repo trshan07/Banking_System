@@ -6,7 +6,7 @@ import { FaEnvelope, FaLock } from 'react-icons/fa'
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm()
-  const { login } = useAuth()
+  const { login, getDashboardRoute } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
 
@@ -14,7 +14,7 @@ const Login = () => {
     try {
       setLoading(true)
       await login(data.email, data.password)
-      navigate('/dashboard')
+      navigate(getDashboardRoute())
     } catch (error) {
       console.error('Login failed:', error)
     } finally {
@@ -29,6 +29,33 @@ const Login = () => {
         <p className="text-gray-600 mt-2">Sign in to your Smart Bank account</p>
       </div>
 
+      {/* Demo Credentials Helper */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <h3 className="font-semibold text-blue-900 mb-2 text-sm">Demo Credentials:</h3>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <p className="font-medium text-blue-800">Customer:</p>
+            <p className="text-blue-600">customer@example.com</p>
+            <p className="text-blue-600">customer123</p>
+          </div>
+          <div>
+            <p className="font-medium text-blue-800">Employee:</p>
+            <p className="text-blue-600">employee@example.com</p>
+            <p className="text-blue-600">employee123</p>
+          </div>
+          <div>
+            <p className="font-medium text-blue-800">Admin:</p>
+            <p className="text-blue-600">admin@example.com</p>
+            <p className="text-blue-600">admin123</p>
+          </div>
+          <div>
+            <p className="font-medium text-blue-800">Super Admin:</p>
+            <p className="text-blue-600">superadmin@example.com</p>
+            <p className="text-blue-600">superadmin123</p>
+          </div>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <label className="form-label">Email Address</label>
@@ -36,15 +63,10 @@ const Login = () => {
             <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="email"
-              {...register('email', {
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address'
-                }
-              })}
+              {...register('email', { required: 'Email is required' })}
               className="input-field pl-10"
               placeholder="Enter your email"
+              disabled={loading}
             />
           </div>
           {errors.email && <p className="error-text">{errors.email.message}</p>}
@@ -56,28 +78,13 @@ const Login = () => {
             <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="password"
-              {...register('password', {
-                required: 'Password is required',
-                minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters'
-                }
-              })}
+              {...register('password', { required: 'Password is required' })}
               className="input-field pl-10"
               placeholder="Enter your password"
+              disabled={loading}
             />
           </div>
           {errors.password && <p className="error-text">{errors.password.message}</p>}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <label className="flex items-center">
-            <input type="checkbox" className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-            <span className="ml-2 text-sm text-gray-600">Remember me</span>
-          </label>
-          <Link to="/auth/forgot-password" className="text-sm text-primary-600 hover:text-primary-700">
-            Forgot password?
-          </Link>
         </div>
 
         <button

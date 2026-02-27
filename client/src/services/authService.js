@@ -2,30 +2,55 @@ import api from './api'
 
 export const authService = {
   async login(email, password) {
-    return api.post('/auth/login', { email, password })
+    const response = await api.post('/auth/login', { email, password })
+    return response.data
   },
 
   async register(userData) {
-    return api.post('/auth/register', userData)
+    const response = await api.post('/auth/register', userData)
+    return response.data
   },
 
   async getCurrentUser() {
-    return api.get('/auth/me')
-  },
-
-  async forgotPassword(email) {
-    return api.post('/auth/forgot-password', { email })
-  },
-
-  async resetPassword(token, password) {
-    return api.post('/auth/reset-password', { token, password })
-  },
-
-  async verifyEmail(token) {
-    return api.get(`/auth/verify-email/${token}`)
+    const response = await api.get('/auth/me')
+    return response.data
   },
 
   async logout() {
-    return api.post('/auth/logout')
+    const response = await api.post('/auth/logout')
+    return response.data
+  },
+
+  async forgotPassword(email) {
+    const response = await api.post('/auth/forgot-password', { email })
+    return response.data
+  },
+
+  async resetPassword(token, password) {
+    const response = await api.post('/auth/reset-password', { token, password })
+    return response.data
+  },
+
+  async verifyEmail(token) {
+    const response = await api.get(`/auth/verify-email/${token}`)
+    return response.data
+  },
+
+  async refreshToken() {
+    const response = await api.post('/auth/refresh-token')
+    return response.data
+  },
+
+  async changePassword(currentPassword, newPassword) {
+    const response = await api.post('/auth/change-password', {
+      currentPassword,
+      newPassword
+    })
+    return response.data
+  },
+
+  async updateProfile(profileData) {
+    const response = await api.put('/auth/profile', profileData)
+    return response.data
   }
 }
