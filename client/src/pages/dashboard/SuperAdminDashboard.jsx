@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   FaBars,
   FaTimes,
@@ -37,7 +37,6 @@ import {
   FaFileCsv,
   FaChartPie,
   FaChartBar,
-  FaChartLine as FaChartLineIcon,
   FaExclamationTriangle,
   FaLock,
   FaUnlock,
@@ -64,7 +63,6 @@ import {
   FaCloudDownloadAlt,
   FaDatabase,
   FaServer,
-  FaShieldAlt as FaShieldAltIcon,
   FaBug,
   FaRocket,
   FaSave,
@@ -75,7 +73,6 @@ import {
   FaBan,
   FaFlag,
   FaBullhorn,
-  FaBell as FaBellIcon,
   FaEnvelopeOpenText,
   FaFileContract,
   FaFileInvoice,
@@ -90,9 +87,6 @@ import {
   FaLayerGroup,
   FaChartArea,
   FaChartScatter,
-  FaChartPie as FaChartPieIcon,
-  FaChartBar as FaChartBarIcon,
-  FaChartLine as FaChartLineIcon2,
   FaGlobe,
   FaLockOpen,
   FaKey,
@@ -124,13 +118,11 @@ import {
   FaRegCircle,
   FaRegDotCircle,
   FaCheck,
-  FaTimes,
   FaMinus,
-  FaPlus,
   FaArrowUp,
   FaArrowDown,
-  FaArrowLeft as FaArrowLeftIcon,
-  FaArrowRight as FaArrowRightIcon,
+  FaArrowLeft,
+  FaArrowRight,
   FaChevronUp,
   FaChevronDown,
   FaChevronLeft,
@@ -140,7 +132,7 @@ import {
   FaAngleLeft,
   FaAngleRight,
 } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import {
@@ -156,7 +148,7 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import { Line, Bar, Pie, Doughnut } from "react-chartjs-2";
+import { Line, Bar, Pie } from "react-chartjs-2";
 
 // Register ChartJS components
 ChartJS.register(
@@ -173,18 +165,16 @@ ChartJS.register(
 );
 
 const SuperAdminDashboard = () => {
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [searchTerm, setSearchTerm] = useState("");
-  const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
 
   // Dashboard Stats
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     totalUsers: 15420,
     activeUsers: 12345,
     totalBanks: 45,
@@ -430,7 +420,7 @@ const SuperAdminDashboard = () => {
   ];
 
   // Bank List
-  const [banks, setBanks] = useState([
+  const [banks] = useState([
     {
       id: 1,
       name: "Smart Bank HQ",
@@ -479,7 +469,7 @@ const SuperAdminDashboard = () => {
   ]);
 
   // Admin Users
-  const [admins, setAdmins] = useState([
+  const [admins] = useState([
     {
       id: 1,
       name: "Admin User",
@@ -515,7 +505,7 @@ const SuperAdminDashboard = () => {
   ]);
 
   // Fraud Reports
-  const [fraudReports, setFraudReports] = useState([
+  const [fraudReports] = useState([
     {
       id: 1,
       user: "John Doe",
@@ -551,7 +541,7 @@ const SuperAdminDashboard = () => {
   ]);
 
   // Support Tickets
-  const [supportTickets, setSupportTickets] = useState([
+  const [supportTickets] = useState([
     {
       id: 1,
       user: "John Doe",
@@ -587,7 +577,7 @@ const SuperAdminDashboard = () => {
   ]);
 
   // KYC Applications
-  const [kycApplications, setKycApplications] = useState([
+  const [kycApplications] = useState([
     {
       id: 1,
       user: "John Doe",
@@ -623,7 +613,7 @@ const SuperAdminDashboard = () => {
   ]);
 
   // System Logs
-  const [systemLogs, setSystemLogs] = useState([
+  const [systemLogs] = useState([
     {
       id: 1,
       timestamp: "2024-03-15 10:30:25",
