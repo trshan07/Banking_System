@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  FaBars,
+   FaBars,
   FaTimes,
   FaTachometerAlt,
   FaUsers,
@@ -86,7 +86,7 @@ import {
   FaCubes,
   FaLayerGroup,
   FaChartArea,
-  FaChartScatter,
+  // FaChartScatter, // Remove this line
   FaGlobe,
   FaLockOpen,
   FaKey,
@@ -171,7 +171,7 @@ const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [searchTerm, setSearchTerm] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [setLoading] = useState(false);
 
   // Dashboard Stats
   const [stats] = useState({
