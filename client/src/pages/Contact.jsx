@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaEnvelope,
   FaPhone,
@@ -92,7 +92,7 @@ const ContactUs = () => {
     }, 1500);
   };
 
-  // Contact Information
+  // Contact Information - Updated with 4 colors
   const contactInfo = [
     {
       id: 1,
@@ -100,10 +100,10 @@ const ContactUs = () => {
       description: "support@smartbank.com",
       subText: "sales@smartbank.com",
       icon: <FaEnvelope className="text-2xl" />,
-      bgGradient: "bg-gradient-to-r from-blue-600 to-blue-700",
-      lightBg: "bg-blue-50",
-      textColor: "text-blue-600",
-      borderColor: "border-blue-200",
+      bgGradient: "bg-[#2563eb]",
+      lightBg: "bg-[#2563eb] bg-opacity-5",
+      textColor: "text-[#2563eb]",
+      borderColor: "border-[#2563eb] border-opacity-20",
       action: "mailto:support@smartbank.com",
     },
     {
@@ -112,10 +112,10 @@ const ContactUs = () => {
       description: "+1 (555) 123-4567",
       subText: "Toll-free: 1-800-SMART-BANK",
       icon: <FaPhone className="text-2xl" />,
-      bgGradient: "bg-gradient-to-r from-green-600 to-green-700",
-      lightBg: "bg-green-50",
-      textColor: "text-green-600",
-      borderColor: "border-green-200",
+      bgGradient: "bg-[#10b981]",
+      lightBg: "bg-[#10b981] bg-opacity-5",
+      textColor: "text-[#10b981]",
+      borderColor: "border-[#10b981] border-opacity-20",
       action: "tel:+15551234567",
     },
     {
@@ -124,10 +124,10 @@ const ContactUs = () => {
       description: "123 Banking Avenue",
       subText: "Financial District, NY 10001",
       icon: <FaMapMarkerAlt className="text-2xl" />,
-      bgGradient: "bg-gradient-to-r from-purple-600 to-purple-700",
-      lightBg: "bg-purple-50",
-      textColor: "text-purple-600",
-      borderColor: "border-purple-200",
+      bgGradient: "bg-[#f59e0b]",
+      lightBg: "bg-[#f59e0b] bg-opacity-5",
+      textColor: "text-[#f59e0b]",
+      borderColor: "border-[#f59e0b] border-opacity-20",
       action: "https://maps.google.com/?q=123+Banking+Avenue+NY",
     },
     {
@@ -136,79 +136,79 @@ const ContactUs = () => {
       description: "Mon-Fri: 9:00 AM - 6:00 PM",
       subText: "Sat-Sun: 10:00 AM - 2:00 PM",
       icon: <FaClock className="text-2xl" />,
-      bgGradient: "bg-gradient-to-r from-orange-600 to-orange-700",
-      lightBg: "bg-orange-50",
-      textColor: "text-orange-600",
-      borderColor: "border-orange-200",
+      bgGradient: "bg-[#ef4444]",
+      lightBg: "bg-[#ef4444] bg-opacity-5",
+      textColor: "text-[#ef4444]",
+      borderColor: "border-[#ef4444] border-opacity-20",
       action: "#",
     },
   ];
 
-  // Support Departments
+  // Support Departments - Updated with 4 colors
   const departments = [
     {
       id: 1,
       name: "General",
       value: "general",
       icon: <FaHeadset />,
-      bgColor: "bg-blue-100",
-      textColor: "text-blue-600",
-      borderColor: "border-blue-300",
-      selectedBorder: "border-blue-600",
+      bgColor: "bg-[#2563eb] bg-opacity-10",
+      textColor: "text-[#2563eb]",
+      borderColor: "border-[#2563eb] border-opacity-30",
+      selectedBorder: "border-[#2563eb]",
     },
     {
       id: 2,
       name: "Technical",
       value: "technical",
       icon: <FaRocket />,
-      bgColor: "bg-purple-100",
-      textColor: "text-purple-600",
-      borderColor: "border-purple-300",
-      selectedBorder: "border-purple-600",
+      bgColor: "bg-[#10b981] bg-opacity-10",
+      textColor: "text-[#10b981]",
+      borderColor: "border-[#10b981] border-opacity-30",
+      selectedBorder: "border-[#10b981]",
     },
     {
       id: 3,
       name: "Account",
       value: "account",
       icon: <FaUsers />,
-      bgColor: "bg-green-100",
-      textColor: "text-green-600",
-      borderColor: "border-green-300",
-      selectedBorder: "border-green-600",
+      bgColor: "bg-[#2563eb] bg-opacity-10",
+      textColor: "text-[#2563eb]",
+      borderColor: "border-[#2563eb] border-opacity-30",
+      selectedBorder: "border-[#2563eb]",
     },
     {
       id: 4,
       name: "Loan",
       value: "loan",
       icon: <FaMoneyBillWave />,
-      bgColor: "bg-yellow-100",
-      textColor: "text-yellow-600",
-      borderColor: "border-yellow-300",
-      selectedBorder: "border-yellow-600",
+      bgColor: "bg-[#f59e0b] bg-opacity-10",
+      textColor: "text-[#f59e0b]",
+      borderColor: "border-[#f59e0b] border-opacity-30",
+      selectedBorder: "border-[#f59e0b]",
     },
     {
       id: 5,
       name: "KYC",
       value: "kyc",
       icon: <FaFileAlt />,
-      bgColor: "bg-indigo-100",
-      textColor: "text-indigo-600",
-      borderColor: "border-indigo-300",
-      selectedBorder: "border-indigo-600",
+      bgColor: "bg-[#10b981] bg-opacity-10",
+      textColor: "text-[#10b981]",
+      borderColor: "border-[#10b981] border-opacity-30",
+      selectedBorder: "border-[#10b981]",
     },
     {
       id: 6,
       name: "Security",
       value: "security",
       icon: <FaShieldAlt />,
-      bgColor: "bg-red-100",
-      textColor: "text-red-600",
-      borderColor: "border-red-300",
-      selectedBorder: "border-red-600",
+      bgColor: "bg-[#ef4444] bg-opacity-10",
+      textColor: "text-[#ef4444]",
+      borderColor: "border-[#ef4444] border-opacity-30",
+      selectedBorder: "border-[#ef4444]",
     },
   ];
 
-  // Office Locations
+  // Office Locations - Updated with 4 colors
   const locations = [
     {
       id: 1,
@@ -219,9 +219,9 @@ const ContactUs = () => {
       manager: "Robert Johnson",
       employees: "250+",
       icon: <FaBuilding />,
-      gradient: "from-blue-600 to-indigo-700",
-      lightBg: "bg-blue-50",
-      badge: "bg-blue-600",
+      gradient: "from-[#2563eb] to-[#2563eb]",
+      lightBg: "bg-[#2563eb] bg-opacity-5",
+      badge: "bg-[#2563eb]",
     },
     {
       id: 2,
@@ -232,9 +232,9 @@ const ContactUs = () => {
       manager: "Emma Thompson",
       employees: "180+",
       icon: <FaBuilding />,
-      gradient: "from-purple-600 to-pink-600",
-      lightBg: "bg-purple-50",
-      badge: "bg-purple-600",
+      gradient: "from-[#10b981] to-[#10b981]",
+      lightBg: "bg-[#10b981] bg-opacity-5",
+      badge: "bg-[#10b981]",
     },
     {
       id: 3,
@@ -245,9 +245,9 @@ const ContactUs = () => {
       manager: "David Chen",
       employees: "120+",
       icon: <FaBuilding />,
-      gradient: "from-green-600 to-teal-600",
-      lightBg: "bg-green-50",
-      badge: "bg-green-600",
+      gradient: "from-[#f59e0b] to-[#f59e0b]",
+      lightBg: "bg-[#f59e0b] bg-opacity-5",
+      badge: "bg-[#f59e0b]",
     },
     {
       id: 4,
@@ -258,13 +258,13 @@ const ContactUs = () => {
       manager: "Mohammed Al-Rashid",
       employees: "90+",
       icon: <FaBuilding />,
-      gradient: "from-orange-600 to-red-600",
-      lightBg: "bg-orange-50",
-      badge: "bg-orange-600",
+      gradient: "from-[#ef4444] to-[#ef4444]",
+      lightBg: "bg-[#ef4444] bg-opacity-5",
+      badge: "bg-[#ef4444]",
     },
   ];
 
-  // FAQ Items
+  // FAQ Items - Updated with 4 colors
   const faqs = [
     {
       id: 1,
@@ -272,8 +272,8 @@ const ContactUs = () => {
       answer:
         "You can open an account online through our Digital KYC portal. Simply click on 'Register' and follow the verification process with your documents.",
       icon: <FaQuestionCircle className="text-2xl" />,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: "text-[#2563eb]",
+      bgColor: "bg-[#2563eb] bg-opacity-5",
     },
     {
       id: 2,
@@ -281,8 +281,8 @@ const ContactUs = () => {
       answer:
         "You'll need a valid government ID (Passport/Driver's License), proof of address, and a recent photograph.",
       icon: <FaFileAlt className="text-2xl" />,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-[#10b981]",
+      bgColor: "bg-[#10b981] bg-opacity-5",
     },
     {
       id: 3,
@@ -290,8 +290,8 @@ const ContactUs = () => {
       answer:
         "Loan approval typically takes 24-48 hours after document verification.",
       icon: <FaMoneyBillWave className="text-2xl" />,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-[#f59e0b]",
+      bgColor: "bg-[#f59e0b] bg-opacity-5",
     },
     {
       id: 4,
@@ -299,8 +299,8 @@ const ContactUs = () => {
       answer:
         "Yes, we use bank-level 256-bit encryption and two-factor authentication.",
       icon: <FaShieldAlt className="text-2xl" />,
-      color: "text-red-600",
-      bgColor: "bg-red-50",
+      color: "text-[#ef4444]",
+      bgColor: "bg-[#ef4444] bg-opacity-5",
     },
     {
       id: 5,
@@ -308,26 +308,26 @@ const ContactUs = () => {
       answer:
         "You can report fraud directly through your dashboard or contact our security team.",
       icon: <FaHeadset className="text-2xl" />,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      color: "text-[#2563eb]",
+      bgColor: "bg-[#2563eb] bg-opacity-5",
     },
     {
       id: 6,
       question: "What are the transaction limits?",
       answer: "Standard accounts have daily limits of $10,000 for transfers.",
       icon: <FaChartLine className="text-2xl" />,
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50",
+      color: "text-[#10b981]",
+      bgColor: "bg-[#10b981] bg-opacity-5",
     },
   ];
 
-  // Social Media Links
+  // Social Media Links - Updated with 4 colors
   const socialMedia = [
     {
       id: 1,
       name: "Facebook",
       icon: <FaFacebook className="text-3xl" />,
-      bgColor: "bg-blue-600",
+      bgColor: "bg-[#2563eb]",
       link: "#",
       followers: "50K+",
     },
@@ -335,7 +335,7 @@ const ContactUs = () => {
       id: 2,
       name: "Twitter",
       icon: <FaTwitter className="text-3xl" />,
-      bgColor: "bg-blue-400",
+      bgColor: "bg-[#10b981]",
       link: "#",
       followers: "35K+",
     },
@@ -343,7 +343,7 @@ const ContactUs = () => {
       id: 3,
       name: "LinkedIn",
       icon: <FaLinkedin className="text-3xl" />,
-      bgColor: "bg-blue-700",
+      bgColor: "bg-[#2563eb]",
       link: "#",
       followers: "45K+",
     },
@@ -351,7 +351,7 @@ const ContactUs = () => {
       id: 4,
       name: "Instagram",
       icon: <FaInstagram className="text-3xl" />,
-      bgColor: "bg-pink-600",
+      bgColor: "bg-[#f59e0b]",
       link: "#",
       followers: "30K+",
     },
@@ -359,7 +359,7 @@ const ContactUs = () => {
       id: 5,
       name: "YouTube",
       icon: <FaYoutube className="text-3xl" />,
-      bgColor: "bg-red-600",
+      bgColor: "bg-[#ef4444]",
       link: "#",
       followers: "25K+",
     },
@@ -367,104 +367,254 @@ const ContactUs = () => {
       id: 6,
       name: "WhatsApp",
       icon: <FaWhatsapp className="text-3xl" />,
-      bgColor: "bg-green-600",
+      bgColor: "bg-[#10b981]",
       link: "#",
       followers: "20K+",
     },
   ];
 
-  // Map Features
+  // Map Features - Updated with 4 colors
   const mapFeatures = [
     {
       id: 1,
       icon: <FaBus />,
       label: "Bus Stop (2 min walk)",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: "text-[#2563eb]",
+      bgColor: "bg-[#2563eb] bg-opacity-5",
     },
     {
       id: 2,
       icon: <FaTrain />,
       label: "Metro Station (5 min walk)",
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-[#10b981]",
+      bgColor: "bg-[#10b981] bg-opacity-5",
     },
     {
       id: 3,
       icon: <FaParking />,
       label: "Paid Parking",
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-[#f59e0b]",
+      bgColor: "bg-[#f59e0b] bg-opacity-5",
     },
     {
       id: 4,
       icon: <FaWifi />,
       label: "Free WiFi",
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50",
+      color: "text-[#2563eb]",
+      bgColor: "bg-[#2563eb] bg-opacity-5",
     },
     {
       id: 5,
       icon: <FaCoffee />,
       label: "Coffee Shop",
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      color: "text-[#10b981]",
+      bgColor: "bg-[#10b981] bg-opacity-5",
     },
     {
       id: 6,
       icon: <FaAccessibleIcon />,
       label: "Wheelchair Accessible",
-      color: "text-teal-600",
-      bgColor: "bg-teal-50",
+      color: "text-[#ef4444]",
+      bgColor: "bg-[#ef4444] bg-opacity-5",
     },
   ];
 
-  // Achievements
+  // Achievements - Updated with 4 colors
   const achievements = [
     {
       id: 1,
       icon: <FaStar className="text-2xl" />,
       count: "4.8/5",
       label: "Customer Rating",
-      bgColor: "bg-yellow-50",
-      textColor: "text-yellow-600",
+      bgColor: "bg-[#2563eb] bg-opacity-10",
+      textColor: "text-[#2563eb]",
     },
     {
       id: 2,
       icon: <FaThumbsUp className="text-2xl" />,
       count: "98%",
       label: "Satisfaction",
-      bgColor: "bg-green-50",
-      textColor: "text-green-600",
+      bgColor: "bg-[#10b981] bg-opacity-10",
+      textColor: "text-[#10b981]",
     },
     {
       id: 3,
       icon: <FaAward className="text-2xl" />,
       count: "15+",
       label: "Awards",
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-600",
+      bgColor: "bg-[#f59e0b] bg-opacity-10",
+      textColor: "text-[#f59e0b]",
     },
     {
       id: 4,
       icon: <FaTrophy className="text-2xl" />,
       count: "5 Years",
       label: "Excellence",
-      bgColor: "bg-orange-50",
-      textColor: "text-orange-600",
+      bgColor: "bg-[#ef4444] bg-opacity-10",
+      textColor: "text-[#ef4444]",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-20">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* Custom CSS Animations */}
+      <style jsx="true">{`
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.8;
+          }
+        }
+
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes rotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes bounce {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-5px);
+          }
+        }
+
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        .animate-slideInLeft {
+          animation: slideInLeft 0.6s ease-out forwards;
+        }
+
+        .animate-slideInRight {
+          animation: slideInRight 0.6s ease-out forwards;
+        }
+
+        .animate-slideInUp {
+          animation: slideInUp 0.6s ease-out forwards;
+        }
+
+        .animate-rotate {
+          animation: rotate 20s linear infinite;
+        }
+
+        .animate-bounce {
+          animation: bounce 2s ease-in-out infinite;
+        }
+
+        .hover-scale {
+          transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease;
+        }
+
+        .hover-scale:hover {
+          transform: scale(1.03);
+          box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1);
+        }
+
+        .hover-lift {
+          transition: transform 0.3s ease;
+        }
+
+        .hover-lift:hover {
+          transform: translateY(-3px);
+        }
+
+        .hover-rotate {
+          transition: transform 0.5s ease;
+        }
+
+        .hover-rotate:hover {
+          transform: rotate(360deg);
+        }
+      `}</style>
+
+      {/* Hero Section - Always visible */}
+      <div className="relative bg-[#2563eb] text-white py-20 overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl animate-float"></div>
+          <div
+            className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 rounded-full blur-3xl animate-float"
+            style={{ animationDelay: "1s" }}
+          ></div>
+        </div>
+
         <div className="absolute inset-0 bg-black opacity-10"></div>
+
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
+            <div className="inline-flex items-center bg-white/20 backdrop-blur-lg rounded-full px-4 py-2 mb-6 border border-white/30 hover-scale">
+              <div className="animate-rotate mr-2">
+                <FaHeadset className="text-white" />
+              </div>
+              <span className="text-sm font-semibold text-white">
+                24/7 Customer Support
+              </span>
+            </div>
+
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Get in Touch
             </h1>
+
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white/90">
               Have questions about Smart Bank? Our dedicated team is here to
               help you 24/7 with any inquiries, support, or feedback.
@@ -475,9 +625,11 @@ const ContactUs = () => {
               {achievements.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white/10 backdrop-blur-lg rounded-lg p-4 border border-white/20"
+                  className="bg-white/10 backdrop-blur-lg rounded-lg p-4 border border-white/20 hover-scale"
                 >
-                  <div className={`${item.textColor} mb-2 flex justify-center`}>
+                  <div
+                    className={`${item.textColor} mb-2 flex justify-center animate-bounce`}
+                  >
                     {item.icon}
                   </div>
                   <div className="text-xl font-bold text-white">
@@ -491,19 +643,20 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Contact Information Cards */}
+      {/* Contact Information Cards - Always visible */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {contactInfo.map((info) => (
+          {contactInfo.map((info, index) => (
             <a
               key={info.id}
               href={info.action}
               target={info.action.startsWith("http") ? "_blank" : "_self"}
               rel="noopener noreferrer"
-              className={`${info.lightBg} rounded-xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border ${info.borderColor} group`}
+              className={`${info.lightBg} rounded-xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border ${info.borderColor} group`}
             >
               <div
-                className={`w-14 h-14 ${info.bgGradient} rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg`}
+                className={`w-14 h-14 ${info.bgGradient} rounded-lg flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform shadow-lg animate-float`}
+                style={{ animationDelay: `${index * 0.2}s` }}
               >
                 {info.icon}
               </div>
@@ -515,23 +668,24 @@ const ContactUs = () => {
               </p>
               <p className="text-sm text-gray-500">{info.subText}</p>
               <div
-                className={`mt-4 ${info.textColor} text-sm font-semibold group-hover:underline`}
+                className={`mt-4 ${info.textColor} text-sm font-semibold group-hover:underline flex items-center`}
               >
-                Contact Now →
+                Contact Now{" "}
+                <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </div>
             </a>
           ))}
         </div>
       </div>
 
-      {/* Main Contact Section */}
+      {/* Main Contact Section - Always visible */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow">
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mr-4">
+                <div className="w-12 h-12 bg-[#2563eb] rounded-lg flex items-center justify-center mr-4 animate-float">
                   <FaComment className="text-white text-xl" />
                 </div>
                 <div>
@@ -545,9 +699,9 @@ const ContactUs = () => {
               </div>
 
               {formSubmitted ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
-                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FaCheckCircle className="text-green-600 text-4xl" />
+                <div className="bg-[#10b981] bg-opacity-10 border border-[#10b981] rounded-lg p-8 text-center">
+                  <div className="w-20 h-20 bg-[#10b981] bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                    <FaCheckCircle className="text-[#10b981] text-4xl" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
                     Message Sent!
@@ -563,7 +717,7 @@ const ContactUs = () => {
                     {departments.map((dept) => (
                       <label
                         key={dept.id}
-                        className={`cursor-pointer ${dept.bgColor} rounded-lg p-3 text-center border-2 transition-all ${
+                        className={`cursor-pointer ${dept.bgColor} rounded-lg p-3 text-center border-2 transition-all hover-scale ${
                           formData.department === dept.value
                             ? `${dept.selectedBorder} shadow-md`
                             : "border-transparent hover:border-gray-300"
@@ -592,7 +746,7 @@ const ContactUs = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <FaUser className="inline mr-2 text-blue-600" />
+                        <FaUser className="inline mr-2 text-[#2563eb]" />
                         Full Name *
                       </label>
                       <input
@@ -601,13 +755,13 @@ const ContactUs = () => {
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <FaEnvelope className="inline mr-2 text-blue-600" />
+                        <FaEnvelope className="inline mr-2 text-[#2563eb]" />
                         Email Address *
                       </label>
                       <input
@@ -616,13 +770,13 @@ const ContactUs = () => {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
                         placeholder="john@example.com"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <FaPhone className="inline mr-2 text-blue-600" />
+                        <FaPhone className="inline mr-2 text-[#2563eb]" />
                         Phone Number
                       </label>
                       <input
@@ -630,7 +784,7 @@ const ContactUs = () => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
                         placeholder="+9476 9956 938"
                       />
                     </div>
@@ -642,7 +796,7 @@ const ContactUs = () => {
                         name="priority"
                         value={formData.priority}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
                       >
                         <option value="normal">Normal</option>
                         <option value="high">High</option>
@@ -661,7 +815,7 @@ const ContactUs = () => {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
                       placeholder="How can we help you?"
                     />
                   </div>
@@ -676,7 +830,7 @@ const ContactUs = () => {
                       onChange={handleChange}
                       required
                       rows="5"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
                       placeholder="Please describe your inquiry in detail..."
                     ></textarea>
                   </div>
@@ -684,7 +838,7 @@ const ContactUs = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center space-x-2 ${
+                    className={`w-full bg-[#2563eb] text-white py-4 rounded-lg font-semibold hover:bg-[#1d4ed8] transition-all duration-300 flex items-center justify-center space-x-2 hover-scale ${
                       loading ? "opacity-75 cursor-not-allowed" : ""
                     }`}
                   >
@@ -695,7 +849,7 @@ const ContactUs = () => {
                       </>
                     ) : (
                       <>
-                        <FaPaperPlane />
+                        <FaPaperPlane className="group-hover:translate-x-1 transition-transform" />
                         <span>Send Message</span>
                       </>
                     )}
@@ -708,9 +862,9 @@ const ContactUs = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Live Chat Card */}
-            <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-2xl shadow-xl p-6 text-white">
+            <div className="bg-[#10b981] rounded-2xl shadow-xl p-6 text-white hover-scale">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mr-4">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mr-4 animate-bounce">
                   <FaComments className="text-2xl" />
                 </div>
                 <div>
@@ -721,70 +875,70 @@ const ContactUs = () => {
               <p className="mb-4 text-green-50">
                 Chat instantly with our support team for immediate assistance.
               </p>
-              <button className="w-full bg-white text-green-600 py-3 rounded-lg font-semibold hover:bg-green-50 transition-colors">
+              <button className="w-full bg-white text-[#10b981] py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all hover-scale">
                 Start Live Chat
               </button>
             </div>
 
             {/* AI Assistant Card */}
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-xl p-6 text-white">
+            <div className="bg-[#f59e0b] rounded-2xl shadow-xl p-6 text-white hover-scale">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mr-4">
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mr-4 animate-rotate">
                   <FaRobot className="text-2xl" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">AI Assistant</h3>
-                  <p className="text-purple-100">Get instant answers</p>
+                  <p className="text-yellow-100">Get instant answers</p>
                 </div>
               </div>
-              <p className="mb-4 text-purple-50">
+              <p className="mb-4 text-yellow-50">
                 Use our AI-powered assistant for quick answers to common
                 questions.
               </p>
-              <button className="w-full bg-white text-purple-600 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors">
+              <button className="w-full bg-white text-[#f59e0b] py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all hover-scale">
                 Ask AI Assistant
               </button>
             </div>
 
             {/* Quick Links */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
+            <div className="bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow">
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 Quick Links
               </h3>
               <div className="space-y-3">
                 <Link
                   to="/faq"
-                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors group"
+                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-[#2563eb] hover:bg-opacity-10 transition-all group hover-scale"
                 >
-                  <FaQuestionCircle className="text-blue-600 mr-3 group-hover:scale-110 transition-transform" />
-                  <span className="text-gray-700 group-hover:text-blue-600">
+                  <FaQuestionCircle className="text-[#2563eb] mr-3 group-hover:scale-110 transition-transform" />
+                  <span className="text-gray-700 group-hover:text-[#2563eb]">
                     FAQ & Help Center
                   </span>
                 </Link>
                 <Link
                   to="/support"
-                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors group"
+                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-[#10b981] hover:bg-opacity-10 transition-all group hover-scale"
                 >
-                  <FaHeadset className="text-purple-600 mr-3 group-hover:scale-110 transition-transform" />
-                  <span className="text-gray-700 group-hover:text-purple-600">
+                  <FaHeadset className="text-[#10b981] mr-3 group-hover:scale-110 transition-transform" />
+                  <span className="text-gray-700 group-hover:text-[#10b981]">
                     Support Tickets
                   </span>
                 </Link>
                 <Link
                   to="/feedback"
-                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors group"
+                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-[#f59e0b] hover:bg-opacity-10 transition-all group hover-scale"
                 >
-                  <FaStar className="text-yellow-600 mr-3 group-hover:scale-110 transition-transform" />
-                  <span className="text-gray-700 group-hover:text-yellow-600">
+                  <FaStar className="text-[#f59e0b] mr-3 group-hover:scale-110 transition-transform" />
+                  <span className="text-gray-700 group-hover:text-[#f59e0b]">
                     Give Feedback
                   </span>
                 </Link>
                 <Link
                   to="/report"
-                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors group"
+                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-[#ef4444] hover:bg-opacity-10 transition-all group hover-scale"
                 >
-                  <FaShieldAlt className="text-red-600 mr-3 group-hover:scale-110 transition-transform" />
-                  <span className="text-gray-700 group-hover:text-red-600">
+                  <FaShieldAlt className="text-[#ef4444] mr-3 group-hover:scale-110 transition-transform" />
+                  <span className="text-gray-700 group-hover:text-[#ef4444]">
                     Report Fraud
                   </span>
                 </Link>
@@ -794,11 +948,58 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Office Locations */}
+      {/* Map Section - Always visible */}
+      <div className="bg-gradient-to-b from-gray-50 to-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-[#2563eb] mb-4">
+              Find Us Here
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Visit our headquarters or any of our regional offices
+            </p>
+          </div>
+
+          {/* Map Placeholder */}
+          <div className="bg-gray-200 rounded-2xl h-96 mb-8 relative overflow-hidden hover-scale">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#2563eb]/20 to-[#10b981]/20"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <FaMapMarkedAlt className="text-6xl text-[#2563eb] mx-auto mb-4 animate-float" />
+                <p className="text-gray-700 text-lg">
+                  Interactive Map Loading...
+                </p>
+                <p className="text-gray-500">
+                  123 Banking Avenue, Financial District, NY 10001
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Map Features */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {mapFeatures.map((feature) => (
+              <div
+                key={feature.id}
+                className={`${feature.bgColor} rounded-lg p-4 text-center hover:shadow-md transition-all hover-scale`}
+              >
+                <div
+                  className={`text-2xl ${feature.color} mb-2 flex justify-center animate-bounce`}
+                >
+                  {feature.icon}
+                </div>
+                <p className="text-xs text-gray-600">{feature.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Office Locations - Always visible */}
       <div className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-[#2563eb] mb-4">
               Our Global Offices
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -807,10 +1008,10 @@ const ContactUs = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {locations.map((location) => (
+            {locations.map((location, index) => (
               <div
                 key={location.id}
-                className={`${location.lightBg} rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}
+                className={`${location.lightBg} rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2`}
               >
                 <div
                   className={`h-2 bg-gradient-to-r ${location.gradient}`}
@@ -818,7 +1019,8 @@ const ContactUs = () => {
                 <div className="p-6">
                   <div className="flex items-center mb-4">
                     <div
-                      className={`w-12 h-12 bg-gradient-to-r ${location.gradient} rounded-lg flex items-center justify-center text-white mr-3`}
+                      className={`w-12 h-12 bg-gradient-to-r ${location.gradient} rounded-lg flex items-center justify-center text-white mr-3 animate-float`}
+                      style={{ animationDelay: `${index * 0.2}s` }}
                     >
                       {location.icon}
                     </div>
@@ -849,11 +1051,11 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* FAQ Section */}
+      {/* FAQ Section - Always visible */}
       <div className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-[#2563eb] mb-4">
               Frequently Asked Questions
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -862,13 +1064,18 @@ const ContactUs = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {faqs.map((faq) => (
+            {faqs.map((faq, index) => (
               <div
                 key={faq.id}
-                className={`${faq.bgColor} rounded-xl p-6 hover:shadow-lg transition-shadow`}
+                className={`${faq.bgColor} rounded-xl p-6 hover:shadow-lg transition-all hover-scale`}
               >
                 <div className="flex items-start mb-3">
-                  <div className={`${faq.color} mr-3`}>{faq.icon}</div>
+                  <div
+                    className={`${faq.color} mr-3 animate-float`}
+                    style={{ animationDelay: `${index * 0.2}s` }}
+                  >
+                    {faq.icon}
+                  </div>
                   <h3 className="font-bold text-gray-900">{faq.question}</h3>
                 </div>
                 <p className="text-sm text-gray-600 ml-9">{faq.answer}</p>
@@ -876,15 +1083,23 @@ const ContactUs = () => {
             ))}
           </div>
 
-          <div className="text-center mt-8"></div>
+          <div className="text-center mt-8">
+            <Link
+              to="/faq"
+              className="inline-flex items-center text-[#2563eb] hover:text-[#1d4ed8] font-semibold hover-scale"
+            >
+              View All FAQs
+              <FaArrowRight className="ml-2" />
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Social Media Section */}
+      {/* Social Media Section - Always visible */}
       <div className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-[#2563eb] mb-4">
               Connect With Us
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -893,7 +1108,7 @@ const ContactUs = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {socialMedia.map((social) => (
+            {socialMedia.map((social, index) => (
               <a
                 key={social.id}
                 href={social.link}
@@ -902,9 +1117,12 @@ const ContactUs = () => {
                 className="group"
               >
                 <div
-                  className={`${social.bgColor} rounded-xl p-6 text-white hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 text-center`}
+                  className={`${social.bgColor} rounded-xl p-6 text-white hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 text-center hover-scale`}
                 >
-                  <div className="mb-2 flex justify-center group-hover:scale-110 transition-transform">
+                  <div
+                    className="mb-2 flex justify-center group-hover:scale-110 transition-transform animate-bounce"
+                    style={{ animationDelay: `${index * 0.2}s` }}
+                  >
                     {social.icon}
                   </div>
                   <div className="font-semibold">{social.name}</div>
@@ -919,24 +1137,24 @@ const ContactUs = () => {
       </div>
 
       {/* Emergency Contact Bar */}
-      <div className="bg-gradient-to-r from-red-600 to-pink-600 text-white py-4 sticky bottom-0 z-50">
+      <div className="bg-gradient-to-r from-[#ef4444] to-[#ef4444] text-white py-4 sticky bottom-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="flex items-center mb-2 md:mb-0">
-              <FaShieldAlt className="text-2xl mr-3" />
+              <FaShieldAlt className="text-2xl mr-3 animate-pulse-slow" />
               <span className="font-semibold">24/7 Emergency Support:</span>
             </div>
             <div className="flex items-center space-x-4">
               <a
                 href="tel:+15551234567"
-                className="flex items-center hover:underline"
+                className="flex items-center hover:underline hover-scale"
               >
                 <FaPhone className="mr-2" /> +1 (555) 123-4567
               </a>
               <span className="hidden md:inline">|</span>
               <a
                 href="mailto:emergency@smartbank.com"
-                className="flex items-center hover:underline"
+                className="flex items-center hover:underline hover-scale"
               >
                 <FaEnvelope className="mr-2" /> emergency@smartbank.com
               </a>
