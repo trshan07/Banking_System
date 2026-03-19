@@ -48,7 +48,7 @@ import {
   FaUnlock,
   FaUserCheck,
   FaUserTimes,
-  FaUserCog,
+  FaUserCog,      // Use this instead of FaUserGear
   FaUserTie,
   FaUserFriends,
   FaBriefcase,
@@ -88,16 +88,18 @@ import {
   FaTasks,
   FaCheckDouble,
   FaHourglassHalf,
-  FaChartSimple,
-  FaUserGear,
-  FaUserHeadset,
-  FaHandHoldingHeart,
+  FaChartPie as FaChartSimple, // Alias FaChartPie as FaChartSimple
+  FaHeadphones,     // Alternative for user support
   FaHandsHelping,
   FaAward,
   FaMedal,
   FaTrophy,
+  FaExclamationTriangle,
+  FaSpinner,
+  FaUser,           // Alternative for user profile
+  FaUserMd,         // Alternative for user settings
 } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-hot-toast";
 
@@ -535,6 +537,17 @@ const EmployeeDashboard = () => {
     toast.success(`Status updated to ${status}`);
   };
 
+  // Handle action click for quick actions
+  const handleActionClick = (action) => {
+    if (action === "call") {
+      toast.info("Initiating call feature...");
+    } else if (action === "report") {
+      toast.success("Opening report generator...");
+    } else {
+      setActiveTab(action);
+    }
+  };
+
   // Render Dashboard Tab
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -628,7 +641,7 @@ const EmployeeDashboard = () => {
           {quickActions.map((action) => (
             <button
               key={action.id}
-              onClick={() => setActiveTab(action.action)}
+              onClick={() => handleActionClick(action.action)}
               className="flex flex-col items-center p-3 rounded-lg hover:bg-slate-50 transition-colors group"
             >
               <div
@@ -745,7 +758,7 @@ const EmployeeDashboard = () => {
           <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold">Profile Overview</h3>
-              <FaUserGear className="text-xl" />
+              <FaUserCog className="text-xl" /> {/* Changed from FaUserGear to FaUserCog */}
             </div>
             <div className="space-y-3">
               <div className="flex justify-between">
@@ -971,6 +984,9 @@ const EmployeeDashboard = () => {
                       src={ticket.avatar}
                       alt={ticket.customer}
                       className="w-8 h-8 rounded-full mr-2"
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/40";
+                      }}
                     />
                     <span className="text-sm text-slate-900">
                       {ticket.customer}
@@ -1018,6 +1034,7 @@ const EmployeeDashboard = () => {
                       <FaEye />
                     </button>
                     <button
+                      onClick={() => handleTicketAssign(ticket.id)}
                       className="text-emerald-600 hover:text-emerald-800"
                       title="Take"
                     >
@@ -1089,6 +1106,9 @@ const EmployeeDashboard = () => {
                   src={kyc.avatar}
                   alt={kyc.name}
                   className="w-12 h-12 rounded-full"
+                  onError={(e) => {
+                    e.target.src = "https://via.placeholder.com/40";
+                  }}
                 />
                 <div>
                   <h3 className="font-semibold text-slate-800">{kyc.name}</h3>
@@ -1229,6 +1249,9 @@ const EmployeeDashboard = () => {
                       src={loan.avatar}
                       alt={loan.applicant}
                       className="w-8 h-8 rounded-full mr-2"
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/40";
+                      }}
                     />
                     <span className="text-sm text-slate-900">
                       {loan.applicant}
@@ -1485,9 +1508,21 @@ const EmployeeDashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-100">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
+            <FaSpinner className="animate-spin text-emerald-600 text-xl" />
+            <span>Processing...</span>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 bg-white shadow-2xl transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out z-30 w-64`}
+        className={`fixed inset-y-0 left-0 bg-white shadow-2xl transform ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } transition-transform duration-300 ease-in-out z-30 w-64`}
       >
         {/* Sidebar Header */}
         <div className="h-16 flex items-center justify-between px-4 bg-gradient-to-r from-emerald-700 to-teal-700">
@@ -1526,43 +1561,71 @@ const EmployeeDashboard = () => {
         <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "dashboard" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "dashboard"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaTachometerAlt /> <span>Dashboard</span>
           </button>
           <button
             onClick={() => setActiveTab("ticket")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "ticket" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "ticket"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaHeadset /> <span>Support Tickets</span>
           </button>
           <button
             onClick={() => setActiveTab("kyc")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "kyc" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "kyc"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaFileSignature /> <span>KYC Processing</span>
           </button>
           <button
             onClick={() => setActiveTab("loan")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "loan" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "loan"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaMoneyBillWave /> <span>Loan Processing</span>
           </button>
           <button
             onClick={() => setActiveTab("performance")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "performance" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "performance"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaChartLine /> <span>My Performance</span>
           </button>
           <button
             onClick={() => setActiveTab("leave")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "leave" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "leave"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaCalendarAlt /> <span>Leave Management</span>
           </button>
           <button
             onClick={() => setActiveTab("settings")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "settings" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "settings"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaCog /> <span>Settings</span>
           </button>

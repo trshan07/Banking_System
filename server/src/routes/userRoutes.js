@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const userController = require('../controllers/userController');
-const { authMiddleware, checkRole } = require('../middleware/auth');
+const { authMiddleware, checkRole, checkPermission } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 const { uploadSingle } = require('../middleware/upload');
 
@@ -26,24 +26,66 @@ const changePasswordValidation = [
   validate
 ];
 
-// Profile routes
+// ============================================
+// User Profile Routes (accessible by authenticated users)
+// ============================================
+
+// Get current user profile
 router.get('/profile', authMiddleware, userController.getProfile);
+
+// Update current user profile
 router.put('/profile', authMiddleware, updateProfileValidation, userController.updateProfile);
+
+// Upload profile picture
 router.post('/profile-picture', authMiddleware, uploadSingle('profilePicture'), userController.uploadProfilePicture);
+
+// Change password
 router.post('/change-password', authMiddleware, changePasswordValidation, userController.changePassword);
 
-// Account routes
+// ============================================
+// User Account Routes
+// ============================================
+
+// Get all accounts for current user
 router.get('/accounts', authMiddleware, userController.getUserAccounts);
+
+// Get specific account details
 router.get('/accounts/:accountId', authMiddleware, userController.getAccountDetails);
 
-// Transaction routes
+// ============================================
+// User Transaction Routes
+// ============================================
+
+// Get all transactions for current user
 router.get('/transactions', authMiddleware, userController.getUserTransactions);
+
+// Get specific transaction details
 router.get('/transactions/:transactionId', authMiddleware, userController.getTransactionDetails);
 
-// Admin routes (protected by role)
-router.get('/', authMiddleware, checkRole('admin', 'super_admin'), userController.getAllUsers);
-router.get('/:userId', authMiddleware, checkRole('admin', 'super_admin'), userController.getUserById);
-router.put('/:userId', authMiddleware, checkRole('admin', 'super_admin'), userController.updateUser);
-router.delete('/:userId', authMiddleware, checkRole('super_admin'), userController.deleteUser);
+// ============================================
+// Admin Routes (protected by role)
+// ============================================
+
+// Get all users (admin only)
+router.get('/', authMiddleware, checkRole('admin', 'super_admin', 'superadmin'), userController.getAllUsers);
+
+// Get user by ID (admin only)
+router.get('/:userId', authMiddleware, checkRole('admin', 'super_admin', 'superadmin'), userController.getUserById);
+
+// Update user by ID (admin only)
+router.put('/:userId', authMiddleware, checkRole('admin', 'super_admin', 'superadmin'), userController.updateUser);
+
+// Delete user by ID (super admin only)
+router.delete('/:userId', authMiddleware, checkRole('super_admin', 'superadmin'), userController.deleteUser);
+
+// ============================================
+// User Statistics Routes (admin only)
+// ============================================
+
+// Get user statistics
+router.get('/stats/overview', authMiddleware, checkRole('admin', 'super_admin', 'superadmin'), userController.getUserStats);
+
+// Get user activity log
+router.get('/:userId/activity', authMiddleware, checkRole('admin', 'super_admin', 'superadmin'), userController.getUserActivity);
 
 module.exports = router;

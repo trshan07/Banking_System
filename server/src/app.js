@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
@@ -26,24 +27,37 @@ const employeeRoutes = require('./routes/employeeRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const { authMiddleware } = require('./middleware/auth');
 const auditLogger = require('./middleware/auditLogger');
+const { generalLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 const httpServer = createServer(app);
 
 // ============================================
-// CORS Configuration - FIXED FOR PORT 3001
+// CORS Configuration - FIXED FOR EXPRESS 5
 // ============================================
 
-// Allowed origins - ADD YOUR FRONTEND PORTS HERE
+// Allowed origins
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3002',
+  'http://localhost:3003',
+  'http://localhost:3004',
+  'http://localhost:3005',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
   'http://127.0.0.1:3002',
+  'http://127.0.0.1:3003',
+  'http://127.0.0.1:3004',
+  'http://127.0.0.1:3005',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:5175',
   process.env.FRONTEND_URL
-].filter(Boolean); // Remove any undefined values
+].filter(Boolean);
 
 // CORS options
 const corsOptions = {
@@ -54,38 +68,45 @@ const corsOptions = {
     }
     
     // Check if origin is in allowedOrigins array
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
-      // Log blocked origins for debugging
       console.log('🚫 CORS blocked origin:', origin);
-      console.log('✅ Allowed origins:', allowedOrigins);
-      
       callback(new Error(`Origin ${origin} not allowed by CORS`));
     }
   },
-  credentials: true, // Allow cookies and authentication headers
-  optionsSuccessStatus: 200, // For legacy browser support
+  credentials: true,
+  optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
     'Content-Type', 
     'Authorization', 
     'X-Requested-With',
     'Accept',
-    'Origin'
+    'Origin',
+    'X-CSRF-Token'
   ],
-  exposedHeaders: ['Content-Range', 'X-Content-Range']
+  exposedHeaders: ['Content-Range', 'X-Content-Range', 'Authorization']
 };
 
-// Apply CORS middleware
+// ✅ FIXED: Apply CORS middleware WITHOUT using '*' pattern
 app.use(cors(corsOptions));
 
-// 🔧 FIXED: Removed the problematic app.options('*', cors(corsOptions)) line
-// The app.use(cors) above already handles preflight requests automatically
-
-// Logging middleware for debugging CORS
+// ✅ FIXED: Handle preflight requests properly using middleware
 app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.url} - Origin: ${req.headers.origin || 'No Origin'}`);
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    return res.status(200).json({});
+  }
+  next();
+});
+
+// Logging middleware for debugging
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.url}`);
   next();
 });
 
@@ -93,9 +114,12 @@ app.use((req, res, next) => {
 // Security & Utility Middleware
 // ============================================
 
+// Add cookie parser middleware
+app.use(cookieParser());
+
 // Security headers
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" } // Allow cross-origin resources
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
 // Body parsing
@@ -112,6 +136,9 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('combined'));
 }
 
+// Apply rate limiting to all routes
+app.use(generalLimiter);
+
 // Audit logging
 app.use(auditLogger);
 
@@ -119,7 +146,7 @@ app.use(auditLogger);
 // Static Files
 // ============================================
 
-// Serve uploaded files (if any)
+// Serve uploaded files
 app.use('/uploads', express.static('uploads'));
 
 // ============================================
@@ -140,6 +167,15 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'API is working',
+    timestamp: new Date()
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -154,40 +190,53 @@ app.use('/api/savings', savingsRoutes);
 app.use('/api/employee', employeeRoutes);
 
 // ============================================
-// Socket.IO Setup (if needed)
+// Socket.IO Setup
 // ============================================
 
 const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
-    credentials: true
-  }
+    credentials: true,
+    methods: ['GET', 'POST']
+  },
+  transports: ['websocket', 'polling']
 });
 
 // Socket.IO middleware for authentication
 io.use((socket, next) => {
-  const token = socket.handshake.auth.token;
+  const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
+  
   if (!token) {
-    return next(new Error('Authentication error'));
+    return next(new Error('Authentication error: No token provided'));
   }
   
   try {
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET);
     socket.userId = decoded.id;
+    socket.userRole = decoded.role;
     next();
   } catch (err) {
-    next(new Error('Authentication error'));
+    console.error('Socket auth error:', err);
+    next(new Error('Authentication error: Invalid token'));
   }
 });
 
 io.on('connection', (socket) => {
-  console.log('🔌 New client connected:', socket.id);
+  console.log('🔌 New client connected:', socket.id, 'User:', socket.userId);
   
   socket.join(`user:${socket.userId}`);
   
+  if (socket.userRole) {
+    socket.join(`role:${socket.userRole}`);
+  }
+  
   socket.on('disconnect', () => {
     console.log('🔌 Client disconnected:', socket.id);
+  });
+  
+  socket.on('error', (error) => {
+    console.error('Socket error:', error);
   });
 });
 
@@ -195,20 +244,34 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 // ============================================
-// 404 Handler - FIXED WILDCARD SYNTAX
+// ✅ FIXED: 404 Handler for Express 5
 // ============================================
 
-// Catch-all for all unmatched routes (works with Express 5)
-app.use((req, res) => {
+// IMPORTANT: In Express 5 with path-to-regexp@8.x, we CANNOT use:
+// - app.all('*', ...)
+// - app.use('*', ...)
+// - app.options('*', ...)
+//
+// Instead, we use middleware functions that don't rely on route patterns
+
+// This middleware catches all requests that weren't handled by previous routes
+app.use((req, res, next) => {
+  // Skip if response has already been sent
+  if (res.headersSent) {
+    return next();
+  }
+  
   res.status(404).json({
     success: false,
-    message: `Route ${req.originalUrl} not found`,
+    message: `Route ${req.method} ${req.originalUrl} not found`,
     method: req.method,
+    path: req.originalUrl,
     timestamp: new Date().toISOString()
   });
 });
+
 // ============================================
-// Error Handling Middleware (must be last)
+// Error Handling Middleware
 // ============================================
 
 app.use(errorHandler);

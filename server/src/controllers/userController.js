@@ -1,19 +1,14 @@
 // backend/src/controllers/userController.js
 const User = require('../models/User');
-const Account = require('../models/Account');
-const Transaction = require('../models/Transaction');
-const bcrypt = require('bcryptjs');
 
-// @desc    Get user profile
-// @route   GET /api/users/profile
-// @access  Private
+// Get current user profile
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password -__v');
+    const user = await User.findById(req.user.id).select('-password -refreshToken -__v');
     
     res.json({
       success: true,
-      data: user
+      data: { user }
     });
   } catch (error) {
     console.error('Get profile error:', error);
@@ -24,14 +19,12 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// @desc    Update user profile
-// @route   PUT /api/users/profile
-// @access  Private
+// Update current user profile
 exports.updateProfile = async (req, res) => {
   try {
     const { firstName, lastName, phone, address } = req.body;
     
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.id);
     
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
@@ -40,12 +33,12 @@ exports.updateProfile = async (req, res) => {
     
     await user.save();
     
-    const updatedUser = await User.findById(req.user._id).select('-password -__v');
+    const updatedUser = await User.findById(req.user.id).select('-password -refreshToken -__v');
     
     res.json({
       success: true,
       message: 'Profile updated successfully',
-      data: updatedUser
+      data: { user: updatedUser }
     });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -56,9 +49,7 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Upload profile picture
-// @route   POST /api/users/profile-picture
-// @access  Private
+// Upload profile picture
 exports.uploadProfilePicture = async (req, res) => {
   try {
     if (!req.file) {
@@ -68,19 +59,14 @@ exports.uploadProfilePicture = async (req, res) => {
       });
     }
 
-    const user = await User.findById(req.user._id);
-    
-    // In a real app, you would upload to cloud storage and get URL
-    // For now, we'll use local path
-    const profilePictureUrl = `/uploads/${req.file.filename}`;
-    user.profileImage = profilePictureUrl;
-    
+    const user = await User.findById(req.user.id);
+    user.profileImage = `/uploads/${req.file.filename}`;
     await user.save();
-    
+
     res.json({
       success: true,
       message: 'Profile picture uploaded successfully',
-      data: { profileImage: profilePictureUrl }
+      data: { profileImage: user.profileImage }
     });
   } catch (error) {
     console.error('Upload profile picture error:', error);
@@ -91,18 +77,15 @@ exports.uploadProfilePicture = async (req, res) => {
   }
 };
 
-// @desc    Change password
-// @route   POST /api/users/change-password
-// @access  Private
+// Change password
 exports.changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     
-    const user = await User.findById(req.user._id).select('+password');
+    const user = await User.findById(req.user.id).select('+password');
     
     // Verify current password
     const isValidPassword = await user.comparePassword(currentPassword);
-    
     if (!isValidPassword) {
       return res.status(401).json({
         success: false,
@@ -127,16 +110,13 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-// @desc    Get user accounts
-// @route   GET /api/users/accounts
-// @access  Private
+// Get user accounts (placeholder)
 exports.getUserAccounts = async (req, res) => {
   try {
-    const accounts = await Account.find({ userId: req.user._id });
-    
+    // This would typically fetch accounts from an Account model
     res.json({
       success: true,
-      data: accounts
+      data: { accounts: [] }
     });
   } catch (error) {
     console.error('Get user accounts error:', error);
@@ -147,26 +127,19 @@ exports.getUserAccounts = async (req, res) => {
   }
 };
 
-// @desc    Get account details
-// @route   GET /api/users/accounts/:accountId
-// @access  Private
+// Get account details (placeholder)
 exports.getAccountDetails = async (req, res) => {
   try {
-    const account = await Account.findOne({
-      _id: req.params.accountId,
-      userId: req.user._id
-    });
-    
-    if (!account) {
-      return res.status(404).json({
-        success: false,
-        message: 'Account not found'
-      });
-    }
+    const { accountId } = req.params;
     
     res.json({
       success: true,
-      data: account
+      data: { 
+        account: {
+          id: accountId,
+          message: 'Account details endpoint - to be implemented'
+        }
+      }
     });
   } catch (error) {
     console.error('Get account details error:', error);
@@ -177,24 +150,12 @@ exports.getAccountDetails = async (req, res) => {
   }
 };
 
-// @desc    Get user transactions
-// @route   GET /api/users/transactions
-// @access  Private
+// Get user transactions (placeholder)
 exports.getUserTransactions = async (req, res) => {
   try {
-    const accounts = await Account.find({ userId: req.user._id }).select('_id');
-    const accountIds = accounts.map(acc => acc._id);
-    
-    const transactions = await Transaction.find({
-      $or: [
-        { fromAccountId: { $in: accountIds } },
-        { toAccountId: { $in: accountIds } }
-      ]
-    }).sort({ createdAt: -1 }).limit(50);
-    
     res.json({
       success: true,
-      data: transactions
+      data: { transactions: [] }
     });
   } catch (error) {
     console.error('Get user transactions error:', error);
@@ -205,32 +166,19 @@ exports.getUserTransactions = async (req, res) => {
   }
 };
 
-// @desc    Get transaction details
-// @route   GET /api/users/transactions/:transactionId
-// @access  Private
+// Get transaction details (placeholder)
 exports.getTransactionDetails = async (req, res) => {
   try {
-    const accounts = await Account.find({ userId: req.user._id }).select('_id');
-    const accountIds = accounts.map(acc => acc._id);
-    
-    const transaction = await Transaction.findOne({
-      _id: req.params.transactionId,
-      $or: [
-        { fromAccountId: { $in: accountIds } },
-        { toAccountId: { $in: accountIds } }
-      ]
-    });
-    
-    if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: 'Transaction not found'
-      });
-    }
+    const { transactionId } = req.params;
     
     res.json({
       success: true,
-      data: transaction
+      data: { 
+        transaction: {
+          id: transactionId,
+          message: 'Transaction details endpoint - to be implemented'
+        }
+      }
     });
   } catch (error) {
     console.error('Get transaction details error:', error);
@@ -241,34 +189,14 @@ exports.getTransactionDetails = async (req, res) => {
   }
 };
 
-// Admin routes
-
-// @desc    Get all users (admin only)
-// @route   GET /api/users
-// @access  Private/Admin
+// Get all users (admin only)
 exports.getAllUsers = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    
-    const users = await User.find()
-      .select('-password')
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    
-    const total = await User.countDocuments();
+    const users = await User.find().select('-password -refreshToken -__v');
     
     res.json({
       success: true,
-      data: users,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      data: { users }
     });
   } catch (error) {
     console.error('Get all users error:', error);
@@ -279,12 +207,12 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// @desc    Get user by ID (admin only)
-// @route   GET /api/users/:userId
-// @access  Private/Admin
+// Get user by ID (admin only)
 exports.getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).select('-password');
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId).select('-password -refreshToken -__v');
     
     if (!user) {
       return res.status(404).json({
@@ -295,7 +223,7 @@ exports.getUserById = async (req, res) => {
     
     res.json({
       success: true,
-      data: user
+      data: { user }
     });
   } catch (error) {
     console.error('Get user by ID error:', error);
@@ -306,14 +234,13 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// @desc    Update user (admin only)
-// @route   PUT /api/users/:userId
-// @access  Private/Admin
+// Update user by ID (admin only)
 exports.updateUser = async (req, res) => {
   try {
-    const { role, status, permissions } = req.body;
+    const { userId } = req.params;
+    const { firstName, lastName, email, phone, address, role, status } = req.body;
     
-    const user = await User.findById(req.params.userId);
+    const user = await User.findById(userId);
     
     if (!user) {
       return res.status(404).json({
@@ -322,18 +249,22 @@ exports.updateUser = async (req, res) => {
       });
     }
     
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
     if (role) user.role = role;
     if (status) user.status = status;
-    if (permissions) user.permissions = permissions;
     
     await user.save();
     
-    const updatedUser = await User.findById(req.params.userId).select('-password');
+    const updatedUser = await User.findById(userId).select('-password -refreshToken -__v');
     
     res.json({
       success: true,
       message: 'User updated successfully',
-      data: updatedUser
+      data: { user: updatedUser }
     });
   } catch (error) {
     console.error('Update user error:', error);
@@ -344,12 +275,12 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// @desc    Delete user (super admin only)
-// @route   DELETE /api/users/:userId
-// @access  Private/SuperAdmin
+// Delete user by ID (super admin only)
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId);
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId);
     
     if (!user) {
       return res.status(404).json({
@@ -358,25 +289,71 @@ exports.deleteUser = async (req, res) => {
       });
     }
     
-    // Prevent deleting yourself
-    if (user._id.toString() === req.user._id.toString()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot delete your own account'
-      });
-    }
-    
-    await user.deleteOne();
+    // Soft delete - set status to inactive
+    user.status = 'inactive';
+    await user.save();
     
     res.json({
       success: true,
-      message: 'User deleted successfully'
+      message: 'User deactivated successfully'
     });
   } catch (error) {
     console.error('Delete user error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete user'
+    });
+  }
+};
+
+// Get user statistics (admin only)
+exports.getUserStats = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ status: 'active' });
+    const inactiveUsers = await User.countDocuments({ status: 'inactive' });
+    
+    const roleStats = await User.aggregate([
+      { $group: { _id: '$role', count: { $sum: 1 } } }
+    ]);
+    
+    res.json({
+      success: true,
+      data: {
+        stats: {
+          total: totalUsers,
+          active: activeUsers,
+          inactive: inactiveUsers,
+          byRole: roleStats
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get user stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get user statistics'
+    });
+  }
+};
+
+// Get user activity (placeholder)
+exports.getUserActivity = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    res.json({
+      success: true,
+      data: {
+        activity: [],
+        message: 'User activity endpoint - to be implemented'
+      }
+    });
+  } catch (error) {
+    console.error('Get user activity error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get user activity'
     });
   }
 };

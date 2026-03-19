@@ -1,4 +1,3 @@
-// src/middleware/validation.js
 const { validationResult } = require('express-validator');
 
 const validate = (req, res, next) => {
@@ -6,8 +5,11 @@ const validate = (req, res, next) => {
   
   if (!errors.isEmpty()) {
     const formattedErrors = {};
+    
     errors.array().forEach(error => {
-      formattedErrors[error.path] = error.msg;
+      if (!formattedErrors[error.path]) {
+        formattedErrors[error.path] = error.msg;
+      }
     });
 
     return res.status(400).json({

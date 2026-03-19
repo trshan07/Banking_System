@@ -52,7 +52,7 @@ import {
   FaFolderOpen,
   FaArchive,
   FaInbox,
-  FaSend,
+  FaTelegramPlane,  // Changed from FaSend to FaTelegramPlane
   FaShare,
   FaLink,
   FaCopy,
@@ -1684,6 +1684,9 @@ const TaskManagement = () => {
                           src={comment.avatar}
                           alt={comment.user}
                           className="w-8 h-8 rounded-full"
+                          onError={(e) => {
+                            e.target.src = "https://via.placeholder.com/40";
+                          }}
                         />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
@@ -1708,6 +1711,9 @@ const TaskManagement = () => {
                       src={employeeInfo.avatar}
                       alt={employeeInfo.name}
                       className="w-8 h-8 rounded-full"
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/40";
+                      }}
                     />
                     <div className="flex-1">
                       <textarea
@@ -1722,7 +1728,7 @@ const TaskManagement = () => {
                           onClick={() => handleAddComment(selectedTask.id)}
                           className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center"
                         >
-                          <FaPaperPlane className="mr-2" /> Post Comment
+                          <FaTelegramPlane className="mr-2" /> Post Comment
                         </button>
                       </div>
                     </div>

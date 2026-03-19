@@ -78,13 +78,9 @@ import {
   FaFilePdf,
   FaFileExcel,
   FaFileCsv,
-  FaWallet,
-  FaMobile,
-  FaQrcode,
-  FaFingerprint,
-  FaKey,
+  FaSpinner,
 } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-hot-toast";
 
@@ -259,7 +255,7 @@ const AdminDashboard = () => {
       id: 3,
       type: "New Account",
       user: "Michael Chen",
-      type: "Business",
+      accountType: "Business",
       date: "2024-03-17",
       priority: "medium",
     },
@@ -407,6 +403,33 @@ const AdminDashboard = () => {
     }, 2000);
   };
 
+  // Handle security scan
+  const handleSecurityScan = () => {
+    setLoading(true);
+    setTimeout(() => {
+      toast.success("Security scan completed. No threats detected.");
+      setLoading(false);
+    }, 3000);
+  };
+
+  // Handle notifications
+  const handleBroadcastMessage = () => {
+    toast.success("Broadcast message feature coming soon!");
+  };
+
+  // Handle action click
+  const handleActionClick = (action) => {
+    if (action === "backup") {
+      handleBackup();
+    } else if (action === "security") {
+      handleSecurityScan();
+    } else if (action === "notifications") {
+      handleBroadcastMessage();
+    } else {
+      setActiveTab(action);
+    }
+  };
+
   // Handle approve
   const handleApprove = (id) => {
     toast.success(`Request #${id} approved successfully`);
@@ -535,7 +558,7 @@ const AdminDashboard = () => {
           {quickActions.map((action) => (
             <button
               key={action.id}
-              onClick={() => setActiveTab(action.action)}
+              onClick={() => handleActionClick(action.action)}
               className="flex flex-col items-center p-3 rounded-lg hover:bg-slate-50 transition-colors group"
             >
               <div
@@ -709,6 +732,9 @@ const AdminDashboard = () => {
                   src={activity.avatar}
                   alt={activity.user}
                   className="w-10 h-10 rounded-full"
+                  onError={(e) => {
+                    e.target.src = "https://via.placeholder.com/40";
+                  }}
                 />
                 <div>
                   <p className="text-sm font-medium text-slate-800">
@@ -1769,9 +1795,21 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-100">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
+            <FaSpinner className="animate-spin text-emerald-600 text-xl" />
+            <span>Processing...</span>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 bg-white shadow-2xl transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out z-30 w-64`}
+        className={`fixed inset-y-0 left-0 bg-white shadow-2xl transform ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } transition-transform duration-300 ease-in-out z-30 w-64`}
       >
         {/* Sidebar Header */}
         <div className="h-16 flex items-center justify-between px-4 bg-gradient-to-r from-emerald-700 to-teal-700">
@@ -1806,55 +1844,91 @@ const AdminDashboard = () => {
         <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "dashboard" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "dashboard"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaTachometerAlt /> <span>Dashboard</span>
           </button>
           <button
             onClick={() => setActiveTab("users")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "users" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "users"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaUsers /> <span>User Management</span>
           </button>
           <button
             onClick={() => setActiveTab("banks")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "banks" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "banks"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaBuilding /> <span>Bank Management</span>
           </button>
           <button
             onClick={() => setActiveTab("loans")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "loans" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "loans"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaMoneyBillWave /> <span>Loan Management</span>
           </button>
           <button
             onClick={() => setActiveTab("fraud")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "fraud" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "fraud"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaShieldAlt /> <span>Fraud Reports</span>
           </button>
           <button
             onClick={() => setActiveTab("support")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "support" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "support"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaHeadset /> <span>Support Tickets</span>
           </button>
           <button
             onClick={() => setActiveTab("kyc")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "kyc" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "kyc"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaFileSignature /> <span>KYC Applications</span>
           </button>
           <button
             onClick={() => setActiveTab("reports")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "reports" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "reports"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaChartLine /> <span>Reports</span>
           </button>
           <button
             onClick={() => setActiveTab("settings")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === "settings" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              activeTab === "settings"
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-700 hover:bg-slate-50"
+            }`}
           >
             <FaCog /> <span>Settings</span>
           </button>
