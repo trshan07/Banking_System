@@ -1,16 +1,28 @@
-import React from 'react'
-import { Navigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
-import LoadingSpinner from '../components/common/LoadingSpinner'
+// frontend/src/components/PrivateRoute.jsx
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext'; // ✅ This should now work
 
-const PrivateRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth()
+const PrivateRoute = ({ children, requiredRole }) => {
+  const { user, isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner fullScreen />
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
-  return isAuthenticated ? children : <Navigate to="/auth/login" replace />
-}
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/login" replace />;
+  }
 
-export default PrivateRoute
+  if (requiredRole && user?.role !== requiredRole && user?.role !== 'super_admin') {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return children;
+};
+
+export default PrivateRoute;

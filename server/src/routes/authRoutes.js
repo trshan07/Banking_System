@@ -1,22 +1,25 @@
+// backend/src/routes/authRoutes.js
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
 const { authMiddleware } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
-const { authRateLimiter } = require('../middleware/rateLimiter');
+const { 
+  authRateLimiter, 
+  loginRateLimiter, 
+  logoutLimiter 
+} = require('../middleware/rateLimiter');
 
 // Validation rules
 const registerValidation = [
   body('firstName')
     .notEmpty().withMessage('First name is required')
-    .isLength({ min: 2, max: 50 }).withMessage('First name must be between 2 and 50 characters')
-    .matches(/^[a-zA-Z\s-']+$/).withMessage('First name can only contain letters, spaces, hyphens and apostrophes'),
+    .isLength({ min: 2, max: 50 }).withMessage('First name must be between 2 and 50 characters'),
   
   body('lastName')
     .notEmpty().withMessage('Last name is required')
-    .isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters')
-    .matches(/^[a-zA-Z\s-']+$/).withMessage('Last name can only contain letters, spaces, hyphens and apostrophes'),
+    .isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters'),
   
   body('email')
     .notEmpty().withMessage('Email is required')
@@ -26,16 +29,13 @@ const registerValidation = [
   body('password')
     .notEmpty().withMessage('Password is required')
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number')
-    .matches(/^(?=.*[!@#$%^&*])/).withMessage('Password must contain at least one special character (!@#$%^&*)'),
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
   
   body('phone')
-    .notEmpty().withMessage('Phone number is required')
-    .matches(/^[0-9+\-\s()]+$/).withMessage('Please provide a valid phone number'),
+    .notEmpty().withMessage('Phone number is required'),
   
   body('address')
-    .notEmpty().withMessage('Address is required')
-    .isLength({ min: 5, max: 200 }).withMessage('Address must be between 5 and 200 characters'),
+    .notEmpty().withMessage('Address is required'),
   
   validate
 ];
@@ -57,49 +57,64 @@ const emailValidation = [
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please provide a valid email')
     .normalizeEmail(),
-  
   validate
 ];
 
 const resetPasswordValidation = [
   body('token')
     .notEmpty().withMessage('Token is required'),
-  
   body('newPassword')
     .notEmpty().withMessage('New password is required')
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number')
-    .matches(/^(?=.*[!@#$%^&*])/).withMessage('Password must contain at least one special character (!@#$%^&*)'),
-  
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
   validate
 ];
 
 const changePasswordValidation = [
   body('currentPassword')
     .notEmpty().withMessage('Current password is required'),
-  
   body('newPassword')
     .notEmpty().withMessage('New password is required')
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number')
-    .matches(/^(?=.*[!@#$%^&*])/).withMessage('Password must contain at least one special character (!@#$%^&*)'),
-  
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
   validate
 ];
 
-// Public routes
+// ============================================
+// Public Routes (No Authentication Required)
+// ============================================
+
+// Register
 router.post('/register', authRateLimiter, registerValidation, authController.register);
-router.post('/login', authRateLimiter, loginValidation, authController.login);
-router.post('/refresh-token', authController.refreshToken);
-router.post('/verify-email', authController.verifyEmail);
-router.post('/resend-verification', emailValidation, authController.resendVerification);
+
+// Login
+router.post('/login', loginRateLimiter, loginValidation, authController.login);
+
+// Refresh Token
+router.post('/refresh-token', authRateLimiter, authController.refreshToken);
+
+// Email Verification
+router.post('/verify-email', authRateLimiter, authController.verifyEmail);
+router.post('/resend-verification', authRateLimiter, emailValidation, authController.resendVerification);
+
+// Password Management
 router.post('/forgot-password', authRateLimiter, emailValidation, authController.forgotPassword);
 router.post('/reset-password', authRateLimiter, resetPasswordValidation, authController.resetPassword);
 
-// Protected routes (require authentication)
+// ============================================
+// Protected Routes (Authentication Required)
+// ============================================
+
+// Get current user
 router.get('/me', authMiddleware, authController.getCurrentUser);
+
+// Validate token
 router.get('/validate', authMiddleware, authController.validateToken);
-router.post('/logout', authMiddleware, authController.logout);
+
+// Logout
+router.post('/logout', authMiddleware, logoutLimiter, authController.logout);
+
+// Change password
 router.post('/change-password', authMiddleware, changePasswordValidation, authController.changePassword);
 
 module.exports = router;

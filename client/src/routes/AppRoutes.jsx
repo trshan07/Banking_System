@@ -96,7 +96,7 @@ const AppRoutes = () => {
 
       {/* Admin Routes */}
       <Route path="/admin" element={
-        <RoleBasedRoute allowedRoles={['admin', 'super_admin']}>
+        <RoleBasedRoute allowedRoles={['admin', 'superadmin']}>
           <AdminLayout />
         </RoleBasedRoute>
       }>
@@ -110,7 +110,7 @@ const AppRoutes = () => {
 
       {/* Super Admin Routes */}
       <Route path="/super-admin" element={
-        <RoleBasedRoute allowedRoles={['super_admin']}>
+        <RoleBasedRoute allowedRoles={['superadmin']}>
           <SuperAdminLayout />
         </RoleBasedRoute>
       }>
@@ -123,7 +123,7 @@ const AppRoutes = () => {
 
       {/* Employee Routes */}
       <Route path="/employee" element={
-        <RoleBasedRoute allowedRoles={['employee', 'admin', 'super_admin']}>
+        <RoleBasedRoute allowedRoles={['employee', 'admin', 'superadmin']}>
           <DashboardLayout />
         </RoleBasedRoute>
       }>

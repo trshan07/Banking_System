@@ -425,7 +425,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white overflow-hidden">
       {/* Custom CSS Animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0%,
           100% {

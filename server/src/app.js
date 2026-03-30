@@ -189,8 +189,10 @@ app.use('/api/support', supportRoutes);
 app.use('/api/savings', savingsRoutes);
 app.use('/api/employee', employeeRoutes);
 
+
+
 // ============================================
-// Socket.IO Setup
+// Socket.IO Setup - FIXED
 // ============================================
 
 const io = new Server(httpServer, {
@@ -199,7 +201,10 @@ const io = new Server(httpServer, {
     credentials: true,
     methods: ['GET', 'POST']
   },
-  transports: ['websocket', 'polling']
+  transports: ['polling', 'websocket'], // Try polling first, then upgrade to websocket
+  allowEIO3: true, // Allow Engine.IO v3 clients
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 // Socket.IO middleware for authentication
@@ -207,7 +212,9 @@ io.use((socket, next) => {
   const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
   
   if (!token) {
-    return next(new Error('Authentication error: No token provided'));
+    // Don't reject, just mark as unauthenticated
+    socket.isAuthenticated = false;
+    return next();
   }
   
   try {
@@ -215,24 +222,29 @@ io.use((socket, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET);
     socket.userId = decoded.id;
     socket.userRole = decoded.role;
+    socket.isAuthenticated = true;
     next();
   } catch (err) {
     console.error('Socket auth error:', err);
-    next(new Error('Authentication error: Invalid token'));
+    socket.isAuthenticated = false;
+    next(); // Don't reject, just mark as unauthenticated
   }
 });
 
 io.on('connection', (socket) => {
-  console.log('🔌 New client connected:', socket.id, 'User:', socket.userId);
+  console.log('🔌 Socket connected:', socket.id, 'Authenticated:', socket.isAuthenticated);
   
-  socket.join(`user:${socket.userId}`);
+  if (socket.isAuthenticated && socket.userId) {
+    socket.join(`user:${socket.userId}`);
+    console.log(`✅ User ${socket.userId} joined room user:${socket.userId}`);
+  }
   
   if (socket.userRole) {
     socket.join(`role:${socket.userRole}`);
   }
   
   socket.on('disconnect', () => {
-    console.log('🔌 Client disconnected:', socket.id);
+    console.log('🔌 Socket disconnected:', socket.id);
   });
   
   socket.on('error', (error) => {

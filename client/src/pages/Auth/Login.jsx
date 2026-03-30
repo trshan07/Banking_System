@@ -62,39 +62,39 @@ const Login = () => {
   }, [location, setValue]);
 
   const onSubmit = async (data) => {
-    try {
-      setLoading(true);
-
-      const response = await login(data.email, data.password, rememberMe);
-
-      if (response?.success) {
-        toast.success("Welcome back! Redirecting...");
-        const dashboardRoute = getDashboardRoute();
-        setTimeout(() => {
-          navigate(dashboardRoute, { replace: true });
-        }, 1500);
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-
-      if (!navigator.onLine) {
-        toast.error("No internet connection. Please check your network.");
-      } else if (error.code === "ERR_NETWORK") {
-        toast.error("Cannot connect to server. Please try again later.");
-      } else if (error.response?.status === 401) {
-        toast.error("Invalid email or password. Please try again.");
-      } else if (error.response?.status === 403) {
-        toast.error("Your account is locked. Please contact support.");
-      } else {
-        toast.error(
-          error.response?.data?.message || "Login failed. Please try again.",
-        );
-      }
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    
+    // Make sure email and password are being sent correctly
+    const response = await login(data.email, data.password);
+    
+    if (response?.success) {
+      toast.success("Welcome back! Redirecting...");
+      const dashboardRoute = getDashboardRoute();
+      setTimeout(() => {
+        navigate(dashboardRoute, { replace: true });
+      }, 1500);
     }
-  };
-
+  } catch (error) {
+    console.error("Login error:", error);
+    
+    if (!navigator.onLine) {
+      toast.error("No internet connection. Please check your network.");
+    } else if (error.code === "ERR_NETWORK") {
+      toast.error("Cannot connect to server. Please make sure the backend is running.");
+    } else if (error.response?.status === 401) {
+      toast.error("Invalid email or password. Please try again.");
+    } else if (error.response?.status === 403) {
+      toast.error("Your account is locked or inactive. Please contact support.");
+    } else if (error.response?.status === 423) {
+      toast.error(error.response?.data?.message || "Account is locked. Please try again later.");
+    } else {
+      toast.error(error.response?.data?.message || "Login failed. Please try again.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
   // Demo login handlers
   const handleDemoLogin = (email, password) => {
     if (loading) return;

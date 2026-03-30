@@ -1,6 +1,7 @@
 // server.js
 const mongoose = require('mongoose');
 const { app, httpServer } = require('./src/app');
+const { ensureSuperAdmin } = require('./src/seed');
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
@@ -41,17 +42,52 @@ const connectDB = async () => {
 const startServer = async () => {
   try {
     await connectDB();
+    await ensureSuperAdmin();
 
-    const PORT = process.env.PORT || 5000;
-    
-    const server = httpServer.listen(PORT, () => {
-      console.log('\n=================================');
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`📡 API URL: http://localhost:${PORT}/api`);
-      console.log(`🔑 Auth routes: http://localhost:${PORT}/api/auth`);
-      console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-      console.log('=================================\n');
+    const basePort = Number(process.env.PORT || 5000);
+    let PORT = basePort;
+    let server;
+
+    const listen = (port) => new Promise((resolve, reject) => {
+      const s = httpServer.listen(port, () => {
+        console.log('\n=================================');
+        console.log(`🚀 Server running on port ${port}`);
+        console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log(`📡 API URL: http://localhost:${port}/api`);
+        console.log(`🔑 Auth routes: http://localhost:${port}/api/auth`);
+        console.log(`🏥 Health check: http://localhost:${port}/health`);
+        console.log('=================================\n');
+        resolve(s);
+      });
+
+      s.on('error', (err) => {
+        reject(err);
+      });
+    });
+
+    while (!server) {
+      try {
+        server = await listen(PORT);
+      } catch (err) {
+        if (err.code === 'EADDRINUSE') {
+          console.warn(`⚠️ Port ${PORT} is already in use.`);
+          if (PORT === basePort) {
+            console.warn('   -> Kill the process using: netstat -ano | findstr :' + PORT);
+            console.warn('   -> taskkill /PID <pid> /F');
+            console.warn('   -> Or set PORT to an unused value and restart.');
+          }
+          PORT += 1;
+          console.warn(`   -> Trying next free port: ${PORT}`);
+        } else {
+          console.error('❌ Server error:', err);
+          process.exit(1);
+        }
+      }
+    }
+
+    server.on('error', (err) => {
+      console.error('❌ Server error:', err);
+      process.exit(1);
     });
 
     // Handle unhandled rejections

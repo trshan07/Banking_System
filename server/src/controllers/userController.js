@@ -193,7 +193,7 @@ exports.getTransactionDetails = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password -refreshToken -__v');
-    
+
     res.json({
       success: true,
       data: { users }
@@ -203,6 +203,92 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get users'
+    });
+  }
+};
+
+// Create new user (role-based permissions)
+exports.createUser = async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, phone, address, role } = req.body;
+    const currentUser = req.user;
+
+    // Role hierarchy validation
+    const allowedRoles = {
+      'superadmin': ['admin', 'employee', 'customer'],
+      'admin': ['employee', 'customer'],
+      'employee': ['customer']
+    };
+
+    // Check if current user can create the requested role
+    if (!allowedRoles[currentUser.role] || !allowedRoles[currentUser.role].includes(role)) {
+      return res.status(403).json({
+        success: false,
+        message: `You cannot create users with role '${role}'. Your role: ${currentUser.role}`
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already registered'
+      });
+    }
+
+    // Set default permissions based on role
+    const rolePermissions = {
+      'superadmin': ['*'], // All permissions
+      'admin': [
+        'view_users', 'manage_users', 'view_reports', 'manage_reports',
+        'view_accounts', 'manage_accounts', 'view_transactions', 'manage_transactions',
+        'view_loans', 'manage_loans', 'view_support', 'manage_support'
+      ],
+      'employee': [
+        'view_accounts', 'manage_accounts', 'view_transactions', 'manage_transactions',
+        'view_loans', 'manage_loans', 'view_support', 'manage_support',
+        'view_customers', 'manage_customers'
+      ],
+      'customer': [
+        'view_account', 'manage_account', 'view_transactions', 'create_transactions',
+        'apply_loans', 'view_loans', 'create_tickets', 'view_tickets'
+      ]
+    };
+
+    // Create user
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      address,
+      role,
+      status: 'active',
+      isEmailVerified: true, // Auto-verify for admin-created accounts
+      permissions: rolePermissions[role] || []
+    });
+
+    await user.save();
+
+    // Remove sensitive data from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.refreshToken;
+    delete userResponse.__v;
+
+    res.status(201).json({
+      success: true,
+      message: `${role.charAt(0).toUpperCase() + role.slice(1)} created successfully`,
+      data: { user: userResponse }
+    });
+
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create user'
     });
   }
 };

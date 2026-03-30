@@ -1,3 +1,4 @@
+// backend/src/controllers/authController.js
 const User = require('../models/User');
 const tokenService = require('../services/tokenService');
 const emailService = require('../services/emailService');
@@ -39,6 +40,8 @@ class AuthController {
         phone,
         address,
         role: 'customer',
+        status: 'active',
+        isEmailVerified: true,
         permissions,
         preferences: {
           notifications: { email: true, sms: false, push: true },
@@ -78,8 +81,8 @@ class AuthController {
         message: 'Registration successful. Please check your email to verify your account.',
         data: {
           user: userResponse,
-          accessToken,
-          refreshToken
+          token: accessToken,
+          refreshToken: refreshToken
         }
       });
 
@@ -95,130 +98,180 @@ class AuthController {
 
   // Login user
   async login(req, res) {
-    try {
-      const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
+    
+    console.log('Login attempt for email:', email);
 
-      // Find user
-      const user = await User.findOne({ email }).select('+password');
-      
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password'
-        });
-      }
-
-      // Check if account is locked
-      if (user.isLocked) {
-        const lockTimeRemaining = Math.ceil((user.lockUntil - Date.now()) / 60000);
-        return res.status(423).json({
-          success: false,
-          message: `Account is locked. Please try again in ${lockTimeRemaining} minutes.`
-        });
-      }
-
-      // Check if account is active
-      if (user.status !== 'active') {
-        return res.status(403).json({
-          success: false,
-          message: 'Your account is not active. Please contact support.'
-        });
-      }
-
-      // Verify password
-      const isValidPassword = await user.comparePassword(password);
-      
-      if (!isValidPassword) {
-        await user.incrementLoginAttempts();
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid email or password'
-        });
-      }
-
-      // Reset login attempts on successful login
-      await user.resetLoginAttempts();
-
-      // Update last login
-      user.lastLogin = new Date();
-      await user.save();
-
-      // Generate tokens
-      const accessToken = tokenService.generateAccessToken(user);
-      const refreshToken = tokenService.generateRefreshToken(user);
-
-      // Save refresh token hash
-      user.refreshToken = tokenService.hashToken(refreshToken);
-      user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      await user.save();
-
-      // Remove sensitive data
-      const userResponse = user.toObject();
-      delete userResponse.password;
-      delete userResponse.refreshToken;
-      delete userResponse.__v;
-
-      // Set refresh token in HTTP-only cookie
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
-
-      res.json({
-        success: true,
-        message: 'Login successful',
-        data: {
-          user: userResponse,
-          accessToken
-        }
-      });
-
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({
+    // Find user
+    const user = await User.findOne({ email }).select('+password');
+    
+    if (!user) {
+      console.log('User not found:', email);
+      return res.status(401).json({
         success: false,
-        message: 'Login failed',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        message: 'Invalid email or password'
       });
     }
+
+    // Check if account is locked
+    if (user.isLocked) {
+      const lockTimeRemaining = Math.ceil((user.lockUntil - Date.now()) / 60000);
+      console.log('Account locked:', email);
+      return res.status(423).json({
+        success: false,
+        message: `Account is locked. Please try again in ${lockTimeRemaining} minutes.`
+      });
+    }
+
+    // Check if account is active
+    if (user.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is not active. Please contact support.'
+      });
+    }
+
+    // Verify password
+    const isValidPassword = await user.comparePassword(password);
+    
+    if (!isValidPassword) {
+      await user.incrementLoginAttempts();
+      console.log('Invalid password for:', email);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Reset login attempts on successful login
+    await user.resetLoginAttempts();
+
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Generate tokens
+    const accessToken = tokenService.generateAccessToken(user);
+    const refreshToken = tokenService.generateRefreshToken(user);
+
+    // Save refresh token hash
+    user.refreshToken = tokenService.hashToken(refreshToken);
+    user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await user.save();
+
+    // Remove sensitive data
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.refreshToken;
+    delete userResponse.__v;
+
+    // Set refresh token in HTTP-only cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', // Changed from 'strict' for better compatibility
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    console.log('Login successful for:', email);
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: userResponse,
+        token: accessToken,
+        refreshToken: refreshToken
+      }
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Login failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
+}
 
   // Refresh token
   async refreshToken(req, res) {
     try {
-      // Get refresh token from cookie or request body
-      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+      // Get refresh token from multiple sources
+      let refreshToken = null;
+      
+      // 1. Check cookie
+      if (req.cookies && req.cookies.refreshToken) {
+        refreshToken = req.cookies.refreshToken;
+        console.log('📦 Refresh token from cookie');
+      }
+      
+      // 2. Check Authorization header
+      if (!refreshToken && req.headers.authorization) {
+        const authHeader = req.headers.authorization;
+        if (authHeader.startsWith('Bearer ')) {
+          refreshToken = authHeader.substring(7);
+          console.log('📦 Refresh token from Authorization header');
+        }
+      }
+      
+      // 3. Check request body
+      if (!refreshToken && req.body && req.body.refreshToken) {
+        refreshToken = req.body.refreshToken;
+        console.log('📦 Refresh token from request body');
+      }
       
       if (!refreshToken) {
+        console.log('❌ No refresh token provided');
         return res.status(401).json({
           success: false,
           message: 'Refresh token required'
         });
       }
 
+      console.log('✅ Refresh token received, length:', refreshToken.length);
+
       // Verify refresh token
       const decoded = tokenService.verifyRefreshToken(refreshToken);
 
       // Find user
-      const user = await User.findById(decoded.id).select('+refreshToken');
+      const user = await User.findById(decoded.id).select('+refreshToken +refreshTokenExpires');
       
       if (!user) {
+        console.log('❌ User not found for refresh token');
         return res.status(401).json({
           success: false,
           message: 'User not found'
         });
       }
 
-      // Verify stored refresh token
-      const hashedToken = tokenService.hashToken(refreshToken);
-      if (user.refreshToken !== hashedToken || 
-          !user.refreshTokenExpires || 
-          user.refreshTokenExpires < Date.now()) {
+      // Check if user has a stored refresh token
+      if (!user.refreshToken) {
+        console.log('❌ No stored refresh token for user');
         return res.status(401).json({
           success: false,
           message: 'Invalid refresh token'
+        });
+      }
+
+      // Verify stored refresh token matches
+      const hashedToken = tokenService.hashToken(refreshToken);
+      if (user.refreshToken !== hashedToken) {
+        console.log('❌ Refresh token mismatch');
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid refresh token'
+        });
+      }
+
+      // Check if refresh token has expired
+      if (user.refreshTokenExpires && user.refreshTokenExpires < Date.now()) {
+        console.log('❌ Refresh token expired');
+        return res.status(401).json({
+          success: false,
+          message: 'Refresh token expired'
         });
       }
 
@@ -226,7 +279,7 @@ class AuthController {
       const newAccessToken = tokenService.generateAccessToken(user);
       const newRefreshToken = tokenService.generateRefreshToken(user);
 
-      // Save new refresh token
+      // Save new refresh token hash
       user.refreshToken = tokenService.hashToken(newRefreshToken);
       user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       await user.save();
@@ -239,16 +292,19 @@ class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
+      console.log('✅ Tokens refreshed successfully for user:', user.email);
+
       res.json({
         success: true,
         message: 'Token refreshed successfully',
         data: {
-          accessToken: newAccessToken
+          token: newAccessToken,  // Changed from accessToken to token for consistency
+          refreshToken: newRefreshToken
         }
       });
 
     } catch (error) {
-      console.error('Token refresh error:', error);
+      console.error('❌ Token refresh error:', error);
       res.status(401).json({
         success: false,
         message: 'Invalid or expired refresh token'
@@ -259,7 +315,8 @@ class AuthController {
   // Logout user
   async logout(req, res) {
     try {
-      const refreshToken = req.cookies.refreshToken;
+      // Get refresh token from cookie or body
+      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
       
       if (refreshToken && req.user) {
         // Clear refresh token from database
@@ -268,11 +325,22 @@ class AuthController {
           user.refreshToken = null;
           user.refreshTokenExpires = null;
           await user.save();
+          console.log('✅ User logged out:', user.email);
         }
       }
 
-      // Clear cookie
-      res.clearCookie('refreshToken');
+      // Clear cookies
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+      
+      res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
 
       res.json({
         success: true,
@@ -281,6 +349,10 @@ class AuthController {
 
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if there's an error, we should still clear cookies
+      res.clearCookie('refreshToken');
+      res.clearCookie('accessToken');
+      
       res.status(500).json({
         success: false,
         message: 'Logout failed'
@@ -508,6 +580,13 @@ class AuthController {
     try {
       const user = await User.findById(req.user.id).select('-password -refreshToken -__v');
       
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+      
       res.json({
         success: true,
         data: { user }
@@ -526,6 +605,13 @@ class AuthController {
   async validateToken(req, res) {
     try {
       const user = await User.findById(req.user.id).select('-password -refreshToken -__v');
+      
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
       
       res.json({
         success: true,
