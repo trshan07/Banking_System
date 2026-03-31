@@ -7,8 +7,8 @@ import toast from 'react-hot-toast';
 const AuthContext = createContext();
 
 // Use import.meta.env instead of process.env for Vite
-// Prefer configured env URL and fall back to the known working fallback port (5001)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+// Prefer configured env URL and fall back to the known working fallback port (5002)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
 
 // Create axios instance
 const api = axios.create({

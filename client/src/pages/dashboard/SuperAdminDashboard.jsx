@@ -651,7 +651,7 @@ const SuperAdminDashboard = () => {
       navigate("/auth/login");
       toast.success("Logged out successfully");
     } catch (error) {
-      toast.error("Error logging out");
+      toast.error("Error logging out", error);
     }
   };
 

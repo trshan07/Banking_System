@@ -69,8 +69,23 @@ const Login = () => {
     const response = await login(data.email, data.password);
     
     if (response?.success) {
+      console.log('Login successful, user data:', response.user);
+      console.log('User role:', response.user?.role);
+      
       toast.success("Welcome back! Redirecting...");
-      const dashboardRoute = getDashboardRoute();
+      
+      // Use the role from response directly instead of waiting for context update
+      let dashboardRoute = '/dashboard';
+      if (response.user?.role === 'superadmin') {
+        dashboardRoute = '/super-admin';
+      } else if (response.user?.role === 'admin') {
+        dashboardRoute = '/admin';
+      } else if (response.user?.role === 'employee') {
+        dashboardRoute = '/employee';
+      }
+      
+      console.log('Redirecting to:', dashboardRoute);
+      
       setTimeout(() => {
         navigate(dashboardRoute, { replace: true });
       }, 1500);
