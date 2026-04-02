@@ -114,10 +114,10 @@ const HomePage = () => {
       description:
         "Apply for loans, upload KYC documents, and track approval status in real-time with our streamlined loan processing system.",
       icon: <FaMoneyBillWave className="text-white text-3xl" />,
-      color: "#2563eb",
-      lightBg: "bg-[#2563eb] bg-opacity-5",
-      textColor: "text-[#2563eb]",
-      iconBg: "bg-[#2563eb]",
+      color: "#0A2647",
+      lightBg: "bg-[#0A2647] bg-opacity-5",
+      textColor: "text-[#0A2647]",
+      iconBg: "bg-[#0A2647]",
       features: [
         "Personal Loans",
         "Home Loans",
@@ -148,10 +148,10 @@ const HomePage = () => {
       description:
         "Account management, balance checks, transaction tracking, and secure fund transfers with bank-level encryption.",
       icon: <FaLock className="text-white text-3xl" />,
-      color: "#2563eb",
-      lightBg: "bg-[#2563eb] bg-opacity-5",
-      textColor: "text-[#2563eb]",
-      iconBg: "bg-[#2563eb]",
+      color: "#0A2647",
+      lightBg: "bg-[#0A2647] bg-opacity-5",
+      textColor: "text-[#0A2647]",
+      iconBg: "bg-[#0A2647]",
       features: [
         "Balance Check",
         "Fund Transfer",
@@ -216,10 +216,10 @@ const HomePage = () => {
       description:
         "Find nearby ATMs and branches with Google Maps integration and live chat assistance.",
       icon: <FaMapMarkerAlt className="text-white text-3xl" />,
-      color: "#2563eb",
-      lightBg: "bg-[#2563eb] bg-opacity-5",
-      textColor: "text-[#2563eb]",
-      iconBg: "bg-[#2563eb]",
+      color: "#0A2647",
+      lightBg: "bg-[#0A2647] bg-opacity-5",
+      textColor: "text-[#0A2647]",
+      iconBg: "bg-[#0A2647]",
       features: ["ATM Locator", "Branch Finder", "Live Chat", "Directions"],
     },
     {
@@ -247,9 +247,9 @@ const HomePage = () => {
       id: 1,
       title: "Savings Account",
       description: "High-interest savings accounts with zero maintenance fees",
-      icon: <FaPiggyBank className="text-[#2563eb] text-3xl" />,
-      color: "text-[#2563eb]",
-      bgColor: "bg-[#2563eb] bg-opacity-10",
+      icon: <FaPiggyBank className="text-[#0A2647] text-3xl" />,
+      color: "text-[#0A2647]",
+      bgColor: "bg-[#0A2647] bg-opacity-10",
     },
     {
       id: 2,
@@ -284,8 +284,8 @@ const HomePage = () => {
       name: "MongoDB",
       icon: "🍃",
       description: "Flexible document database",
-      bgColor: "bg-[#2563eb] bg-opacity-10",
-      textColor: "text-[#2563eb]",
+      bgColor: "bg-[#0A2647] bg-opacity-10",
+      textColor: "text-[#0A2647]",
     },
     {
       id: 2,
@@ -300,8 +300,8 @@ const HomePage = () => {
       name: "React.js",
       icon: "⚛️",
       description: "Dynamic user interfaces",
-      bgColor: "bg-[#2563eb] bg-opacity-10",
-      textColor: "text-[#2563eb]",
+      bgColor: "bg-[#0A2647] bg-opacity-10",
+      textColor: "text-[#0A2647]",
     },
     {
       id: 4,
@@ -324,8 +324,8 @@ const HomePage = () => {
       name: "JWT",
       icon: "🔐",
       description: "Secure authentication",
-      bgColor: "bg-[#2563eb] bg-opacity-10",
-      textColor: "text-[#2563eb]",
+      bgColor: "bg-[#0A2647] bg-opacity-10",
+      textColor: "text-[#0A2647]",
     },
     {
       id: 7,
@@ -382,8 +382,8 @@ const HomePage = () => {
       id: 1,
       value: "50,000+",
       label: "Happy Customers",
-      icon: <FaUsers className="text-[#2563eb] text-3xl" />,
-      bgColor: "bg-[#2563eb] bg-opacity-10",
+      icon: <FaUsers className="text-[#0A2647] text-3xl" />,
+      bgColor: "bg-[#0A2647] bg-opacity-10",
     },
     {
       id: 2,
@@ -396,8 +396,8 @@ const HomePage = () => {
       id: 3,
       value: "8+",
       label: "Core Modules",
-      icon: <FaBuilding className="text-[#2563eb] text-3xl" />,
-      bgColor: "bg-[#2563eb] bg-opacity-10",
+      icon: <FaBuilding className="text-[#0A2647] text-3xl" />,
+      bgColor: "bg-[#0A2647] bg-opacity-10",
     },
     {
       id: 4,
@@ -586,7 +586,7 @@ const HomePage = () => {
         }
 
         .hover-glow:hover {
-          box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+          box-shadow: 0 0 20px rgba(10, 38, 71, 0.5);
         }
 
         .stagger-item {
@@ -611,7 +611,7 @@ const HomePage = () => {
         }
 
         .parallax-bg {
-          background: linear-gradient(135deg, #2563eb, #1d4ed8);
+          background: linear-gradient(135deg, #0A2647, #1B3B5C);
           position: relative;
           overflow: hidden;
         }
@@ -755,15 +755,15 @@ const HomePage = () => {
               <div className="flex flex-wrap gap-4 mb-12">
                 <Link
                   to="/register"
-                  className="bg-white text-[#2563eb] px-8 py-4 rounded-lg font-semibold hover:bg-slate-100 transition-all hover:shadow-xl hover-scale flex items-center group"
+                  className="bg-white text-[#0A2647] px-8 py-4 rounded-lg font-semibold hover:bg-slate-100 transition-all hover:shadow-xl hover-scale flex items-center group"
                 >
                   Open Account
-                  <FaArrowRight className="ml-2 text-[#2563eb] group-hover:translate-x-1 transition-transform" />
+                  <FaArrowRight className="ml-2 text-[#0A2647] group-hover:translate-x-1 transition-transform" />
                 </Link>
 
                 <Link
                   to="/about"
-                  className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-[#2563eb] transition-all hover-scale"
+                  className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-[#0A2647] transition-all hover-scale"
                 >
                   Learn More
                 </Link>
@@ -803,10 +803,10 @@ const HomePage = () => {
                   {[0, 1, 2, 3].map((i) => (
                     <div
                       key={i}
-                      className={`bg-${i === 0 ? "[#2563eb]" : i === 1 ? "[#10b981]" : i === 2 ? "[#f59e0b]" : "[#ef4444]"} bg-opacity-30 rounded-lg p-4 hover-scale`}
+                      className={`bg-${i === 0 ? "[#0A2647]" : i === 1 ? "[#10b981]" : i === 2 ? "[#f59e0b]" : "[#ef4444]"} bg-opacity-30 rounded-lg p-4 hover-scale`}
                     >
                       <div
-                        className={`w-8 h-8 bg-${i === 0 ? "[#2563eb]" : i === 1 ? "[#10b981]" : i === 2 ? "[#f59e0b]" : "[#ef4444]"} rounded-lg mb-3 animate-rotate-slow`}
+                        className={`w-8 h-8 bg-${i === 0 ? "[#0A2647]" : i === 1 ? "[#10b981]" : i === 2 ? "[#f59e0b]" : "[#ef4444]"} rounded-lg mb-3 animate-rotate-slow`}
                       ></div>
                       <div className="h-4 bg-white/30 rounded w-3/4 mb-2 progress-bar"></div>
                       <div className="h-3 bg-white/20 rounded w-1/2"></div>
@@ -819,7 +819,7 @@ const HomePage = () => {
               </div>
 
               {/* Floating Elements */}
-              <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#2563eb] rounded-full animate-pulse-slow"></div>
+              <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#0A2647] rounded-full animate-pulse-slow"></div>
               <div
                 className="absolute -bottom-4 -left-4 w-16 h-16 bg-[#10b981] rounded-full animate-pulse-slow"
                 style={{ animationDelay: "1s" }}
@@ -888,7 +888,7 @@ const HomePage = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-slideInUp">
-            <h2 className="text-4xl font-bold text-[#2563eb] mb-4 animate-pulse-slow">
+            <h2 className="text-4xl font-bold text-[#0A2647] mb-4 animate-pulse-slow">
               8 Core Banking Modules
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
@@ -910,7 +910,7 @@ const HomePage = () => {
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-[#2563eb] transition-colors">
+                <h3 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-[#0A2647] transition-colors">
                   {feature.title}
                 </h3>
                 <p className="text-slate-600 mb-4 text-sm">
@@ -952,7 +952,7 @@ const HomePage = () => {
         }`}
       >
         {/* Animated Background */}
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#2563eb] opacity-5 rounded-full animate-rotate-slow"></div>
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#0A2647] opacity-5 rounded-full animate-rotate-slow"></div>
         <div
           className="absolute -bottom-20 -left-20 w-96 h-96 bg-[#10b981] opacity-5 rounded-full animate-rotate-slow"
           style={{ animationDirection: "reverse" }}
@@ -961,7 +961,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="animate-slideInLeft">
-              <h2 className="text-4xl font-bold text-[#2563eb] mb-4 animate-pulse-slow">
+              <h2 className="text-4xl font-bold text-[#0A2647] mb-4 animate-pulse-slow">
                 Complete Banking Solutions
               </h2>
               <p className="text-xl text-slate-600 mb-8">
@@ -1012,7 +1012,7 @@ const HomePage = () => {
 
             <div className="grid grid-cols-2 gap-4 animate-slideInRight">
               <div className="space-y-4">
-                <div className="bg-[#2563eb] rounded-2xl p-6 text-white hover-scale cursor-pointer">
+                <div className="bg-[#0A2647] rounded-2xl p-6 text-white hover-scale cursor-pointer">
                   <div className="animate-float">
                     <FaMobile className="text-white text-4xl mb-4" />
                   </div>
@@ -1078,7 +1078,7 @@ const HomePage = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-slideInUp">
-            <h2 className="text-4xl font-bold text-[#2563eb] mb-4 animate-pulse-slow">
+            <h2 className="text-4xl font-bold text-[#0A2647] mb-4 animate-pulse-slow">
               Built With Modern Technology
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
@@ -1120,7 +1120,7 @@ const HomePage = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-slideInUp">
-            <h2 className="text-4xl font-bold text-[#2563eb] mb-4 animate-pulse-slow">
+            <h2 className="text-4xl font-bold text-[#0A2647] mb-4 animate-pulse-slow">
               How It Works
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
@@ -1130,7 +1130,7 @@ const HomePage = () => {
 
           <div className="grid md:grid-cols-3 gap-8 relative">
             {/* Connection Line */}
-            <div className="absolute top-20 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-[#2563eb] via-[#10b981] to-[#f59e0b] hidden md:block progress-bar"></div>
+            <div className="absolute top-20 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-[#0A2647] via-[#10b981] to-[#f59e0b] hidden md:block progress-bar"></div>
 
             {[1, 2, 3].map((step, index) => (
               <div
@@ -1138,11 +1138,11 @@ const HomePage = () => {
                 className={`text-center group stagger-item delay-${index * 200}`}
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
-                <div className="w-20 h-20 mx-auto bg-[#2563eb] rounded-2xl flex items-center justify-center text-white text-3xl font-bold mb-6 shadow-lg relative hover-scale">
+                <div className="w-20 h-20 mx-auto bg-[#0A2647] rounded-2xl flex items-center justify-center text-white text-3xl font-bold mb-6 shadow-lg relative hover-scale">
                   {step}
-                  <div className="absolute inset-0 bg-[#2563eb] rounded-2xl animate-pulse-slow opacity-50"></div>
+                  <div className="absolute inset-0 bg-[#0A2647] rounded-2xl animate-pulse-slow opacity-50"></div>
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-[#2563eb] transition-colors">
+                <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-[#0A2647] transition-colors">
                   {step === 1
                     ? "Create Account"
                     : step === 2
@@ -1165,7 +1165,7 @@ const HomePage = () => {
       {/* Testimonials with Carousel Effect */}
       <div
         data-section="testimonials"
-        className={`bg-[#2563eb] text-white py-20 overflow-hidden transition-all duration-1000 ${
+        className={`bg-[#0A2647] text-white py-20 overflow-hidden transition-all duration-1000 ${
           isVisible.testimonials
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-10"
@@ -1250,7 +1250,7 @@ const HomePage = () => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-[#2563eb] rounded-3xl p-12 text-white relative overflow-hidden hover-scale">
+          <div className="bg-[#0A2647] rounded-3xl p-12 text-white relative overflow-hidden hover-scale">
             <div className="absolute inset-0 opacity-10 animate-rotate-slow">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
@@ -1292,7 +1292,7 @@ const HomePage = () => {
       {/* CTA Section with Particle Effect */}
       <div
         data-section="cta"
-        className={`bg-gradient-to-r from-slate-800 to-slate-900 text-white py-20 relative overflow-hidden transition-all duration-1000 ${
+        className={`bg-[#0A2647] text-white py-20 relative overflow-hidden transition-all duration-1000 ${
           isVisible.cta
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-10"
@@ -1321,7 +1321,7 @@ const HomePage = () => {
           </h2>
 
           <p
-            className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto animate-slideInUp"
+            className="text-xl text-white/80 mb-8 max-w-2xl mx-auto animate-slideInUp"
             style={{ animationDelay: "0.2s" }}
           >
             Join thousands of satisfied customers and experience the future of
@@ -1334,7 +1334,7 @@ const HomePage = () => {
           >
             <Link
               to="/register"
-              className="bg-[#2563eb] text-white px-8 py-4 rounded-lg font-semibold hover:bg-[#1d4ed8] hover:shadow-xl transition-all hover-scale inline-flex items-center group"
+              className="bg-white text-[#0A2647] px-8 py-4 rounded-lg font-semibold hover:bg-slate-100 hover:shadow-xl transition-all hover-scale inline-flex items-center group"
             >
               Open Account Now
               <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
@@ -1342,97 +1342,13 @@ const HomePage = () => {
 
             <Link
               to="/contact"
-              className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-slate-900 transition-all hover-scale"
+              className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-[#0A2647] transition-all hover-scale"
             >
               Contact Sales
             </Link>
           </div>
         </div>
       </div>
-
-      {/* Footer with Fade In */}
-      <footer
-        data-section="footer"
-        className={`bg-white border-t border-slate-200 py-12 transition-all duration-1000 ${
-          isVisible.footer
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div
-              className="animate-slideInLeft"
-              style={{ animationDelay: "0.1s" }}
-            >
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-[#2563eb] rounded-lg flex items-center justify-center hover-rotate cursor-pointer">
-                  <span className="text-white font-bold text-lg">SB</span>
-                </div>
-                <span className="text-xl font-bold text-[#2563eb]">
-                  Smart Bank
-                </span>
-              </div>
-              <p className="text-slate-600 text-sm mb-4">
-                Revolutionizing digital banking with secure, modular, and
-                feature-rich solutions.
-              </p>
-              <div className="flex space-x-4">
-                {[FaFacebook, FaTwitter, FaLinkedin, FaInstagram].map(
-                  (Icon, index) => (
-                    <a
-                      key={index}
-                      href="#"
-                      className="text-slate-400 hover:text-[#2563eb] transition-colors hover-scale inline-block"
-                    >
-                      <Icon className="text-xl" />
-                    </a>
-                  ),
-                )}
-              </div>
-            </div>
-
-            {["Products", "Company", "Support"].map((section, sectionIndex) => (
-              <div
-                key={section}
-                className={`animate-slideInLeft`}
-                style={{ animationDelay: `${0.2 + sectionIndex * 0.1}s` }}
-              >
-                <h3 className="font-bold text-slate-800 mb-4">{section}</h3>
-                <ul className="space-y-2">
-                  {[1, 2, 3, 4].map((item) => (
-                    <li key={item}>
-                      <a
-                        href="#"
-                        className="text-slate-600 hover:text-[#2563eb] transition-colors hover-lift inline-block"
-                      >
-                        {section === "Products"
-                          ? ["Loans", "Credit Cards", "Investments", "Savings"][
-                              item - 1
-                            ]
-                          : section === "Company"
-                            ? ["About Us", "Careers", "Press", "Blog"][item - 1]
-                            : [
-                                "Help Center",
-                                "Contact Us",
-                                "Privacy Policy",
-                                "Terms of Service",
-                              ][item - 1]}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t border-slate-200 mt-8 pt-8 text-center text-slate-600 text-sm animate-slideInUp">
-            <p>
-              &copy; {new Date().getFullYear()} Smart Bank. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

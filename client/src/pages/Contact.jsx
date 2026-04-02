@@ -92,7 +92,7 @@ const ContactUs = () => {
     }, 1500);
   };
 
-  // Contact Information - Updated with 4 colors
+  // Contact Information - Updated with navy blue
   const contactInfo = [
     {
       id: 1,
@@ -100,10 +100,10 @@ const ContactUs = () => {
       description: "support@smartbank.com",
       subText: "sales@smartbank.com",
       icon: <FaEnvelope className="text-2xl" />,
-      bgGradient: "bg-[#2563eb]",
-      lightBg: "bg-[#2563eb] bg-opacity-5",
-      textColor: "text-[#2563eb]",
-      borderColor: "border-[#2563eb] border-opacity-20",
+      bgGradient: "bg-[#0A2647]",
+      lightBg: "bg-[#0A2647] bg-opacity-5",
+      textColor: "text-[#0A2647]",
+      borderColor: "border-[#0A2647] border-opacity-20",
       action: "mailto:support@smartbank.com",
     },
     {
@@ -144,17 +144,17 @@ const ContactUs = () => {
     },
   ];
 
-  // Support Departments - Updated with 4 colors
+  // Support Departments - Updated with navy blue
   const departments = [
     {
       id: 1,
       name: "General",
       value: "general",
       icon: <FaHeadset />,
-      bgColor: "bg-[#2563eb] bg-opacity-10",
-      textColor: "text-[#2563eb]",
-      borderColor: "border-[#2563eb] border-opacity-30",
-      selectedBorder: "border-[#2563eb]",
+      bgColor: "bg-[#0A2647] bg-opacity-10",
+      textColor: "text-[#0A2647]",
+      borderColor: "border-[#0A2647] border-opacity-30",
+      selectedBorder: "border-[#0A2647]",
     },
     {
       id: 2,
@@ -171,10 +171,10 @@ const ContactUs = () => {
       name: "Account",
       value: "account",
       icon: <FaUsers />,
-      bgColor: "bg-[#2563eb] bg-opacity-10",
-      textColor: "text-[#2563eb]",
-      borderColor: "border-[#2563eb] border-opacity-30",
-      selectedBorder: "border-[#2563eb]",
+      bgColor: "bg-[#0A2647] bg-opacity-10",
+      textColor: "text-[#0A2647]",
+      borderColor: "border-[#0A2647] border-opacity-30",
+      selectedBorder: "border-[#0A2647]",
     },
     {
       id: 4,
@@ -208,7 +208,7 @@ const ContactUs = () => {
     },
   ];
 
-  // Office Locations - Updated with 4 colors
+  // Office Locations - Updated with navy blue
   const locations = [
     {
       id: 1,
@@ -219,9 +219,9 @@ const ContactUs = () => {
       manager: "Robert Johnson",
       employees: "250+",
       icon: <FaBuilding />,
-      gradient: "from-[#2563eb] to-[#2563eb]",
-      lightBg: "bg-[#2563eb] bg-opacity-5",
-      badge: "bg-[#2563eb]",
+      gradient: "from-[#0A2647] to-[#0A2647]",
+      lightBg: "bg-[#0A2647] bg-opacity-5",
+      badge: "bg-[#0A2647]",
     },
     {
       id: 2,
@@ -264,7 +264,7 @@ const ContactUs = () => {
     },
   ];
 
-  // FAQ Items - Updated with 4 colors
+  // FAQ Items - Updated with navy blue
   const faqs = [
     {
       id: 1,
@@ -272,8 +272,8 @@ const ContactUs = () => {
       answer:
         "You can open an account online through our Digital KYC portal. Simply click on 'Register' and follow the verification process with your documents.",
       icon: <FaQuestionCircle className="text-2xl" />,
-      color: "text-[#2563eb]",
-      bgColor: "bg-[#2563eb] bg-opacity-5",
+      color: "text-[#0A2647]",
+      bgColor: "bg-[#0A2647] bg-opacity-5",
     },
     {
       id: 2,
@@ -308,8 +308,8 @@ const ContactUs = () => {
       answer:
         "You can report fraud directly through your dashboard or contact our security team.",
       icon: <FaHeadset className="text-2xl" />,
-      color: "text-[#2563eb]",
-      bgColor: "bg-[#2563eb] bg-opacity-5",
+      color: "text-[#0A2647]",
+      bgColor: "bg-[#0A2647] bg-opacity-5",
     },
     {
       id: 6,
@@ -321,13 +321,13 @@ const ContactUs = () => {
     },
   ];
 
-  // Social Media Links - Updated with 4 colors
+  // Social Media Links - Updated with navy blue
   const socialMedia = [
     {
       id: 1,
       name: "Facebook",
       icon: <FaFacebook className="text-3xl" />,
-      bgColor: "bg-[#2563eb]",
+      bgColor: "bg-[#0A2647]",
       link: "#",
       followers: "50K+",
     },
@@ -343,7 +343,7 @@ const ContactUs = () => {
       id: 3,
       name: "LinkedIn",
       icon: <FaLinkedin className="text-3xl" />,
-      bgColor: "bg-[#2563eb]",
+      bgColor: "bg-[#0A2647]",
       link: "#",
       followers: "45K+",
     },
@@ -373,14 +373,14 @@ const ContactUs = () => {
     },
   ];
 
-  // Map Features - Updated with 4 colors
+  // Map Features - Updated with navy blue
   const mapFeatures = [
     {
       id: 1,
       icon: <FaBus />,
       label: "Bus Stop (2 min walk)",
-      color: "text-[#2563eb]",
-      bgColor: "bg-[#2563eb] bg-opacity-5",
+      color: "text-[#0A2647]",
+      bgColor: "bg-[#0A2647] bg-opacity-5",
     },
     {
       id: 2,
@@ -400,8 +400,8 @@ const ContactUs = () => {
       id: 4,
       icon: <FaWifi />,
       label: "Free WiFi",
-      color: "text-[#2563eb]",
-      bgColor: "bg-[#2563eb] bg-opacity-5",
+      color: "text-[#0A2647]",
+      bgColor: "bg-[#0A2647] bg-opacity-5",
     },
     {
       id: 5,
@@ -419,15 +419,15 @@ const ContactUs = () => {
     },
   ];
 
-  // Achievements - Updated with 4 colors
+  // Achievements - Updated with navy blue
   const achievements = [
     {
       id: 1,
       icon: <FaStar className="text-2xl" />,
       count: "4.8/5",
       label: "Customer Rating",
-      bgColor: "bg-[#2563eb] bg-opacity-10",
-      textColor: "text-[#2563eb]",
+      bgColor: "bg-[#0A2647] bg-opacity-10",
+      textColor: "text-[#0A2647]",
     },
     {
       id: 2,
@@ -458,7 +458,7 @@ const ContactUs = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Custom CSS Animations */}
-      <style jsx="true">{`
+      <style>{`
         @keyframes float {
           0%,
           100% {
@@ -567,7 +567,7 @@ const ContactUs = () => {
 
         .hover-scale:hover {
           transform: scale(1.03);
-          box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1);
+          box-shadow: 0 10px 25px -5px rgba(10, 38, 71, 0.1);
         }
 
         .hover-lift {
@@ -587,13 +587,13 @@ const ContactUs = () => {
         }
       `}</style>
 
-      {/* Hero Section - Always visible */}
-      <div className="relative bg-[#2563eb] text-white py-20 overflow-hidden">
+      {/* Hero Section - Updated with navy blue */}
+      <div className="relative bg-[#0A2647] text-white py-20 overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl animate-float"></div>
           <div
-            className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 rounded-full blur-3xl animate-float"
+            className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl animate-float"
             style={{ animationDelay: "1s" }}
           ></div>
         </div>
@@ -643,7 +643,7 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Contact Information Cards - Always visible */}
+      {/* Contact Information Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {contactInfo.map((info, index) => (
@@ -678,14 +678,14 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Main Contact Section - Always visible */}
+      {/* Main Contact Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow">
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-[#2563eb] rounded-lg flex items-center justify-center mr-4 animate-float">
+                <div className="w-12 h-12 bg-[#0A2647] rounded-lg flex items-center justify-center mr-4 animate-float">
                   <FaComment className="text-white text-xl" />
                 </div>
                 <div>
@@ -746,7 +746,7 @@ const ContactUs = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <FaUser className="inline mr-2 text-[#2563eb]" />
+                        <FaUser className="inline mr-2 text-[#0A2647]" />
                         Full Name *
                       </label>
                       <input
@@ -755,13 +755,13 @@ const ContactUs = () => {
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647] focus:border-transparent transition-all hover-scale"
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <FaEnvelope className="inline mr-2 text-[#2563eb]" />
+                        <FaEnvelope className="inline mr-2 text-[#0A2647]" />
                         Email Address *
                       </label>
                       <input
@@ -770,13 +770,13 @@ const ContactUs = () => {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647] focus:border-transparent transition-all hover-scale"
                         placeholder="john@example.com"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <FaPhone className="inline mr-2 text-[#2563eb]" />
+                        <FaPhone className="inline mr-2 text-[#0A2647]" />
                         Phone Number
                       </label>
                       <input
@@ -784,8 +784,8 @@ const ContactUs = () => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
-                        placeholder="+9476 9956 938"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647] focus:border-transparent transition-all hover-scale"
+                        placeholder="+1 (555) 123-4567"
                       />
                     </div>
                     <div>
@@ -796,7 +796,7 @@ const ContactUs = () => {
                         name="priority"
                         value={formData.priority}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647] focus:border-transparent transition-all hover-scale"
                       >
                         <option value="normal">Normal</option>
                         <option value="high">High</option>
@@ -815,7 +815,7 @@ const ContactUs = () => {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647] focus:border-transparent transition-all hover-scale"
                       placeholder="How can we help you?"
                     />
                   </div>
@@ -830,7 +830,7 @@ const ContactUs = () => {
                       onChange={handleChange}
                       required
                       rows="5"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all hover-scale"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647] focus:border-transparent transition-all hover-scale"
                       placeholder="Please describe your inquiry in detail..."
                     ></textarea>
                   </div>
@@ -838,7 +838,7 @@ const ContactUs = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full bg-[#2563eb] text-white py-4 rounded-lg font-semibold hover:bg-[#1d4ed8] transition-all duration-300 flex items-center justify-center space-x-2 hover-scale ${
+                    className={`w-full bg-[#0A2647] text-white py-4 rounded-lg font-semibold hover:bg-[#1B3B5C] transition-all duration-300 flex items-center justify-center space-x-2 hover-scale ${
                       loading ? "opacity-75 cursor-not-allowed" : ""
                     }`}
                   >
@@ -908,10 +908,10 @@ const ContactUs = () => {
               <div className="space-y-3">
                 <Link
                   to="/faq"
-                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-[#2563eb] hover:bg-opacity-10 transition-all group hover-scale"
+                  className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-[#0A2647] hover:bg-opacity-10 transition-all group hover-scale"
                 >
-                  <FaQuestionCircle className="text-[#2563eb] mr-3 group-hover:scale-110 transition-transform" />
-                  <span className="text-gray-700 group-hover:text-[#2563eb]">
+                  <FaQuestionCircle className="text-[#0A2647] mr-3 group-hover:scale-110 transition-transform" />
+                  <span className="text-gray-700 group-hover:text-[#0A2647]">
                     FAQ & Help Center
                   </span>
                 </Link>
@@ -948,11 +948,11 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Map Section - Always visible */}
+      {/* Map Section */}
       <div className="bg-gradient-to-b from-gray-50 to-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#2563eb] mb-4">
+            <h2 className="text-3xl font-bold text-[#0A2647] mb-4">
               Find Us Here
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -962,10 +962,10 @@ const ContactUs = () => {
 
           {/* Map Placeholder */}
           <div className="bg-gray-200 rounded-2xl h-96 mb-8 relative overflow-hidden hover-scale">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#2563eb]/20 to-[#10b981]/20"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0A2647]/20 to-[#10b981]/20"></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <FaMapMarkedAlt className="text-6xl text-[#2563eb] mx-auto mb-4 animate-float" />
+                <FaMapMarkedAlt className="text-6xl text-[#0A2647] mx-auto mb-4 animate-float" />
                 <p className="text-gray-700 text-lg">
                   Interactive Map Loading...
                 </p>
@@ -995,11 +995,11 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Office Locations - Always visible */}
+      {/* Office Locations */}
       <div className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#2563eb] mb-4">
+            <h2 className="text-3xl font-bold text-[#0A2647] mb-4">
               Our Global Offices
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -1051,11 +1051,11 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* FAQ Section - Always visible */}
+      {/* FAQ Section */}
       <div className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#2563eb] mb-4">
+            <h2 className="text-3xl font-bold text-[#0A2647] mb-4">
               Frequently Asked Questions
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -1086,7 +1086,7 @@ const ContactUs = () => {
           <div className="text-center mt-8">
             <Link
               to="/faq"
-              className="inline-flex items-center text-[#2563eb] hover:text-[#1d4ed8] font-semibold hover-scale"
+              className="inline-flex items-center text-[#0A2647] hover:text-[#1B3B5C] font-semibold hover-scale"
             >
               View All FAQs
               <FaArrowRight className="ml-2" />
@@ -1095,11 +1095,11 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Social Media Section - Always visible */}
+      {/* Social Media Section */}
       <div className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#2563eb] mb-4">
+            <h2 className="text-3xl font-bold text-[#0A2647] mb-4">
               Connect With Us
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
