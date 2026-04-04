@@ -444,7 +444,7 @@ const AdminDashboard = () => {
   const renderDashboard = () => (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-2xl p-6 text-white">
+      <div className="bg-gradient-to-r from-[#0A2647] via-[#1B3B5C] to-[#2A4B6E] rounded-2xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold mb-2">Welcome back, Admin!</h2>
@@ -477,8 +477,8 @@ const AdminDashboard = () => {
               </p>
               <p className="text-xs text-emerald-600 mt-1">↑ 156 new today</p>
             </div>
-            <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-              <FaUsers className="text-emerald-600 text-xl" />
+            <div className="w-12 h-12 bg-[#0A2647] bg-opacity-10 rounded-lg flex items-center justify-center">
+              <FaUsers className="text-[#0A2647] text-xl" />
             </div>
           </div>
         </div>
@@ -494,8 +494,8 @@ const AdminDashboard = () => {
                 Volume: {stats.transactionVolume}
               </p>
             </div>
-            <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
-              <FaExchangeAlt className="text-sky-600 text-xl" />
+            <div className="w-12 h-12 bg-[#0A2647] bg-opacity-10 rounded-lg flex items-center justify-center">
+              <FaExchangeAlt className="text-[#0A2647] text-xl" />
             </div>
           </div>
         </div>
@@ -511,8 +511,8 @@ const AdminDashboard = () => {
                 {stats.pendingLoans} pending approval
               </p>
             </div>
-            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-              <FaMoneyBillWave className="text-amber-600 text-xl" />
+            <div className="w-12 h-12 bg-[#0A2647] bg-opacity-10 rounded-lg flex items-center justify-center">
+              <FaMoneyBillWave className="text-[#0A2647] text-xl" />
             </div>
           </div>
         </div>
@@ -528,8 +528,8 @@ const AdminDashboard = () => {
                 Load: {stats.serverLoad}
               </p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <FaServer className="text-purple-600 text-xl" />
+            <div className="w-12 h-12 bg-[#0A2647] bg-opacity-10 rounded-lg flex items-center justify-center">
+              <FaServer className="text-[#0A2647] text-xl" />
             </div>
           </div>
         </div>
@@ -638,7 +638,7 @@ const AdminDashboard = () => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-4 text-sm text-emerald-600 font-semibold hover:text-emerald-700">
+          <button className="w-full mt-4 text-sm text-[#0A2647] font-semibold hover:text-[#1B3B5C]">
             View All Approvals →
           </button>
         </div>
@@ -771,7 +771,7 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800">User Management</h2>
-        <button className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center shadow-md">
+        <button className="bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] text-white px-4 py-2 rounded-lg hover:from-[#1B3B5C] hover:to-[#2A4B6E] transition-all flex items-center shadow-md">
           <FaPlus className="mr-2" /> Add New User
         </button>
       </div>
@@ -807,7 +807,7 @@ const AdminDashboard = () => {
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647]"
           />
         </div>
         <button className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center">
@@ -848,7 +848,7 @@ const AdminDashboard = () => {
               <tr key={i} className="hover:bg-slate-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] rounded-full flex items-center justify-center text-white font-bold">
                       U{i}
                     </div>
                     <div className="ml-4">
@@ -927,7 +927,7 @@ const AdminDashboard = () => {
           <button className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center">
             <FaDownload className="mr-2" /> Export Report
           </button>
-          <button className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center shadow-md">
+          <button className="bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] text-white px-4 py-2 rounded-lg hover:from-[#1B3B5C] hover:to-[#2A4B6E] transition-all flex items-center shadow-md">
             <FaPlus className="mr-2" /> New Loan
           </button>
         </div>
@@ -1210,7 +1210,7 @@ const AdminDashboard = () => {
           <button className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center">
             <FaDownload className="mr-2" /> Export
           </button>
-          <button className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center shadow-md">
+          <button className="bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] text-white px-4 py-2 rounded-lg hover:from-[#1B3B5C] hover:to-[#2A4B6E] transition-all flex items-center shadow-md">
             <FaPlus className="mr-2" /> New Ticket
           </button>
         </div>
@@ -1356,7 +1356,7 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800">KYC Applications</h2>
-        <button className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center shadow-md">
+        <button className="bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] text-white px-4 py-2 rounded-lg hover:from-[#1B3B5C] hover:to-[#2A4B6E] transition-all flex items-center shadow-md">
           <FaDownload className="mr-2" /> Export List
         </button>
       </div>
@@ -1477,7 +1477,7 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800">Bank Management</h2>
-        <button className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center shadow-md">
+        <button className="bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] text-white px-4 py-2 rounded-lg hover:from-[#1B3B5C] hover:to-[#2A4B6E] transition-all flex items-center shadow-md">
           <FaPlus className="mr-2" /> Add New Bank
         </button>
       </div>
@@ -1646,28 +1646,28 @@ const AdminDashboard = () => {
           Custom Report
         </h3>
         <div className="grid md:grid-cols-3 gap-4 mb-4">
-          <select className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <select className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647]">
             <option>Select Report Type</option>
             <option>User Report</option>
             <option>Transaction Report</option>
             <option>Loan Report</option>
             <option>Fraud Report</option>
           </select>
-          <select className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <select className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647]">
             <option>Select Date Range</option>
             <option>Last 7 Days</option>
             <option>Last 30 Days</option>
             <option>Last 3 Months</option>
             <option>Custom Range</option>
           </select>
-          <select className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          <select className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647]">
             <option>Select Format</option>
             <option>PDF</option>
             <option>Excel</option>
             <option>CSV</option>
           </select>
         </div>
-        <button className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all font-semibold">
+        <button className="bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] text-white px-6 py-3 rounded-lg hover:from-[#1B3B5C] hover:to-[#2A4B6E] transition-all font-semibold">
           Generate Custom Report
         </button>
       </div>
@@ -1693,7 +1693,7 @@ const AdminDashboard = () => {
               <input
                 type="text"
                 value="Smart Bank"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647]"
               />
             </div>
             <div>
@@ -1703,14 +1703,14 @@ const AdminDashboard = () => {
               <input
                 type="email"
                 value="support@smartbank.com"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647]"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Timezone
               </label>
-              <select className="w-full px-3 py-2 border border-slate-300 rounded-lg">
+              <select className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647]">
                 <option>UTC</option>
                 <option>EST</option>
                 <option>PST</option>
@@ -1745,7 +1745,7 @@ const AdminDashboard = () => {
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Password Policy
               </label>
-              <select className="w-full px-3 py-2 border border-slate-300 rounded-lg">
+              <select className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A2647]">
                 <option>Strong (8+ chars, mixed case, numbers)</option>
                 <option>Medium (8+ chars, mixed case)</option>
                 <option>Basic (6+ chars)</option>
@@ -1786,7 +1786,7 @@ const AdminDashboard = () => {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <button className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center shadow-md">
+        <button className="bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] text-white px-6 py-3 rounded-lg hover:from-[#1B3B5C] hover:to-[#2A4B6E] transition-all flex items-center shadow-md">
           <FaSave className="mr-2" /> Save Changes
         </button>
       </div>
@@ -1799,7 +1799,7 @@ const AdminDashboard = () => {
       {loading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
-            <FaSpinner className="animate-spin text-emerald-600 text-xl" />
+            <FaSpinner className="animate-spin text-[#0A2647] text-xl" />
             <span>Processing...</span>
           </div>
         </div>
@@ -1812,7 +1812,7 @@ const AdminDashboard = () => {
         } transition-transform duration-300 ease-in-out z-30 w-64`}
       >
         {/* Sidebar Header */}
-        <div className="h-16 flex items-center justify-between px-4 bg-gradient-to-r from-emerald-700 to-teal-700">
+        <div className="h-16 flex items-center justify-between px-4 bg-gradient-to-r from-[#0A2647] to-[#1B3B5C]">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">SB</span>
@@ -1830,7 +1830,7 @@ const AdminDashboard = () => {
         {/* User Info */}
         <div className="p-4 border-b border-slate-200">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] rounded-full flex items-center justify-center text-white font-bold">
               A
             </div>
             <div>
@@ -1846,7 +1846,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("dashboard")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "dashboard"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-[#0A2647] bg-opacity-10 text-[#0A2647]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -1856,7 +1856,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("users")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "users"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-[#0A2647] bg-opacity-10 text-[#0A2647]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -1866,7 +1866,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("banks")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "banks"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-[#0A2647] bg-opacity-10 text-[#0A2647]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -1876,7 +1876,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("loans")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "loans"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-[#0A2647] bg-opacity-10 text-[#0A2647]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -1886,7 +1886,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("fraud")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "fraud"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-[#0A2647] bg-opacity-10 text-[#0A2647]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -1896,7 +1896,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("support")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "support"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-[#0A2647] bg-opacity-10 text-[#0A2647]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -1906,7 +1906,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("kyc")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "kyc"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-[#0A2647] bg-opacity-10 text-[#0A2647]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -1916,7 +1916,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("reports")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "reports"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-[#0A2647] bg-opacity-10 text-[#0A2647]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -1926,7 +1926,7 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab("settings")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "settings"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-[#0A2647] bg-opacity-10 text-[#0A2647]"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
@@ -2002,7 +2002,7 @@ const AdminDashboard = () => {
                       ))}
                     </div>
                     <div className="p-4 border-t border-slate-200">
-                      <button className="text-sm text-emerald-600 hover:text-emerald-700">
+                      <button className="text-sm text-[#0A2647] hover:text-[#1B3B5C]">
                         View all
                       </button>
                     </div>
@@ -2012,7 +2012,7 @@ const AdminDashboard = () => {
 
               {/* User Menu */}
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-8 h-8 bg-gradient-to-r from-[#0A2647] to-[#1B3B5C] rounded-full flex items-center justify-center text-white font-bold text-sm">
                   A
                 </div>
                 <div className="hidden md:block">

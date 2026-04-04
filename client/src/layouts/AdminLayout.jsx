@@ -1,7 +1,7 @@
-import React from 'react'
-import { Outlet } from 'react-router-dom'
-import Header from '../components/common/Header'
-import Sidebar from '../components/common/Sidebar'
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Header from "../components/common/Header";
+import Sidebar from "../components/common/Sidebar";
 
 const AdminLayout = () => {
   return (
@@ -14,7 +14,7 @@ const AdminLayout = () => {
         </main>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminLayout
+export default AdminLayout;
