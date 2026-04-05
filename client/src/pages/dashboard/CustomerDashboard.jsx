@@ -2,12 +2,13 @@ import React from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDashboardData } from '../../hooks/useDashboardData'
 import StatsCards from '../../components/dashboard/StatsCards'
-import QuickActions from '../../components/dashboard/QuickActions'
+import QuickActions from '../../components/dashboard/QuickActionsNew'
 import RecentTransactions from '../../components/dashboard/RecentTransactions'
 import ActiveAlerts from '../../components/dashboard/ActiveAlerts'
 import AccountSummary from '../../components/dashboard/AccountSummary'
 import SavingsGoals from '../../components/dashboard/SavingsGoals'
 import LoanSummary from '../../components/dashboard/LoanSummary'
+import Sidebar from '../../components/layout/Sidebar'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const CustomerDashboard = () => {
@@ -24,6 +25,14 @@ const CustomerDashboard = () => {
     dismissAlert,
     refreshData 
   } = useDashboardData()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    )
+  }
 
   if (error) {
     return (
@@ -66,10 +75,10 @@ const CustomerDashboard = () => {
       <StatsCards stats={stats} loading={loading} />
 
       {/* Quick Actions */}
-      <QuickActions />
+      <QuickActions accounts={accounts} loans={loans} savingsGoals={savingsGoals} />
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Column - Account Summary and Savings Goals */}
         <div className="lg:col-span-2 space-y-6">
           <AccountSummary accounts={accounts} loading={loading} />
@@ -77,10 +86,15 @@ const CustomerDashboard = () => {
           <LoanSummary loans={loans} loading={loading} />
         </div>
 
-        {/* Right Column - Recent Transactions and Alerts */}
-        <div className="space-y-6">
+        {/* Center Column - Recent Transactions and Alerts */}
+        <div className="space-y-6 lg:col-span-1">
           <RecentTransactions transactions={transactions} loading={loading} />
           <ActiveAlerts alerts={alerts} onDismiss={dismissAlert} />
+        </div>
+
+        {/* Sidebar Column - Backend-powered actions and navigation */}
+        <div className="space-y-6 lg:col-span-1">
+          <Sidebar />
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { executeSidebarAction } from '../../api/dashboard'
 import { Link } from 'react-router-dom'
 import { 
   FaMoneyBillWave, 
@@ -12,7 +13,23 @@ import {
   FaPiggyBank
 } from 'react-icons/fa'
 
+// Quick actions block created for dashboard backend integrations
 const QuickActions = () => {
+  const [actionLoading, setActionLoading] = useState(false)
+
+  const handleAction = async (actionId) => {
+    if (actionLoading) return
+    setActionLoading(true)
+
+    try {
+      await executeSidebarAction(actionId)
+    } catch (error) {
+      console.error('Quick action failed', error)
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const actions = [
     { 
       to: '/dashboard/loans/apply', 

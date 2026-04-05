@@ -26,10 +26,12 @@ const LoanApplication = () => {
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [uploadingDocs, setUploadingDocs] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const { user } = useAuth()
   const navigate = useNavigate()
   
-  const { register, handleSubmit, watch, formState: { errors }, trigger } = useForm({
+  const { register, handleSubmit, watch, formState: { errors }, trigger, getValues, setError, clearErrors } = useForm({
     defaultValues: {
       firstName: user?.name?.split(' ')[0] || '',
       lastName: user?.name?.split(' ')[1] || '',
@@ -61,7 +63,7 @@ const LoanApplication = () => {
       features: ['Low interest rates', 'Long repayment tenure', 'Tax benefits']
     },
     { 
-      id: 'car', 
+      id: 'auto', 
       name: 'Car Loan', 
       icon: FaCar,
       interest: '9.50% - 13.50%', 
@@ -106,17 +108,68 @@ const LoanApplication = () => {
   ]
 
   const selectedLoanType = watch('loanType')
+  const selectedEmploymentType = watch('employmentType')
   const selectedLoan = loanTypes.find(loan => loan.id === selectedLoanType)
 
   const nextStep = async () => {
-    let fieldsToValidate = []
-    
-    if (step === 1) fieldsToValidate = ['loanType', 'loanAmount', 'loanPurpose']
-    else if (step === 2) fieldsToValidate = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'address']
-    else if (step === 3) fieldsToValidate = ['employmentType', 'monthlyIncome', 'companyName', 'workExperience']
-    
-    const isValid = await trigger(fieldsToValidate)
-    if (isValid) setStep(step + 1)
+    if (step === 1) {
+      const values = getValues()
+      let isValid = true
+
+      clearErrors(['loanType', 'loanAmount', 'loanPurpose', 'tenure'])
+
+      if (!values.loanType) {
+        setError('loanType', { type: 'manual', message: 'Please select a loan type' })
+        isValid = false
+      }
+
+      const amount = Number(values.loanAmount)
+      if (!values.loanAmount || Number.isNaN(amount)) {
+        setError('loanAmount', { type: 'manual', message: 'Loan amount is required' })
+        isValid = false
+      } else {
+        if (selectedLoan?.minAmount && amount < selectedLoan.minAmount) {
+          setError('loanAmount', { type: 'manual', message: `Minimum amount is $${selectedLoan.minAmount.toLocaleString()}` })
+          isValid = false
+        }
+        if (selectedLoan?.maxAmount && amount > selectedLoan.maxAmount) {
+          setError('loanAmount', { type: 'manual', message: `Maximum amount is $${selectedLoan.maxAmount.toLocaleString()}` })
+          isValid = false
+        }
+      }
+
+      if (!values.loanPurpose || values.loanPurpose.trim().length < 20) {
+        setError('loanPurpose', { type: 'manual', message: 'Please provide more details (at least 20 characters)' })
+        isValid = false
+      }
+
+      if (!values.tenure) {
+        setError('tenure', { type: 'manual', message: 'Please select loan tenure' })
+        isValid = false
+      }
+
+      if (!isValid) return
+      setStep(2)
+      return
+    }
+
+    if (step === 2) {
+      const isValid = await trigger(['firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'address'])
+      if (!isValid) return
+      setStep(3)
+      return
+    }
+
+    if (step === 3) {
+      let fieldsToValidate = ['employmentType', 'monthlyIncome', 'workExperience']
+      if (!['student', 'retired', 'unemployed'].includes(selectedEmploymentType || '')) {
+        fieldsToValidate.push('companyName')
+      }
+
+      const isValid = await trigger(fieldsToValidate)
+      if (!isValid) return
+      setStep(4)
+    }
   }
 
   const prevStep = () => setStep(step - 1)
@@ -124,8 +177,49 @@ const LoanApplication = () => {
   const onSubmit = async (data) => {
     try {
       setLoading(true)
-      // Call your loan service
-      await loanService.applyForLoan(data)
+      setSubmitError('')
+
+      const payload = {
+        loanType: data.loanType,
+        amount: Number(data.loanAmount),
+        term: Number(data.tenure),
+        purpose: data.loanPurpose,
+        employmentDetails: {
+          employmentType: data.employmentType,
+          employer: data.companyName,
+          monthlyIncome: Number(data.monthlyIncome),
+          yearsEmployed: Number(data.workExperience)
+        },
+        collateral: {
+          type: '',
+          description: '',
+          value: 0
+        },
+        guarantors: []
+      }
+
+      // Submit loan application
+      const loanRes = await loanService.applyForLoan(payload)
+      const loanId = loanRes?.data?.data?._id
+
+      // Upload documents if any were selected
+      const hasFiles = data.idProof?.[0] || data.addressProof?.[0] || data.incomeProof?.[0]
+      if (hasFiles && loanId) {
+        setUploadingDocs(true)
+        try {
+          const results = await loanService.uploadAllDocuments(loanId, {
+            idProof: data.idProof,
+            addressProof: data.addressProof,
+            incomeProof: data.incomeProof,
+          })
+          console.log('Document upload results:', results)
+        } catch (uploadErr) {
+          console.error('Document upload failed:', uploadErr)
+        } finally {
+          setUploadingDocs(false)
+        }
+      }
+
       setSubmitted(true)
       
       // Show success message
@@ -134,6 +228,7 @@ const LoanApplication = () => {
       }, 3000)
     } catch (error) {
       console.error('Loan application failed:', error)
+      setSubmitError(error?.response?.data?.message || error.message || 'Failed to submit loan application')
     } finally {
       setLoading(false)
     }
@@ -527,10 +622,20 @@ const LoanApplication = () => {
                 </div>
 
                 <div>
-                  <label className="form-label">Company/Employer Name *</label>
+                  <label className="form-label">
+                    Company/Employer Name {!['student', 'retired', 'unemployed'].includes(selectedEmploymentType || '') ? '*' : '(Optional)'}
+                  </label>
                   <input
                     type="text"
-                    {...register('companyName', { required: 'Company name is required' })}
+                    {...register('companyName', {
+                      validate: (value) => {
+                        if (['student', 'retired', 'unemployed'].includes(selectedEmploymentType || '')) {
+                          return true
+                        }
+
+                        return value?.trim()?.length > 0 || 'Company name is required'
+                      }
+                    })}
                     className="input-field"
                     placeholder="Enter company name"
                   />
@@ -666,6 +771,12 @@ const LoanApplication = () => {
             )}
 
             {/* Navigation Buttons */}
+            {submitError && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {submitError}
+              </div>
+            )}
+
             <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
               {step > 1 && (
                 <button
@@ -688,13 +799,18 @@ const LoanApplication = () => {
               ) : (
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || uploadingDocs}
                   className="btn-primary flex items-center ml-auto"
                 >
                   {loading ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                       Submitting...
+                    </>
+                  ) : uploadingDocs ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Uploading Documents...
                     </>
                   ) : (
                     <>

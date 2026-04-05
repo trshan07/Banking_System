@@ -10,6 +10,7 @@ const { validate } = require('../middleware/validation');
 const applyLoanValidation = [
   body('loanType').isIn(['personal', 'home', 'auto', 'business', 'education']).withMessage('Invalid loan type'),
   body('amount').isNumeric().withMessage('Amount must be a number').custom(value => value > 0).withMessage('Amount must be greater than 0'),
+  body('term').isInt({ min: 1, max: 360 }).withMessage('Term must be between 1 and 360 months'),
   body('purpose').notEmpty().withMessage('Purpose is required'),
   validate
 ];

@@ -5,7 +5,8 @@ const loanSchema = new mongoose.Schema({
   id: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    default: () => `loan_${Date.now()}_${Math.floor(Math.random() * 1000000)}`
   },
   loanType: {
     type: String,
@@ -56,7 +57,8 @@ const loanSchema = new mongoose.Schema({
   },
   accountId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Account'
+    ref: 'Account',
+    default: null
   },
   purpose: {
     type: String,
@@ -69,9 +71,9 @@ const loanSchema = new mongoose.Schema({
     yearsEmployed: Number
   },
   collateral: {
-    type: String,
-    description: String,
-    value: Number
+    collateralType: { type: String, default: '' },
+    description: { type: String, default: '' },
+    value: { type: Number, default: 0 }
   },
   guarantors: [{
     name: String,

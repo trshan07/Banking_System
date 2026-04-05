@@ -75,14 +75,9 @@ exports.applyForLoan = async (req, res) => {
       guarantors
     } = req.body;
 
-    // Check if user has an account
-    const account = await Account.findOne({ userId: req.user._id });
-    if (!account) {
-      return res.status(400).json({
-        success: false,
-        message: 'You need an active account to apply for a loan'
-      });
-    }
+    // Find the user's active account (optional - loan can still be created without one)
+    const account = await Account.findOne({ userId: req.user._id, status: 'active' })
+      || await Account.findOne({ userId: req.user._id });
 
     // Calculate interest rate based on loan type and term
     let interestRate;
@@ -111,17 +106,20 @@ exports.applyForLoan = async (req, res) => {
     if (term > 120) interestRate += 1;
 
     const loan = new Loan({
-      id: 'loan_' + Date.now(),
       loanType,
       amount,
       interestRate,
       term,
       purpose,
       userId: req.user._id,
-      accountId: account._id,
+      accountId: account?._id || null,
       employmentDetails,
-      collateral,
-      guarantors,
+      collateral: {
+        collateralType: collateral?.type || '',
+        description:    collateral?.description || '',
+        value:          Number(collateral?.value) || 0
+      },
+      guarantors: Array.isArray(guarantors) ? guarantors : [],
       status: 'pending'
     });
 
@@ -139,7 +137,8 @@ exports.applyForLoan = async (req, res) => {
     console.error('Apply for loan error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to submit loan application'
+      message: error?.message || 'Failed to submit loan application',
+      ...(process.env.NODE_ENV === 'development' && { stack: error?.stack })
     });
   }
 };

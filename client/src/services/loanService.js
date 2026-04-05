@@ -2,24 +2,11 @@ import api from './api'
 
 export const loanService = {
   async applyForLoan(loanData) {
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('Loan application submitted:', loanData)
-        resolve({ 
-          success: true, 
-          applicationId: 'LN-' + Date.now(),
-          message: 'Application submitted successfully' 
-        })
-      }, 2000)
-    })
-    
-    // Actual API call when backend is ready:
-    // return api.post('/loans/apply', loanData)
+    return api.post('/loans/apply', loanData)
   },
 
   async getMyLoans() {
-    return api.get('/loans/my-loans')
+    return api.get('/loans')
   },
 
   async getLoanById(id) {
@@ -30,11 +17,23 @@ export const loanService = {
     return api.get(`/loans/${id}/status`)
   },
 
-  async uploadDocuments(id, documents) {
+  // Upload a single document tied to a loan
+  async uploadDocument(loanId, file, documentType) {
     const formData = new FormData()
-    documents.forEach(doc => formData.append('documents', doc))
-    return api.post(`/loans/${id}/documents`, formData, {
+    formData.append('documents', file)
+    formData.append('documentType', documentType)
+    formData.append('loanId', loanId)
+    return api.post('/documents/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
+  },
+
+  // Upload all loan application documents
+  async uploadAllDocuments(loanId, { idProof, addressProof, incomeProof }) {
+    const uploads = []
+    if (idProof?.[0])      uploads.push(this.uploadDocument(loanId, idProof[0],      'id_proof'))
+    if (addressProof?.[0]) uploads.push(this.uploadDocument(loanId, addressProof[0], 'address_proof'))
+    if (incomeProof?.[0])  uploads.push(this.uploadDocument(loanId, incomeProof[0],  'income_proof'))
+    return Promise.allSettled(uploads)
   }
 }
