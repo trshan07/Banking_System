@@ -48,6 +48,33 @@ const HomePage = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isVisible, setIsVisible] = useState({});
 
+  const testimonials = [
+    {
+      id: 1,
+      name: "Aditi Sharma",
+      title: "SME Owner",
+      quote:
+        "Smart Bank helped me secure a business loan in hours, not days. The digital KYC flow is fast and reliable.",
+      avatar: "https://randomuser.me/api/portraits/women/65.jpg",
+    },
+    {
+      id: 2,
+      name: "Rahul Verma",
+      title: "Freelancer",
+      quote:
+        "I love how easy it is to manage my accounts and transfer funds instantly. The fraud alerts give me peace of mind.",
+      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+    },
+    {
+      id: 3,
+      name: "Neha Singh",
+      title: "Corporate Banker",
+      quote:
+        "The support system is exceptional, and the dashboard helps me keep track of all my financial operations seamlessly.",
+      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+    },
+  ];
+
   // Intersection Observer for scroll animations
   useEffect(() => {
     const observer = new IntersectionObserver(
