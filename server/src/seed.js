@@ -111,8 +111,66 @@ const ensureSuperAdmin = async () => {
   }
 };
 
+// Ensure basic demo users exist in development mode
+const ensureDemoUsers = async () => {
+  if (process.env.NODE_ENV === 'production') {
+    return;
+  }
+
+  const demoUsers = [
+    {
+      firstName: 'John',
+      lastName: 'Customer',
+      email: 'customer@example.com',
+      password: 'customer123',
+      phone: '+1234567890',
+      address: '123 Main St, City, State',
+      role: 'customer',
+      isEmailVerified: true,
+      status: 'active',
+      permissions: ['view_account', 'manage_account', 'view_transactions', 'create_transactions']
+    },
+    {
+      firstName: 'Jane',
+      lastName: 'Employee',
+      email: 'employee@example.com',
+      password: 'employee123',
+      phone: '+1234567891',
+      address: '456 Oak St, City, State',
+      role: 'employee',
+      isEmailVerified: true,
+      status: 'active',
+      permissions: ['view_account', 'manage_account', 'view_transactions', 'create_transactions', 'view_users']
+    },
+    {
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@example.com',
+      password: 'admin123',
+      phone: '+1234567892',
+      address: '789 Pine St, City, State',
+      role: 'admin',
+      isEmailVerified: true,
+      status: 'active',
+      permissions: ['view_account', 'manage_account', 'view_transactions', 'create_transactions', 'view_users', 'manage_users', 'view_reports']
+    }
+  ];
+
+  for (const userData of demoUsers) {
+    const existing = await User.findOne({ email: userData.email });
+    if (existing) continue;
+
+    const hashedPassword = await bcrypt.hash(userData.password, 12);
+    await User.create({
+      ...userData,
+      password: hashedPassword
+    });
+    console.log(`Created demo user: ${userData.email}`);
+  }
+};
+
 if (require.main === module) {
   seedUsers();
 }
 
-module.exports = { seedUsers, ensureSuperAdmin };
+module.exports = { seedUsers, ensureSuperAdmin, ensureDemoUsers };

@@ -1,7 +1,7 @@
 // server.js
 const mongoose = require('mongoose');
 const { app, httpServer } = require('./src/app');
-const { ensureSuperAdmin } = require('./src/seed');
+const { ensureSuperAdmin, ensureDemoUsers } = require('./src/seed');
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
@@ -43,6 +43,7 @@ const startServer = async () => {
   try {
     await connectDB();
     await ensureSuperAdmin();
+    await ensureDemoUsers();
 
     const basePort = Number(process.env.PORT || 5000);
     let PORT = basePort;

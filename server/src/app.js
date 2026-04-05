@@ -22,6 +22,8 @@ const kycRoutes = require('./routes/kycRoutes');
 const supportRoutes = require('./routes/supportRoutes');
 const savingsRoutes = require('./routes/savingsRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
+const leaveRoutes = require('./routes/leaveRoutes');
+const superadminRoutes = require('./routes/superadminRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -188,8 +190,8 @@ app.use('/api/kyc', kycRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/savings', savingsRoutes);
 app.use('/api/employee', employeeRoutes);
-
-
+app.use('/api/leave', leaveRoutes);
+app.use('/api/superadmin', superadminRoutes);
 
 // ============================================
 // Socket.IO Setup - FIXED
@@ -219,7 +221,10 @@ io.use((socket, next) => {
   
   try {
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET, {
+      issuer: 'smartbank',
+      audience: 'smartbank-users'
+    });
     socket.userId = decoded.id;
     socket.userRole = decoded.role;
     socket.isAuthenticated = true;
