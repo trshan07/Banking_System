@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
-const { authMiddleware } = require('../middleware/auth');
+const { authMiddleware, protect } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 const { 
   authRateLimiter, 
@@ -104,17 +104,26 @@ router.post('/reset-password', authRateLimiter, resetPasswordValidation, authCon
 // ============================================
 // Protected Routes (Authentication Required)
 // ============================================
+router.use(protect);
 
 // Get current user
-router.get('/me', authMiddleware, authController.getCurrentUser);
+router.get('/me', authController.getMe);
 
 // Validate token
-router.get('/validate', authMiddleware, authController.validateToken);
+router.get('/validate', authController.validateToken);
 
 // Logout
-router.post('/logout', authMiddleware, logoutLimiter, authController.logout);
+router.post('/logout', logoutLimiter, authController.logout);
 
 // Change password
-router.post('/change-password', authMiddleware, changePasswordValidation, authController.changePassword);
+router.put('/change-password', changePasswordValidation, authController.changePassword);
+
+// Update profile
+router.put('/profile', [
+  body('firstName').optional().isLength({ min: 2, max: 50 }).withMessage('First name must be between 2 and 50 characters'),
+  body('lastName').optional().isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters'),
+  body('phone').optional().notEmpty().withMessage('Phone cannot be empty'),
+  validate
+], authController.updateProfile);
 
 module.exports = router;

@@ -26,6 +26,52 @@ exports.getUserAccounts = async (req, res) => {
   }
 };
 
+// @desc    Get dashboard summary data
+// @route   GET /api/accounts/dashboard
+// @access  Private
+exports.getDashboardData = async (req, res) => {
+  try {
+    const accounts = await Account.find({ userId: req.user._id })
+      .sort({ createdAt: -1 });
+
+    const accountIds = accounts.map((account) => account._id);
+    const transactions = accountIds.length > 0
+      ? await Transaction.find({
+          $or: [
+            { fromAccountId: { $in: accountIds } },
+            { toAccountId: { $in: accountIds } }
+          ]
+        })
+          .sort({ createdAt: -1 })
+          .limit(10)
+      : [];
+
+    const totalBalance = accounts.reduce((sum, account) => sum + (Number(account.balance) || 0), 0);
+
+    res.json({
+      success: true,
+      data: {
+        stats: [
+          { label: 'Account Balance', value: `$${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: `${accounts.length} account${accounts.length === 1 ? '' : 's'}` },
+          { label: 'Active Accounts', value: String(accounts.filter((account) => account.status === 'active').length), change: `${accounts.length} total` },
+          { label: 'Recent Transactions', value: String(transactions.length), change: 'Last 10 items' },
+          { label: 'Support Tickets', value: '0', change: 'No data yet' }
+        ],
+        accounts,
+        transactions,
+        alerts: [],
+        savingsGoals: []
+      }
+    });
+  } catch (error) {
+    console.error('Get dashboard data error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get dashboard data'
+    });
+  }
+};
+
 // @desc    Get account details
 // @route   GET /api/accounts/:accountId
 // @access  Private

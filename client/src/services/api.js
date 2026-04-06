@@ -74,3 +74,20 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+export const dashboardAPI = {
+  getData: () => api.get('/accounts'),
+  dismissAlert: (alertId) => api.patch(`/accounts/alerts/${alertId}/dismiss`)
+};
+
+export const bankingAPI = {
+  getAccounts: () => api.get('/accounts')
+};
+
+export const loanAPI = {
+  getLoans: () => api.get('/loans')
+};
+
+export const savingsAPI = {
+  getGoals: () => api.get('/savings/goals')
+};

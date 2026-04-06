@@ -23,6 +23,7 @@ const transferValidation = [
 
 // User routes
 router.get('/', authMiddleware, accountController.getUserAccounts);
+router.get('/dashboard', authMiddleware, accountController.getDashboardData);
 router.get('/:accountId', authMiddleware, accountController.getAccountDetails);
 router.post('/', authMiddleware, createAccountValidation, accountController.createAccount);
 router.post('/transfer', authMiddleware, transferValidation, accountController.transferMoney);

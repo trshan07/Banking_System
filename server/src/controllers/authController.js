@@ -575,6 +575,53 @@ class AuthController {
     }
   }
 
+  // Update user profile
+  async updateProfile(req, res) {
+    try {
+      const { firstName, lastName, phone, address, preferences } = req.body;
+
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      if (firstName) user.firstName = firstName;
+      if (lastName) user.lastName = lastName;
+      if (phone) user.phone = phone;
+      if (address) user.address = address;
+      if (preferences) user.preferences = { ...(user.preferences?.toObject?.() ?? user.preferences), ...preferences };
+
+      await user.save();
+
+      const userResponse = user.toObject();
+      delete userResponse.password;
+      delete userResponse.refreshToken;
+      delete userResponse.__v;
+
+      res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        data: { user: userResponse }
+      });
+
+    } catch (error) {
+      console.error('Update profile error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update profile'
+      });
+    }
+  }
+
+  // Get current user (alias: getMe)
+  async getMe(req, res) {
+    return this.getCurrentUser(req, res);
+  }
+
   // Get current user
   async getCurrentUser(req, res) {
     try {

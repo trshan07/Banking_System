@@ -75,6 +75,45 @@ exports.applyForLoan = async (req, res) => {
       guarantors
     } = req.body;
 
+    const parsedAmount = Number(amount);
+    const parsedTerm = Number(term);
+
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a valid positive number'
+      });
+    }
+
+    if (!Number.isInteger(parsedTerm) || parsedTerm < 1 || parsedTerm > 360) {
+      return res.status(400).json({
+        success: false,
+        message: 'Term must be an integer between 1 and 360 months'
+      });
+    }
+
+    const parsedMonthlyIncome = employmentDetails?.monthlyIncome === undefined || employmentDetails?.monthlyIncome === ''
+      ? undefined
+      : Number(employmentDetails.monthlyIncome);
+
+    const parsedYearsEmployed = employmentDetails?.yearsEmployed === undefined || employmentDetails?.yearsEmployed === ''
+      ? undefined
+      : Number(employmentDetails.yearsEmployed);
+
+    if (parsedMonthlyIncome !== undefined && !Number.isFinite(parsedMonthlyIncome)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Monthly income must be a valid number'
+      });
+    }
+
+    if (parsedYearsEmployed !== undefined && !Number.isFinite(parsedYearsEmployed)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Work experience must be a valid number'
+      });
+    }
+
     // Find the user's active account (optional - loan can still be created without one)
     const account = await Account.findOne({ userId: req.user._id, status: 'active' })
       || await Account.findOne({ userId: req.user._id });
@@ -102,18 +141,23 @@ exports.applyForLoan = async (req, res) => {
     }
 
     // Adjust rate based on term
-    if (term > 60) interestRate += 1;
-    if (term > 120) interestRate += 1;
+    if (parsedTerm > 60) interestRate += 1;
+    if (parsedTerm > 120) interestRate += 1;
 
     const loan = new Loan({
       loanType,
-      amount,
+      amount: parsedAmount,
       interestRate,
-      term,
+      term: parsedTerm,
       purpose,
       userId: req.user._id,
       accountId: account?._id || null,
-      employmentDetails,
+      employmentDetails: {
+        employer: employmentDetails?.employer || '',
+        position: employmentDetails?.position || '',
+        monthlyIncome: parsedMonthlyIncome,
+        yearsEmployed: parsedYearsEmployed
+      },
       collateral: {
         collateralType: collateral?.type || '',
         description:    collateral?.description || '',

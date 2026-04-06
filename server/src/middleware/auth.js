@@ -175,6 +175,7 @@ const optionalAuth = async (req, res, next) => {
 
 module.exports = {
   authMiddleware,
+  protect: authMiddleware, // alias
   checkRole,
   checkPermission,
   optionalAuth

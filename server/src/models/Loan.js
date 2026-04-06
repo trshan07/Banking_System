@@ -110,7 +110,7 @@ const loanSchema = new mongoose.Schema({
 });
 
 // Calculate monthly payment before saving
-loanSchema.pre('save', function(next) {
+loanSchema.pre('save', function() {
   if (this.isModified('amount') || this.isModified('interestRate') || this.isModified('term')) {
     const monthlyRate = this.interestRate / 100 / 12;
     const numberOfPayments = this.term;
@@ -125,7 +125,6 @@ loanSchema.pre('save', function(next) {
     
     this.totalPayment = this.monthlyPayment * numberOfPayments;
   }
-  next();
 });
 
 module.exports = mongoose.model('Loan', loanSchema);

@@ -33,14 +33,26 @@ const StatsCards = ({ stats, loading }) => {
     }
   }
 
+  const normalizedStats = Array.isArray(stats)
+    ? stats
+    : Object.entries(stats || {}).map(([key, value]) => ({
+        label: key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, (char) => char.toUpperCase())
+          .trim(),
+        value: String(value ?? 0),
+        change: ''
+      }))
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {stats.map((stat, index) => {
+      {normalizedStats.map((stat, index) => {
         const Icon = getIcon(stat.label)
         const color = getColor(stat.label)
         
         // Extract numeric value for formatting if needed
-        const numericValue = parseFloat(stat.value.replace(/[^0-9.-]+/g, ''))
+        const rawValue = stat?.value ?? ''
+        const numericValue = parseFloat(String(rawValue).replace(/[^0-9.-]+/g, ''))
         
         return (
           <div key={index} className="card hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
@@ -48,14 +60,18 @@ const StatsCards = ({ stats, loading }) => {
               <div>
                 <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {stat.label === 'Account Balance' ? formatCurrency(numericValue) : stat.value}
+                  {stat.label === 'Account Balance' && Number.isFinite(numericValue)
+                    ? formatCurrency(numericValue)
+                    : String(rawValue)}
                 </p>
-                <p className={`text-sm mt-2 ${
-                  stat.change.startsWith('+') ? 'text-green-600' : 
-                  stat.change.startsWith('-') ? 'text-red-600' : 'text-gray-500'
-                }`}>
-                  {stat.change}
-                </p>
+                {stat.change ? (
+                  <p className={`text-sm mt-2 ${
+                    stat.change.startsWith('+') ? 'text-green-600' : 
+                    stat.change.startsWith('-') ? 'text-red-600' : 'text-gray-500'
+                  }`}>
+                    {stat.change}
+                  </p>
+                ) : null}
               </div>
               <div className={`${color} p-4 rounded-xl shadow-lg`}>
                 <Icon className="text-white text-2xl" />
