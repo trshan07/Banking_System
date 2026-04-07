@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api'
+const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token')
@@ -17,7 +17,7 @@ const handleResponse = async (response) => {
 }
 
 export const fetchDashboard = async () => {
-  const response = await fetch(`${API_BASE}/dashboard`, {
+  const response = await fetch(`${API_BASE}/dashboard/data`, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -26,7 +26,7 @@ export const fetchDashboard = async () => {
 }
 
 export const fetchSidebarItems = async () => {
-  const response = await fetch(`${API_BASE}/sidebar`, {
+  const response = await fetch(`${API_BASE}/dashboard/sidebar`, {
     method: 'GET',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -35,7 +35,7 @@ export const fetchSidebarItems = async () => {
 }
 
 export const executeSidebarAction = async (actionId, payload = {}) => {
-  const response = await fetch(`${API_BASE}/sidebar/${actionId}/execute`, {
+  const response = await fetch(`${API_BASE}/dashboard/sidebar/${actionId}/execute`, {
     method: 'POST',
     headers: getAuthHeaders(),
     credentials: 'include',
@@ -45,8 +45,8 @@ export const executeSidebarAction = async (actionId, payload = {}) => {
 }
 
 export const dismissAlert = async (alertId) => {
-  const response = await fetch(`${API_BASE}/alerts/${alertId}/dismiss`, {
-    method: 'POST',
+  const response = await fetch(`${API_BASE}/dashboard/alerts/${alertId}/dismiss`, {
+    method: 'PUT',
     headers: getAuthHeaders(),
     credentials: 'include',
   })

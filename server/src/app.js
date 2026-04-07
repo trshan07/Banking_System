@@ -8,7 +8,8 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -24,6 +25,7 @@ const savingsRoutes = require('./routes/savingsRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
 const leaveRoutes = require('./routes/leaveRoutes');
 const superadminRoutes = require('./routes/superadminRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -192,6 +194,7 @@ app.use('/api/savings', savingsRoutes);
 app.use('/api/employee', employeeRoutes);
 app.use('/api/leave', leaveRoutes);
 app.use('/api/superadmin', superadminRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // ============================================
 // Socket.IO Setup - FIXED

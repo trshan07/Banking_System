@@ -17,103 +17,99 @@ import {
 } from 'react-icons/fa'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
+import { loanService } from '../../services/loanService'
 
 const LoanStatus = () => {
   const [loading, setLoading] = useState(true)
   const [loans, setLoans] = useState([])
+  const [error, setError] = useState('')
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLoan, setSelectedLoan] = useState(null)
 
   useEffect(() => {
-    // Mock data - replace with API call
-    setTimeout(() => {
-      setLoans([
-        {
-          id: 'LN-2024-001',
-          type: 'Personal Loan',
-          amount: 15000,
-          interestRate: '12%',
-          tenure: '36 months',
-          status: 'approved',
-          appliedDate: '2024-02-15',
-          approvedDate: '2024-02-20',
-          disbursedDate: '2024-02-22',
-          emiAmount: 498.50,
-          nextEMIDate: '2024-03-15',
-          remainingAmount: 14500,
-          progress: 3,
-          purpose: 'Home renovation',
-          documents: ['ID Proof', 'Income Certificate'],
-          officer: 'Sarah Wilson',
-          officerContact: 'sarah.wilson@smartbank.com',
-          statusHistory: [
-            { date: '2024-02-15', status: 'Application Submitted', description: 'Loan application received' },
-            { date: '2024-02-17', status: 'Under Review', description: 'Verification in progress' },
-            { date: '2024-02-20', status: 'Approved', description: 'Loan approved by committee' },
-            { date: '2024-02-22', status: 'Disbursed', description: 'Funds transferred to account' }
-          ]
-        },
-        {
-          id: 'LN-2024-002',
-          type: 'Home Loan',
-          amount: 250000,
-          interestRate: '8.5%',
-          tenure: '240 months',
-          status: 'under_review',
-          appliedDate: '2024-02-10',
-          expectedDecision: '2024-03-10',
-          purpose: 'House purchase',
-          documents: ['Property Papers', 'Income Tax Returns', 'Bank Statements'],
-          officer: 'Mike Chen',
-          officerContact: 'mike.chen@smartbank.com',
-          statusHistory: [
-            { date: '2024-02-10', status: 'Application Submitted', description: 'Loan application received' },
-            { date: '2024-02-12', status: 'Document Verification', description: 'Documents under review' },
-            { date: '2024-02-15', status: 'Property Evaluation', description: 'Property valuation in progress' }
-          ]
-        },
-        {
-          id: 'LN-2024-003',
-          type: 'Car Loan',
-          amount: 35000,
-          interestRate: '9.5%',
-          tenure: '60 months',
-          status: 'pending',
-          appliedDate: '2024-02-18',
-          purpose: 'New car purchase',
-          documents: ['Vehicle Quotation', 'Driving License'],
-          statusHistory: [
-            { date: '2024-02-18', status: 'Application Submitted', description: 'Loan application received' }
-          ]
-        },
-        {
-          id: 'LN-2023-045',
-          type: 'Education Loan',
-          amount: 45000,
-          interestRate: '10%',
-          tenure: '84 months',
-          status: 'rejected',
-          appliedDate: '2023-12-20',
-          rejectedDate: '2024-01-15',
-          rejectionReason: 'Insufficient income to support loan amount',
-          documents: ['Admission Letter', 'Fee Structure'],
-          statusHistory: [
-            { date: '2023-12-20', status: 'Application Submitted', description: 'Loan application received' },
-            { date: '2023-12-28', status: 'Under Review', description: 'Income verification failed' },
-            { date: '2024-01-15', status: 'Rejected', description: 'Application rejected' }
-          ]
-        }
-      ])
-      setLoading(false)
-    }, 1000)
+    const formatLoanType = (loanType = '') =>
+      loanType
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ') + ' Loan'
+
+    const mapLoan = (loan) => {
+      const paidAmount = Array.isArray(loan.payments)
+        ? loan.payments
+            .filter((payment) => payment.status === 'paid')
+            .reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0)
+        : 0
+      const total = Number(loan.totalPayment) || Number(loan.amount) || 0
+      const progress = total > 0 ? Math.min(100, Math.round((paidAmount / total) * 100)) : 0
+
+      return {
+        id: loan.id || loan._id,
+        type: formatLoanType(loan.loanType),
+        amount: Number(loan.amount) || 0,
+        interestRate: `${Number(loan.interestRate) || 0}%`,
+        tenure: `${Number(loan.term) || 0} months`,
+        status: loan.status,
+        appliedDate: loan.createdAt,
+        approvedDate: loan.approvedAt,
+        disbursedDate: loan.disbursedAt,
+        emiAmount: Number(loan.monthlyPayment) || 0,
+        nextEMIDate: loan.nextPaymentDate,
+        remainingAmount: Math.max(0, total - paidAmount),
+        progress,
+        purpose: loan.purpose,
+        documents: Array.isArray(loan.documents)
+          ? loan.documents.map((doc, index) => doc?.documentType || doc?.originalName || `Document ${index + 1}`)
+          : [],
+        rejectionReason: loan.status === 'rejected' ? loan.adminComment : '',
+        statusHistory: [
+          {
+            date: loan.createdAt,
+            status: 'Application Submitted',
+            description: 'Loan application received'
+          },
+          ...(loan.approvedAt
+            ? [{ date: loan.approvedAt, status: 'Approved', description: 'Loan approved by loan officer' }]
+            : []),
+          ...(loan.disbursedAt
+            ? [{ date: loan.disbursedAt, status: 'Disbursed', description: 'Funds disbursed to your account' }]
+            : []),
+          ...(loan.status === 'rejected'
+            ? [{ date: loan.updatedAt, status: 'Rejected', description: loan.adminComment || 'Application rejected' }]
+            : [])
+        ]
+      }
+    }
+
+    const fetchUserLoans = async () => {
+      try {
+        setLoading(true)
+        setError('')
+        const response = await loanService.getMyLoans()
+        const loanList = Array.isArray(response?.data?.data) ? response.data.data : []
+        setLoans(loanList.map(mapLoan))
+      } catch (err) {
+        console.error('Failed to fetch user loans:', err)
+        setError('Unable to load your loans right now. Please try again later.')
+        setLoans([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserLoans()
   }, [])
 
   const getStatusIcon = (status) => {
     switch(status) {
       case 'approved': return <FaCheckCircle className="text-green-600" />
+      case 'disbursed': return <FaCheckCircle className="text-green-600" />
+      case 'active': return <FaCheckCircle className="text-green-600" />
+      case 'completed': return <FaCheckCircle className="text-green-600" />
       case 'under_review': return <FaClock className="text-blue-600" />
       case 'pending': return <FaClock className="text-yellow-600" />
+      case 'defaulted': return <FaTimesCircle className="text-red-600" />
+      case 'cancelled': return <FaTimesCircle className="text-red-600" />
       case 'rejected': return <FaTimesCircle className="text-red-600" />
       default: return <FaMoneyBillWave className="text-gray-600" />
     }
@@ -122,8 +118,13 @@ const LoanStatus = () => {
   const getStatusColor = (status) => {
     switch(status) {
       case 'approved': return 'bg-green-100 text-green-800 border-green-200'
+      case 'disbursed': return 'bg-green-100 text-green-800 border-green-200'
+      case 'active': return 'bg-green-100 text-green-800 border-green-200'
+      case 'completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200'
       case 'under_review': return 'bg-blue-100 text-blue-800 border-blue-200'
       case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'defaulted': return 'bg-red-100 text-red-800 border-red-200'
+      case 'cancelled': return 'bg-gray-100 text-gray-800 border-gray-200'
       case 'rejected': return 'bg-red-100 text-red-800 border-red-200'
       default: return 'bg-gray-100 text-gray-800 border-gray-200'
     }
@@ -132,8 +133,13 @@ const LoanStatus = () => {
   const getStatusText = (status) => {
     switch(status) {
       case 'approved': return 'Approved'
+      case 'disbursed': return 'Disbursed'
+      case 'active': return 'Active'
+      case 'completed': return 'Completed'
       case 'under_review': return 'Under Review'
       case 'pending': return 'Pending'
+      case 'defaulted': return 'Defaulted'
+      case 'cancelled': return 'Cancelled'
       case 'rejected': return 'Rejected'
       default: return status
     }
@@ -239,6 +245,12 @@ const LoanStatus = () => {
 
         {/* Loans List */}
         <div className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
           {filteredLoans.length === 0 ? (
             <div className="bg-white rounded-xl shadow-md p-8 text-center">
               <FaMoneyBillWave className="text-gray-400 text-5xl mx-auto mb-4" />

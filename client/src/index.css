@@ -181,3 +181,8 @@
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
+
+/* Prevent Recharts ResponsiveContainer from measuring negative widths in flex/grid parents. */
+.recharts-responsive-container {
+  min-width: 0;
+}

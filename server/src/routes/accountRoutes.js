@@ -15,8 +15,12 @@ const createAccountValidation = [
 
 const transferValidation = [
   body('fromAccountId').notEmpty().withMessage('Source account is required'),
-  body('toAccountId').notEmpty().withMessage('Destination account is required'),
   body('amount').isNumeric().withMessage('Amount must be a number').custom(value => value > 0).withMessage('Amount must be greater than 0'),
+  body('transferType').optional().isIn(['own', 'internal', 'external']).withMessage('Invalid transfer type'),
+  body('toAccountId').optional().isString(),
+  body('beneficiaryName').optional().isString().trim(),
+  body('beneficiaryAccountNumber').optional().isString().trim(),
+  body('beneficiaryBank').optional().isString().trim(),
   body('description').optional().isString(),
   validate
 ];

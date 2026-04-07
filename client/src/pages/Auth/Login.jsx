@@ -193,7 +193,7 @@ const Login = () => {
         <div className="flex justify-center space-x-4 mb-6">
           <button
             onClick={() =>
-              (window.location.href = `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/auth/google`)
+              (window.location.href = `${import.meta.env.VITE_API_URL || "/api"}/auth/google`)
             }
             disabled={loading}
             className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors border border-gray-300"
@@ -202,7 +202,7 @@ const Login = () => {
           </button>
           <button
             onClick={() =>
-              (window.location.href = `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/auth/facebook`)
+              (window.location.href = `${import.meta.env.VITE_API_URL || "/api"}/auth/facebook`)
             }
             disabled={loading}
             className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors border border-gray-300"
@@ -211,7 +211,7 @@ const Login = () => {
           </button>
           <button
             onClick={() =>
-              (window.location.href = `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/auth/github`)
+              (window.location.href = `${import.meta.env.VITE_API_URL || "/api"}/auth/github`)
             }
             disabled={loading}
             className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors border border-gray-300"

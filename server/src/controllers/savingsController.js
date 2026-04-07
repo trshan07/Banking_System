@@ -69,8 +69,33 @@ exports.createGoal = async (req, res) => {
       notes 
     } = req.body;
 
+    const trimmedGoalName = String(goalName || '').trim();
+    const parsedTargetAmount = Number(targetAmount);
+    const parsedDeadline = new Date(deadline);
+
+    if (!trimmedGoalName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Goal name is required'
+      });
+    }
+
+    if (!Number.isFinite(parsedTargetAmount) || parsedTargetAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Target amount must be greater than 0'
+      });
+    }
+
+    if (Number.isNaN(parsedDeadline.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid deadline date'
+      });
+    }
+
     // Validate deadline is in the future
-    if (new Date(deadline) <= new Date()) {
+    if (parsedDeadline <= new Date()) {
       return res.status(400).json({
         success: false,
         message: 'Deadline must be in the future'
@@ -78,11 +103,11 @@ exports.createGoal = async (req, res) => {
     }
 
     const goal = new SavingsGoal({
-      id: 'goal_' + Date.now(),
+      id: `goal_${Date.now()}_${Math.floor(Math.random() * 1000000)}`,
       userId: req.user._id,
-      goalName,
-      targetAmount,
-      deadline,
+      goalName: trimmedGoalName,
+      targetAmount: parsedTargetAmount,
+      deadline: parsedDeadline,
       category,
       notes,
       currentAmount: 0,
@@ -98,6 +123,22 @@ exports.createGoal = async (req, res) => {
     });
   } catch (error) {
     console.error('Create goal error:', error);
+
+    if (error?.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'A goal with this identifier already exists. Please try again.'
+      });
+    }
+
+    if (error?.name === 'ValidationError') {
+      const firstValidationError = Object.values(error.errors || {})[0];
+      return res.status(400).json({
+        success: false,
+        message: firstValidationError?.message || 'Savings goal validation failed'
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to create savings goal'
@@ -184,7 +225,7 @@ exports.updateProgress = async (req, res) => {
       status: 'completed',
       description: `Contribution to savings goal: ${goal.goalName}`,
       reference: 'SAV' + Date.now(),
-      category: 'savings',
+      category: 'transfer',
       balanceAfter: {
         fromAccount: account.balance,
         toAccount: account.balance
@@ -418,7 +459,7 @@ exports.depositToSavings = async (req, res) => {
       status: 'completed',
       description: 'Transfer to savings account',
       reference: 'SAV' + Date.now(),
-      category: 'savings',
+      category: 'transfer',
       balanceAfter: {
         fromAccount: sourceAccount.balance,
         toAccount: savingsAccount.balance
@@ -523,7 +564,7 @@ exports.withdrawFromSavings = async (req, res) => {
       status: 'completed',
       description: 'Withdrawal from savings account',
       reference: 'SAVW' + Date.now(),
-      category: 'savings',
+      category: 'transfer',
       balanceAfter: {
         fromAccount: savingsAccount.balance,
         toAccount: destAccount.balance

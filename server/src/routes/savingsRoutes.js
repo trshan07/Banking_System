@@ -8,15 +8,28 @@ const { validate } = require('../middleware/validation');
 
 // Validation rules
 const createGoalValidation = [
-  body('goalName').notEmpty().withMessage('Goal name is required'),
+  body('goalName').trim().notEmpty().withMessage('Goal name is required'),
   body('targetAmount').isNumeric().withMessage('Target amount must be a number').custom(value => value > 0).withMessage('Target amount must be greater than 0'),
-  body('currentAmount').optional().isNumeric().withMessage('Current amount must be a number'),
-  body('deadline').optional().isISO8601().withMessage('Invalid deadline date'),
+  body('deadline').notEmpty().withMessage('Deadline is required').bail().isISO8601().withMessage('Invalid deadline date'),
+  body('category').optional().isIn([
+    'emergency_fund',
+    'vacation',
+    'home_purchase',
+    'car_purchase',
+    'education',
+    'retirement',
+    'wedding',
+    'business',
+    'other'
+  ]).withMessage('Invalid savings goal category'),
+  body('notes').optional().isString().trim(),
   validate
 ];
 
 const updateProgressValidation = [
+  body('accountId').notEmpty().withMessage('Source account is required'),
   body('amount').isNumeric().withMessage('Amount must be a number').custom(value => value > 0).withMessage('Amount must be greater than 0'),
+  body('note').optional().isString().trim(),
   validate
 ];
 

@@ -30,10 +30,24 @@ export const loanService = {
 
   // Upload all loan application documents
   async uploadAllDocuments(loanId, { idProof, addressProof, incomeProof }) {
-    const uploads = []
-    if (idProof?.[0])      uploads.push(this.uploadDocument(loanId, idProof[0],      'id_proof'))
-    if (addressProof?.[0]) uploads.push(this.uploadDocument(loanId, addressProof[0], 'address_proof'))
-    if (incomeProof?.[0])  uploads.push(this.uploadDocument(loanId, incomeProof[0],  'income_proof'))
-    return Promise.allSettled(uploads)
+    const requiredDocs = {
+      idProof: idProof?.[0],
+      addressProof: addressProof?.[0],
+      incomeProof: incomeProof?.[0]
+    }
+
+    const missingDocs = Object.entries(requiredDocs)
+      .filter(([, file]) => !file)
+      .map(([key]) => key)
+
+    if (missingDocs.length > 0) {
+      throw new Error('Please upload all required documents: identity proof, address proof, and income proof.')
+    }
+
+    return Promise.all([
+      this.uploadDocument(loanId, requiredDocs.idProof, 'id_proof'),
+      this.uploadDocument(loanId, requiredDocs.addressProof, 'address_proof'),
+      this.uploadDocument(loanId, requiredDocs.incomeProof, 'income_proof')
+    ])
   }
 }

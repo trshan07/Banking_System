@@ -313,3 +313,60 @@ exports.getDashboardAnalytics = async (req, res) => {
     });
   }
 };
+
+// @desc    Get sidebar quick action items based on user role
+// @route   GET /api/dashboard/sidebar
+// @access  Private
+exports.getSidebarItems = async (req, res) => {
+  try {
+    const user = req.user;
+    const role = user.role || 'customer';
+
+    const customerItems = [
+      { id: 'transfer', title: 'Transfer Funds', description: 'Send money between accounts', tag: 'Banking' },
+      { id: 'pay-bills', title: 'Pay Bills', description: 'Pay your utility bills', tag: 'Payments' },
+      { id: 'apply-loan', title: 'Apply for Loan', description: 'Get a personal or business loan', tag: 'Loans' },
+      { id: 'savings', title: 'Savings Goals', description: 'Track your savings progress', tag: 'Savings' },
+      { id: 'support', title: 'Get Support', description: 'Contact customer service', tag: 'Help' },
+    ];
+
+    const adminItems = [
+      { id: 'manage-users', title: 'Manage Users', description: 'View and manage user accounts', tag: 'Admin' },
+      { id: 'loan-approvals', title: 'Loan Approvals', description: 'Review pending loan applications', tag: 'Loans' },
+      { id: 'reports', title: 'Reports', description: 'Generate system reports', tag: 'Analytics' },
+      { id: 'fraud-review', title: 'Fraud Review', description: 'Review flagged transactions', tag: 'Security' },
+    ];
+
+    const employeeItems = [
+      { id: 'tasks', title: 'My Tasks', description: 'View assigned tasks', tag: 'Work' },
+      { id: 'leaves', title: 'Leave Requests', description: 'Apply for or manage leaves', tag: 'HR' },
+      { id: 'support-tickets', title: 'Support Tickets', description: 'Handle customer queries', tag: 'Support' },
+    ];
+
+    let items;
+    switch (role) {
+      case 'admin':
+        items = adminItems;
+        break;
+      case 'employee':
+        items = employeeItems;
+        break;
+      case 'super_admin':
+        items = [...adminItems, { id: 'system-config', title: 'System Config', description: 'Manage system settings', tag: 'System' }];
+        break;
+      default:
+        items = customerItems;
+    }
+
+    res.json({
+      success: true,
+      items
+    });
+  } catch (error) {
+    console.error('Get sidebar items error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching sidebar items'
+    });
+  }
+};

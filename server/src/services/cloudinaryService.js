@@ -9,17 +9,22 @@ cloudinary.config({
 });
 
 class CloudinaryService {
-  async uploadImage(file, folder = 'uploads') {
+  async uploadImage(file, options = {}) {
     try {
+      const uploadOptions = typeof options === 'string'
+        ? { folder: options, resource_type: 'auto' }
+        : { resource_type: 'auto', ...options };
+
       const result = await cloudinary.uploader.upload(file, {
-        folder: folder,
-        resource_type: 'auto'
+        ...uploadOptions
       });
       
       return {
         success: true,
         url: result.secure_url,
+        secure_url: result.secure_url,
         publicId: result.public_id,
+        public_id: result.public_id,
         format: result.format,
         bytes: result.bytes
       };

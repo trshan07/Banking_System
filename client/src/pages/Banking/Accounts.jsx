@@ -7,60 +7,71 @@ import {
   FaEyeSlash,
   FaArrowRight,
   FaDownload,
-  FaHistory
+  FaHistory,
+  FaExclamationCircle
 } from 'react-icons/fa'
 import { formatCurrency, formatAccountNumber } from '../../utils/formatters'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
+import { bankingAPI } from '../../services/api'
+
+const formatAccountTypeLabel = (accountType = '') => {
+  if (!accountType) return 'Bank Account'
+  return `${accountType.charAt(0).toUpperCase()}${accountType.slice(1)} Account`
+}
+
+const mapApiAccountToViewModel = (account) => ({
+  id: account._id || account.id,
+  name: formatAccountTypeLabel(account.accountType),
+  number: account.accountNumber,
+  balance: Number(account.balance) || 0,
+  type: account.accountType || 'checking',
+  currency: account.currency || 'USD',
+  interestRate: `${Number(account.interestRate || 0).toFixed(2)}%`,
+  openedDate: account.openedAt || account.createdAt,
+  status: account.status || 'active'
+})
 
 const Accounts = () => {
   const [loading, setLoading] = useState(true)
   const [accounts, setAccounts] = useState([])
   const [showBalances, setShowBalances] = useState(true)
   const [selectedAccount, setSelectedAccount] = useState(null)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    // Mock data - replace with API call
-    setTimeout(() => {
-      setAccounts([
-        {
-          id: 1,
-          name: 'Main Checking',
-          number: '1234567890',
-          balance: 8450.50,
-          type: 'checking',
-          currency: 'USD',
-          interestRate: '0.01%',
-          openedDate: '2020-01-15',
-          status: 'active'
-        },
-        {
-          id: 2,
-          name: 'Savings Account',
-          number: '0987654321',
-          balance: 12500.75,
-          type: 'savings',
-          currency: 'USD',
-          interestRate: '2.5%',
-          openedDate: '2020-03-20',
-          status: 'active'
-        },
-        {
-          id: 3,
-          name: 'Business Account',
-          number: '5678901234',
-          balance: 25000.00,
-          type: 'business',
-          currency: 'USD',
-          interestRate: '1.5%',
-          openedDate: '2021-06-10',
-          status: 'active'
+    let isMounted = true
+
+    const fetchAccounts = async () => {
+      try {
+        setLoading(true)
+        setErrorMessage('')
+        const response = await bankingAPI.getAccounts()
+        const mappedAccounts = (response.data?.data || []).map(mapApiAccountToViewModel)
+
+        if (isMounted) {
+          setAccounts(mappedAccounts)
         }
-      ])
-      setLoading(false)
-    }, 1000)
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(error.response?.data?.message || 'Failed to load your accounts. Please try again.')
+          setAccounts([])
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchAccounts()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0)
+  const primaryCurrency = accounts[0]?.currency || 'USD'
 
   if (loading) {
     return (
@@ -91,16 +102,30 @@ const Accounts = () => {
         </div>
 
         {/* Total Balance Card */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl p-8 text-white mb-8">
+        <div className="bg-linear-to-r from-primary-600 to-primary-800 rounded-2xl p-8 text-white mb-8">
           <p className="text-primary-500 text-sm font-medium">Total Balance</p>
           <p className="text-4xl font-bold mt-2 text-primary-400">
-            {showBalances ? formatCurrency(totalBalance) : '••••••'}
+            {showBalances ? formatCurrency(totalBalance, primaryCurrency) : '••••••'}
           </p>
           <p className="text-primary-400 text-sm mt-2">Across {accounts.length} accounts</p>
         </div>
 
+        {errorMessage && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 flex items-start gap-3">
+            <FaExclamationCircle className="mt-0.5" />
+            <p className="text-sm">{errorMessage}</p>
+          </div>
+        )}
+
         {/* Accounts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {accounts.length === 0 && !errorMessage && (
+            <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-8 text-center">
+              <p className="text-gray-700 font-medium">No accounts found</p>
+              <p className="text-gray-500 text-sm mt-2">Your accounts will appear here once they are created.</p>
+            </div>
+          )}
+
           {accounts.map((account) => (
             <div
               key={account.id}
@@ -138,7 +163,7 @@ const Accounts = () => {
                   <div>
                     <p className="text-sm text-gray-500">Current Balance</p>
                     <p className="text-2xl font-bold text-gray-900">
-                      {showBalances ? formatCurrency(account.balance) : '••••••'}
+                      {showBalances ? formatCurrency(account.balance, account.currency) : '••••••'}
                     </p>
                   </div>
                   <div className="text-right">

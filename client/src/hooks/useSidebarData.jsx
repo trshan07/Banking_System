@@ -8,6 +8,13 @@ export const useSidebarData = () => {
   const [actionLoading, setActionLoading] = useState(false)
 
   const loadSidebar = useCallback(async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setItems([])
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -15,7 +22,8 @@ export const useSidebarData = () => {
       const data = await fetchSidebarItems()
       setItems(data.items || [])
     } catch (err) {
-      setError(err.message || 'Unable to load sidebar items.')
+      console.warn('Sidebar load failed:', err.message)
+      setItems([])
     } finally {
       setLoading(false)
     }

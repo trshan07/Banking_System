@@ -44,7 +44,7 @@ export const SocketProvider = ({ children }) => {
     // Uncomment this when your backend is ready
     /*
     if (isAuthenticated && user) {
-      const socketInstance = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
+      const socketInstance = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001', {
         auth: {
           token: localStorage.getItem('token')
         },

@@ -36,11 +36,24 @@ const documentSchema = new mongoose.Schema({
   },
   cloudinaryUrl: {
     type: String,
-    required: true
+    default: ''
   },
   cloudinaryPublicId: {
     type: String,
-    required: true
+    default: ''
+  },
+  localFileName: {
+    type: String,
+    default: ''
+  },
+  localFilePath: {
+    type: String,
+    default: ''
+  },
+  storageProvider: {
+    type: String,
+    enum: ['local', 'cloudinary', 'both'],
+    default: 'local'
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,

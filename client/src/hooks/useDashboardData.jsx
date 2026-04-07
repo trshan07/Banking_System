@@ -12,18 +12,26 @@ export const useDashboardData = () => {
   const [error, setError] = useState(null)
 
   const loadDashboard = useCallback(async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setError('Please log in to view dashboard data.')
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
       const data = await fetchDashboard()
+      const dashData = data.data || data
 
-      setStats(data.stats || null)
-      setAccounts(data.accounts || [])
-      setTransactions(data.transactions || [])
-      setAlerts(data.alerts || [])
-      setSavingsGoals(data.savingsGoals || [])
-      setLoans(data.loans || [])
+      setStats(dashData.stats || null)
+      setAccounts(dashData.accounts || [])
+      setTransactions(dashData.transactions || [])
+      setAlerts(dashData.alerts || [])
+      setSavingsGoals(dashData.savingsGoals || [])
+      setLoans(dashData.loans || [])
     } catch (err) {
       setError(err.message || 'Unable to load dashboard data. Please try again.')
     } finally {

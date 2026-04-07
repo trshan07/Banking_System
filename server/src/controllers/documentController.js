@@ -3,7 +3,7 @@ const Document = require('../models/Document');
 const Loan = require('../models/Loan');
 const KYCApplication = require('../models/KYCApplication');
 const cloudinaryService = require('../services/cloudinaryService');
-const fs = require('fs');
+const path = require('path');
 
 // @desc    Get user documents
 // @route   GET /api/documents
@@ -121,11 +121,26 @@ exports.uploadDocuments = async (req, res) => {
     // Process each file
     for (const file of req.files) {
       try {
-        // Upload to Cloudinary
-        const uploadResult = await cloudinaryService.uploadImage(file.path, {
-          folder: 'smartbank/documents',
-          public_id: `${req.user._id}_${Date.now()}_${file.originalname}`
-        });
+        const localFileName = path.basename(file.path);
+        const localFilePath = `/uploads/${localFileName}`;
+
+        let cloudinaryUrl = localFilePath;
+        let cloudinaryPublicId = `local_${localFileName}`;
+        let storageProvider = 'local';
+
+        // Keep local file in uploads and optionally mirror to Cloudinary.
+        try {
+          const uploadResult = await cloudinaryService.uploadImage(file.path, {
+            folder: 'smartbank/documents',
+            public_id: `${req.user._id}_${Date.now()}_${file.originalname}`
+          });
+
+          cloudinaryUrl = uploadResult.secure_url || uploadResult.url || localFilePath;
+          cloudinaryPublicId = uploadResult.public_id || uploadResult.publicId || cloudinaryPublicId;
+          storageProvider = 'both';
+        } catch (cloudinaryError) {
+          console.warn('Cloudinary upload failed; keeping local upload only:', cloudinaryError.message);
+        }
 
         // Create document record
         const document = new Document({
@@ -134,8 +149,11 @@ exports.uploadDocuments = async (req, res) => {
           fileType: file.mimetype.split('/')[1],
           fileSize: file.size,
           documentType,
-          cloudinaryUrl: uploadResult.secure_url,
-          cloudinaryPublicId: uploadResult.public_id,
+          cloudinaryUrl,
+          cloudinaryPublicId,
+          localFileName,
+          localFilePath,
+          storageProvider,
           userId: req.user._id,
           loanId: loanId || null,
           kycApplicationId: kycApplicationId || null,
@@ -144,9 +162,6 @@ exports.uploadDocuments = async (req, res) => {
 
         await document.save();
         uploadedDocuments.push(document);
-
-        // Clean up temp file
-        fs.unlinkSync(file.path);
       } catch (uploadError) {
         console.error('Error uploading file:', uploadError);
         // Continue with other files even if one fails

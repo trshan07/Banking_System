@@ -44,6 +44,14 @@ export const useDashboardData = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchDashboardData = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please log in to view dashboard data.');
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
     try {
       setError(null);
       

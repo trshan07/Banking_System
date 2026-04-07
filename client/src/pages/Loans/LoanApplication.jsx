@@ -176,6 +176,22 @@ const LoanApplication = () => {
 
   const onSubmit = async (data) => {
     try {
+      clearErrors(['idProof', 'addressProof', 'incomeProof'])
+
+      if (!data.idProof?.[0]) {
+        setError('idProof', { type: 'manual', message: 'Identity proof is required' })
+      }
+      if (!data.addressProof?.[0]) {
+        setError('addressProof', { type: 'manual', message: 'Address proof is required' })
+      }
+      if (!data.incomeProof?.[0]) {
+        setError('incomeProof', { type: 'manual', message: 'Income proof is required' })
+      }
+
+      if (!data.idProof?.[0] || !data.addressProof?.[0] || !data.incomeProof?.[0]) {
+        return
+      }
+
       setLoading(true)
       setSubmitError('')
 
@@ -202,22 +218,20 @@ const LoanApplication = () => {
       const loanRes = await loanService.applyForLoan(payload)
       const loanId = loanRes?.data?.data?._id
 
-      // Upload documents if any were selected
-      const hasFiles = data.idProof?.[0] || data.addressProof?.[0] || data.incomeProof?.[0]
-      if (hasFiles && loanId) {
+      // Upload mandatory supporting documents
+      if (loanId) {
         setUploadingDocs(true)
         try {
-          const results = await loanService.uploadAllDocuments(loanId, {
+          await loanService.uploadAllDocuments(loanId, {
             idProof: data.idProof,
             addressProof: data.addressProof,
             incomeProof: data.incomeProof,
           })
-          console.log('Document upload results:', results)
-        } catch (uploadErr) {
-          console.error('Document upload failed:', uploadErr)
         } finally {
           setUploadingDocs(false)
         }
+      } else {
+        throw new Error('Loan application was created but no loan ID was returned for document upload')
       }
 
       setSubmitted(true)
@@ -698,7 +712,7 @@ const LoanApplication = () => {
                     <label className="block cursor-pointer">
                       <input
                         type="file"
-                        {...register('idProof')}
+                        {...register('idProof', { required: 'Identity proof is required' })}
                         className="hidden"
                         accept=".pdf,.jpg,.jpeg,.png"
                       />
@@ -709,6 +723,9 @@ const LoanApplication = () => {
                         <p className="text-xs text-gray-400 mt-2">PDF, JPG, PNG (Max 5MB)</p>
                       </div>
                     </label>
+                    {errors.idProof && (
+                      <p className="error-text mt-2">{errors.idProof.message}</p>
+                    )}
                   </div>
 
                   {/* Address Proof */}
@@ -716,7 +733,7 @@ const LoanApplication = () => {
                     <label className="block cursor-pointer">
                       <input
                         type="file"
-                        {...register('addressProof')}
+                        {...register('addressProof', { required: 'Address proof is required' })}
                         className="hidden"
                         accept=".pdf,.jpg,.jpeg,.png"
                       />
@@ -727,6 +744,9 @@ const LoanApplication = () => {
                         <p className="text-xs text-gray-400 mt-2">PDF, JPG, PNG (Max 5MB)</p>
                       </div>
                     </label>
+                    {errors.addressProof && (
+                      <p className="error-text mt-2">{errors.addressProof.message}</p>
+                    )}
                   </div>
 
                   {/* Income Proof */}
@@ -734,7 +754,7 @@ const LoanApplication = () => {
                     <label className="block cursor-pointer">
                       <input
                         type="file"
-                        {...register('incomeProof')}
+                        {...register('incomeProof', { required: 'Income proof is required' })}
                         className="hidden"
                         accept=".pdf,.jpg,.jpeg,.png"
                       />
@@ -745,6 +765,9 @@ const LoanApplication = () => {
                         <p className="text-xs text-gray-400 mt-2">PDF, JPG, PNG (Max 5MB)</p>
                       </div>
                     </label>
+                    {errors.incomeProof && (
+                      <p className="error-text mt-2">{errors.incomeProof.message}</p>
+                    )}
                   </div>
                 </div>
 

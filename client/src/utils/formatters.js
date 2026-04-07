@@ -33,6 +33,7 @@ export const formatPhoneNumber = (phone) => {
 }
 
 export const formatAccountNumber = (accountNumber) => {
+  if (!accountNumber) return '****'
   const str = accountNumber.toString()
   return '****' + str.slice(-4)
 }

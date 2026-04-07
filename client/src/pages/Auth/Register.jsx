@@ -56,7 +56,7 @@ const Register = () => {
 
   // Social login handlers
   const handleSocialLogin = (provider) => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/${provider}`;
+    window.location.href = `${import.meta.env.VITE_API_URL || '/api'}/auth/${provider}`;
   };
 
   return (
