@@ -1,407 +1,78 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
-  FaShieldAlt,
-  FaHeadset,
-  FaMoneyBillWave,
-  FaChartLine,
-  FaFileSignature,
-  FaBuilding,
-  FaUsers,
-  FaExchangeAlt,
-  FaClock,
-  FaMobile,
-  FaGlobe,
-  FaRocket,
-  FaCheckCircle,
-  FaHandshake,
-  FaLightbulb,
-  FaEye,
   FaArrowRight,
-  FaStar,
-  FaQuoteRight,
-  FaTwitter,
-  FaLinkedin,
-  FaFacebook,
-  FaInstagram,
-  FaEnvelope,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaQrcode,
-  FaFingerprint,
-  FaCloudUploadAlt,
-  FaRobot,
-  FaComments,
-  FaUserTie,
-  FaCreditCard,
-  FaWallet,
-  FaPiggyBank,
-  FaLandmark,
-  FaChartPie,
-  FaBell,
-  FaDownload,
-  FaUpload,
+  FaCheckCircle,
+  FaChartLine,
+  FaHeadset,
   FaLock,
+  FaMoneyCheckAlt,
+  FaShieldAlt,
+  FaUniversity,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
+const corePillars = [
+  {
+    title: "Unified Banking Operations",
+    description:
+      "Manage accounts, transfers, statements, and service workflows in one consistent platform.",
+    icon: FaUniversity,
+  },
+  {
+    title: "Fast Digital Lending",
+    description:
+      "Reduce approval cycles with structured loan journeys, document checks, and transparent case tracking.",
+    icon: FaMoneyCheckAlt,
+  },
+  {
+    title: "Intelligent Risk Controls",
+    description:
+      "Use automated fraud signals, alerts, and secure access policies to protect customer trust.",
+    icon: FaShieldAlt,
+  },
+  {
+    title: "Actionable Financial Insights",
+    description:
+      "Monitor growth, savings goals, and customer behavior with easy-to-read analytics.",
+    icon: FaChartLine,
+  },
+];
+
+const trustItems = [
+  "99.9% service uptime with stable transaction processing",
+  "Role-based permissions across customer and employee journeys",
+  "End-to-end encrypted sessions and protected data flow",
+  "24/7 support escalation for high-priority service requests",
+];
+
+const highlights = [
+  { label: "Customers", value: "50K+" },
+  { label: "Monthly Transactions", value: "1.2M+" },
+  { label: "Average Loan Turnaround", value: "< 24h" },
+  { label: "Support Availability", value: "24/7" },
+];
+
 const HomePage = () => {
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [isVisible, setIsVisible] = useState({});
-
-  const testimonials = [
-    {
-      id: 1,
-      name: "Aditi Sharma",
-      title: "SME Owner",
-      quote:
-        "Smart Bank helped me secure a business loan in hours, not days. The digital KYC flow is fast and reliable.",
-      avatar: "https://randomuser.me/api/portraits/women/65.jpg",
-    },
-    {
-      id: 2,
-      name: "Rahul Verma",
-      title: "Freelancer",
-      quote:
-        "I love how easy it is to manage my accounts and transfer funds instantly. The fraud alerts give me peace of mind.",
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    },
-    {
-      id: 3,
-      name: "Neha Singh",
-      title: "Corporate Banker",
-      quote:
-        "The support system is exceptional, and the dashboard helps me keep track of all my financial operations seamlessly.",
-      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-  ];
-
-  // Intersection Observer for scroll animations
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsVisible((prev) => ({
-              ...prev,
-              [entry.target.dataset.section]: true,
-            }));
-          }
-        });
-      },
-      { threshold: 0.2 },
-    );
-
-    document
-      .querySelectorAll("[data-section]")
-      .forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
-  // Auto-rotate testimonials
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Hero Stats
-  const heroStats = [
-    {
-      id: 1,
-      value: "50K+",
-      label: "Active Users",
-      icon: <FaUsers className="text-white text-2xl" />,
-    },
-    {
-      id: 2,
-      value: "₹10Cr+",
-      label: "Transactions",
-      icon: <FaExchangeAlt className="text-white text-2xl" />,
-    },
-    {
-      id: 3,
-      value: "99.9%",
-      label: "Uptime",
-      icon: <FaClock className="text-white text-2xl" />,
-    },
-    {
-      id: 4,
-      value: "24/7",
-      label: "Support",
-      icon: <FaHeadset className="text-white text-2xl" />,
-    },
-  ];
-
-  // Core Features from Proposal
-  const features = [
-    {
-      id: 1,
-      title: "Online Loan Management",
-      description:
-        "Apply for loans, upload KYC documents, and track approval status in real-time with our streamlined loan processing system.",
-      icon: <FaMoneyBillWave className="text-white text-3xl" />,
-      color: "#0A2647",
-      lightBg: "bg-[#0A2647] bg-opacity-5",
-      textColor: "text-[#0A2647]",
-      iconBg: "bg-[#0A2647]",
-      features: [
-        "Personal Loans",
-        "Home Loans",
-        "Business Loans",
-        "Education Loans",
-      ],
-    },
-    {
-      id: 2,
-      title: "Customer Support System",
-      description:
-        "24/7 ticket-based support with live chat, instant responses, and comprehensive support analytics.",
-      icon: <FaHeadset className="text-white text-3xl" />,
-      color: "#10b981",
-      lightBg: "bg-[#10b981] bg-opacity-5",
-      textColor: "text-[#10b981]",
-      iconBg: "bg-[#10b981]",
-      features: [
-        "Live Chat",
-        "Ticket System",
-        "Support Analytics",
-        "Priority Queue",
-      ],
-    },
-    {
-      id: 3,
-      title: "Secure Banking Portal",
-      description:
-        "Account management, balance checks, transaction tracking, and secure fund transfers with bank-level encryption.",
-      icon: <FaLock className="text-white text-3xl" />,
-      color: "#0A2647",
-      lightBg: "bg-[#0A2647] bg-opacity-5",
-      textColor: "text-[#0A2647]",
-      iconBg: "bg-[#0A2647]",
-      features: [
-        "Balance Check",
-        "Fund Transfer",
-        "Transaction History",
-        "Account Statements",
-      ],
-    },
-    {
-      id: 4,
-      title: "Fraud Detection",
-      description:
-        "Advanced reporting system with ML-based pattern analysis and real-time fraud alerts.",
-      icon: <FaShieldAlt className="text-white text-3xl" />,
-      color: "#ef4444",
-      lightBg: "bg-[#ef4444] bg-opacity-5",
-      textColor: "text-[#ef4444]",
-      iconBg: "bg-[#ef4444]",
-      features: [
-        "Fraud Reports",
-        "Pattern Analysis",
-        "Security Alerts",
-        "Investigation Tools",
-      ],
-    },
-    {
-      id: 5,
-      title: "Digital KYC Portal",
-      description:
-        "Online account opening with document verification, real-time status updates, and instant approval.",
-      icon: <FaFileSignature className="text-white text-3xl" />,
-      color: "#f59e0b",
-      lightBg: "bg-[#f59e0b] bg-opacity-5",
-      textColor: "text-[#f59e0b]",
-      iconBg: "bg-[#f59e0b]",
-      features: [
-        "Document Upload",
-        "Identity Verification",
-        "Status Tracking",
-        "Digital Signatures",
-      ],
-    },
-    {
-      id: 6,
-      title: "Investment Tracker",
-      description:
-        "Set financial goals, track savings, and monitor investments with interactive charts and reminders.",
-      icon: <FaChartLine className="text-white text-3xl" />,
-      color: "#10b981",
-      lightBg: "bg-[#10b981] bg-opacity-5",
-      textColor: "text-[#10b981]",
-      iconBg: "bg-[#10b981]",
-      features: [
-        "Goal Setting",
-        "Progress Tracking",
-        "Investment Analytics",
-        "Smart Reminders",
-      ],
-    },
-    {
-      id: 7,
-      title: "Branch Locator",
-      description:
-        "Find nearby ATMs and branches with Google Maps integration and live chat assistance.",
-      icon: <FaMapMarkerAlt className="text-white text-3xl" />,
-      color: "#0A2647",
-      lightBg: "bg-[#0A2647] bg-opacity-5",
-      textColor: "text-[#0A2647]",
-      iconBg: "bg-[#0A2647]",
-      features: ["ATM Locator", "Branch Finder", "Live Chat", "Directions"],
-    },
-    {
-      id: 8,
-      title: "Employee Management",
-      description:
-        "Automated HR activities including employee records, task assignments, and leave tracking.",
-      icon: <FaUsers className="text-white text-3xl" />,
-      color: "#f59e0b",
-      lightBg: "bg-[#f59e0b] bg-opacity-5",
-      textColor: "text-[#f59e0b]",
-      iconBg: "bg-[#f59e0b]",
-      features: [
-        "Employee Records",
-        "Task Management",
-        "Leave Tracking",
-        "Performance Reports",
-      ],
-    },
-  ];
-
-  // Banking Services
-  const bankingServices = [
-    {
-      id: 1,
-      title: "Savings Account",
-      description: "High-interest savings accounts with zero maintenance fees",
-      icon: <FaPiggyBank className="text-[#0A2647] text-3xl" />,
-      color: "text-[#0A2647]",
-      bgColor: "bg-[#0A2647] bg-opacity-10",
-    },
-    {
-      id: 2,
-      title: "Current Account",
-      description: "Business accounts with unlimited transactions",
-      icon: <FaWallet className="text-[#10b981] text-3xl" />,
-      color: "text-[#10b981]",
-      bgColor: "bg-[#10b981] bg-opacity-10",
-    },
-    {
-      id: 3,
-      title: "Credit Cards",
-      description: "Premium credit cards with exclusive rewards",
-      icon: <FaCreditCard className="text-[#f59e0b] text-3xl" />,
-      color: "text-[#f59e0b]",
-      bgColor: "bg-[#f59e0b] bg-opacity-10",
-    },
-    {
-      id: 4,
-      title: "Fixed Deposits",
-      description: "High-return fixed deposit schemes",
-      icon: <FaLandmark className="text-[#ef4444] text-3xl" />,
-      color: "text-[#ef4444]",
-      bgColor: "bg-[#ef4444] bg-opacity-10",
-    },
-  ];
-
-  // Statistics
-  const statistics = [
-    {
-      id: 1,
-      value: "50,000+",
-      label: "Happy Customers",
-      icon: <FaUsers className="text-[#0A2647] text-3xl" />,
-      bgColor: "bg-[#0A2647] bg-opacity-10",
-    },
-    {
-      id: 2,
-      value: "100,000+",
-      label: "Transactions",
-      icon: <FaExchangeAlt className="text-[#10b981] text-3xl" />,
-      bgColor: "bg-[#10b981] bg-opacity-10",
-    },
-    {
-      id: 3,
-      value: "8+",
-      label: "Core Modules",
-      icon: <FaBuilding className="text-[#0A2647] text-3xl" />,
-      bgColor: "bg-[#0A2647] bg-opacity-10",
-    },
-    {
-      id: 4,
-      value: "24/7",
-      label: "Support",
-      icon: <FaHeadset className="text-[#f59e0b] text-3xl" />,
-      bgColor: "bg-[#f59e0b] bg-opacity-10",
-    },
-    {
-      id: 5,
-      value: "99.9%",
-      label: "Security",
-      icon: <FaShieldAlt className="text-[#ef4444] text-3xl" />,
-      bgColor: "bg-[#ef4444] bg-opacity-10",
-    },
-    {
-      id: 6,
-      value: "₹10Cr+",
-      label: "Assets",
-      icon: <FaMoneyBillWave className="text-[#10b981] text-3xl" />,
-      bgColor: "bg-[#10b981] bg-opacity-10",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white overflow-hidden">
-      {/* Custom CSS Animations */}
+    <main className="min-h-screen bg-[#f7f3ec] text-slate-900">
       <style>{`
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
+        @import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap');
+
+        .home-shell {
+          font-family: 'Public Sans', sans-serif;
         }
 
-        @keyframes pulse {
-          0%,
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.8;
-            transform: scale(1.05);
-          }
+        .paper-grid {
+          background-image:
+            linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+          background-size: 32px 32px;
         }
 
-        @keyframes slideInLeft {
+        @keyframes riseIn {
           from {
             opacity: 0;
-            transform: translateX(-50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes slideInRight {
-          from {
-            opacity: 0;
-            transform: translateX(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        @keyframes slideInUp {
-          from {
-            opacity: 0;
-            transform: translateY(50px);
+            transform: translateY(16px);
           }
           to {
             opacity: 1;
@@ -409,755 +80,168 @@ const HomePage = () => {
           }
         }
 
-        @keyframes rotate {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes shimmer {
-          0% {
-            background-position: -1000px 0;
-          }
-          100% {
-            background-position: 1000px 0;
-          }
-        }
-
-        @keyframes wave {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-
-        .animate-pulse-slow {
-          animation: pulse 2s ease-in-out infinite;
-        }
-
-        .animate-slideInLeft {
-          animation: slideInLeft 0.8s ease-out forwards;
-        }
-
-        .animate-slideInRight {
-          animation: slideInRight 0.8s ease-out forwards;
-        }
-
-        .animate-slideInUp {
-          animation: slideInUp 0.8s ease-out forwards;
-        }
-
-        .animate-rotate {
-          animation: rotate 20s linear infinite;
-        }
-
-        .animate-rotate-slow {
-          animation: rotate 30s linear infinite;
-        }
-
-        .animate-shimmer {
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.2),
-            transparent
-          );
-          background-size: 1000px 100%;
-          animation: shimmer 3s infinite;
-        }
-
-        .animate-wave {
-          animation: wave 3s ease-in-out infinite;
-        }
-
-        .hover-scale {
-          transition:
-            transform 0.3s ease,
-            box-shadow 0.3s ease;
-        }
-
-        .hover-scale:hover {
-          transform: scale(1.05);
-          box-shadow:
-            0 20px 25px -5px rgba(0, 0, 0, 0.1),
-            0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        .hover-lift {
-          transition: transform 0.3s ease;
-        }
-
-        .hover-lift:hover {
-          transform: translateY(-5px);
-        }
-
-        .hover-rotate {
-          transition: transform 0.5s ease;
-        }
-
-        .hover-rotate:hover {
-          transform: rotate(360deg);
-        }
-
-        .hover-glow {
-          transition: box-shadow 0.3s ease;
-        }
-
-        .hover-glow:hover {
-          box-shadow: 0 0 20px rgba(10, 38, 71, 0.5);
-        }
-
-        .stagger-item {
-          opacity: 0;
-          animation: slideInUp 0.6s ease-out forwards;
-        }
-
-        .delay-100 {
-          animation-delay: 0.1s;
-        }
-        .delay-200 {
-          animation-delay: 0.2s;
-        }
-        .delay-300 {
-          animation-delay: 0.3s;
-        }
-        .delay-400 {
-          animation-delay: 0.4s;
-        }
-        .delay-500 {
-          animation-delay: 0.5s;
-        }
-
-        .parallax-bg {
-          background: linear-gradient(135deg, #0A2647, #1B3B5C);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .parallax-bg::before {
-          content: "";
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: radial-gradient(
-            circle,
-            rgba(255, 255, 255, 0.1) 1px,
-            transparent 1px
-          );
-          background-size: 50px 50px;
-          animation: rotate 60s linear infinite;
-          pointer-events: none;
-        }
-
-        .card-3d {
-          transition: transform 0.3s ease;
-          transform-style: preserve-3d;
-        }
-
-        .card-3d:hover {
-          transform: rotateY(10deg) rotateX(5deg);
-        }
-
-        .progress-bar {
-          position: relative;
-          overflow: hidden;
-        }
-
-        .progress-bar::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.3),
-            transparent
-          );
-          animation: shimmer 2s infinite;
-        }
-
-        .typewriter {
-          overflow: hidden;
-          border-right: 3px solid white;
-          white-space: nowrap;
-          animation:
-            typing 3.5s steps(40, end),
-            blink-caret 0.75s step-end infinite;
-        }
-
-        @keyframes typing {
-          from {
-            width: 0;
-          }
-          to {
-            width: 100%;
-          }
-        }
-
-        @keyframes blink-caret {
-          from,
-          to {
-            border-color: transparent;
-          }
-          50% {
-            border-color: white;
-          }
-        }
-
-        .section-visible {
-          opacity: 1 !important;
-          transform: translateY(0) !important;
+        .rise-in {
+          animation: riseIn 0.7s ease-out both;
         }
       `}</style>
 
-      {/* Hero Section with Parallax Effect */}
-      <div className="relative parallax-bg text-white overflow-hidden">
-        {/* Floating Particles */}
-        <div className="absolute inset-0 opacity-20">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute bg-white rounded-full animate-float"
-              style={{
-                width: `${Math.random() * 100 + 20}px`,
-                height: `${Math.random() * 100 + 20}px`,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                opacity: 0.1,
-              }}
-            />
-          ))}
-        </div>
+      <div className="home-shell paper-grid">
+        <section className="relative overflow-hidden border-b border-[#d8d2c8] bg-[#1f3a5f] text-white">
+          <div className="absolute -top-24 -right-20 h-96 w-96 rounded-full bg-[#f0b86a]/25 blur-3xl" />
+          <div className="absolute -bottom-24 -left-20 h-80 w-80 rounded-full bg-[#7fb0d9]/25 blur-3xl" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div
-              data-section="hero"
-              className={`transition-all duration-1000 ${
-                isVisible.hero
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-10"
-              }`}
-            >
-              <div className="inline-flex items-center bg-white/20 backdrop-blur-lg rounded-full px-4 py-2 mb-6 border border-white/30 hover-scale cursor-pointer">
-                <div className="animate-rotate mr-2">
-                  <FaRocket className="text-white" />
-                </div>
-                <span className="text-sm font-semibold text-white">
-                  Welcome to the Future of Banking
-                </span>
-              </div>
-
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
-                Smart Bank: Your{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-300 animate-pulse-slow">
-                  Digital Banking
-                </span>{" "}
-                Partner
-              </h1>
-
-              <p className="text-xl mb-8 text-white/90 max-w-lg animate-slideInUp">
-                Experience modern banking with 8 integrated modules including
-                loan management, fraud detection, digital KYC, and real-time
-                customer support.
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-wrap gap-4 mb-12">
-                <Link
-                  to="/register"
-                  className="bg-white text-[#0A2647] px-8 py-4 rounded-lg font-semibold hover:bg-slate-100 transition-all hover:shadow-xl hover-scale flex items-center group"
-                >
-                  Open Account
-                  <FaArrowRight className="ml-2 text-[#0A2647] group-hover:translate-x-1 transition-transform" />
-                </Link>
-
-                <Link
-                  to="/about"
-                  className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-[#0A2647] transition-all hover-scale"
-                >
-                  Learn More
-                </Link>
-              </div>
-
-              {/* Hero Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {heroStats.map((stat, index) => (
-                  <div
-                    key={stat.id}
-                    className={`bg-white/10 backdrop-blur-lg rounded-lg p-4 text-center border border-white/20 hover-scale cursor-pointer stagger-item delay-${index * 100}`}
-                    style={{ animationDelay: `${0.5 + index * 0.1}s` }}
-                  >
-                    <div className="text-2xl mb-2 flex justify-center text-white animate-float">
-                      {stat.icon}
-                    </div>
-                    <div className="text-xl font-bold text-white">
-                      {stat.value}
-                    </div>
-                    <div className="text-xs text-white/80">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right Content - Animated Dashboard Preview */}
-            <div
-              data-section="hero-right"
-              className={`hidden lg:block relative transition-all duration-1000 delay-300 ${
-                isVisible["hero-right"]
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-10 translate-x-10"
-              }`}
-            >
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 animate-float">
-                <div className="grid grid-cols-2 gap-4">
-                  {[0, 1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className={`bg-${i === 0 ? "[#0A2647]" : i === 1 ? "[#10b981]" : i === 2 ? "[#f59e0b]" : "[#ef4444]"} bg-opacity-30 rounded-lg p-4 hover-scale`}
-                    >
-                      <div
-                        className={`w-8 h-8 bg-${i === 0 ? "[#0A2647]" : i === 1 ? "[#10b981]" : i === 2 ? "[#f59e0b]" : "[#ef4444]"} rounded-lg mb-3 animate-rotate-slow`}
-                      ></div>
-                      <div className="h-4 bg-white/30 rounded w-3/4 mb-2 progress-bar"></div>
-                      <div className="h-3 bg-white/20 rounded w-1/2"></div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 h-24 bg-white/20 rounded-lg overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
-                </div>
-              </div>
-
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#0A2647] rounded-full animate-pulse-slow"></div>
-              <div
-                className="absolute -bottom-4 -left-4 w-16 h-16 bg-[#10b981] rounded-full animate-pulse-slow"
-                style={{ animationDelay: "1s" }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Animated Wave Divider */}
-        <div className="absolute bottom-0 left-0 right-0 animate-wave">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 1440 320"
-            className="w-full"
-          >
-            <path
-              fill="#ffffff"
-              fillOpacity="1"
-              d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,170.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* Statistics Section with Scroll Animation */}
-      <div
-        data-section="stats"
-        className={`py-16 bg-white transition-all duration-1000 ${
-          isVisible.stats
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {statistics.map((stat, index) => (
-              <div
-                key={stat.id}
-                className={`text-center group stagger-item delay-${index * 100}`}
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div
-                  className={`w-20 h-20 mx-auto ${stat.bgColor} rounded-2xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden hover-scale cursor-pointer`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
-                  {stat.icon}
-                </div>
-                <div className="text-2xl font-bold text-slate-800 animate-pulse-slow">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-slate-600">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Features Section with Stagger Animation */}
-      <div
-        data-section="features"
-        className={`py-20 transition-all duration-1000 ${
-          isVisible.features
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 animate-slideInUp">
-            <h2 className="text-4xl font-bold text-[#0A2647] mb-4 animate-pulse-slow">
-              8 Core Banking Modules
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Comprehensive banking solutions integrated into one powerful
-              platform
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
-              <div
-                key={feature.id}
-                className={`${feature.lightBg} rounded-xl shadow-lg p-6 border border-slate-200 hover-scale cursor-pointer stagger-item delay-${index * 100}`}
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div
-                  className={`w-16 h-16 ${feature.iconBg} rounded-xl flex items-center justify-center mb-4 shadow-lg relative overflow-hidden hover-rotate`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-[#0A2647] transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="text-slate-600 mb-4 text-sm">
-                  {feature.description}
+          <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+              <div className="rise-in">
+                <p className="inline-flex rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#f8f1e4]">
+                  Smart Bank Platform
                 </p>
-                <ul className="space-y-2 mb-4">
-                  {feature.features.map((item, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-center text-sm text-slate-600 hover-lift"
-                      style={{ transitionDelay: `${idx * 0.05}s` }}
-                    >
-                      <FaCheckCircle
-                        className={`${feature.textColor} mr-2 text-xs`}
-                      />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <div
-                  className={`${feature.textColor} font-semibold flex items-center cursor-pointer hover-lift`}
-                >
-                  Learn More{" "}
-                  <FaArrowRight className="ml-2 text-sm group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Banking Services with Parallax */}
-      <div
-        data-section="services"
-        className={`bg-gradient-to-b from-slate-50 to-white py-20 relative overflow-hidden transition-all duration-1000 ${
-          isVisible.services
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-        }`}
-      >
-        {/* Animated Background */}
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#0A2647] opacity-5 rounded-full animate-rotate-slow"></div>
-        <div
-          className="absolute -bottom-20 -left-20 w-96 h-96 bg-[#10b981] opacity-5 rounded-full animate-rotate-slow"
-          style={{ animationDirection: "reverse" }}
-        ></div>
+                <h1 className="mt-5 max-w-2xl text-4xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
+                  A Different Banking Experience, Built for Clarity.
+                </h1>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="animate-slideInLeft">
-              <h2 className="text-4xl font-bold text-[#0A2647] mb-4 animate-pulse-slow">
-                Complete Banking Solutions
-              </h2>
-              <p className="text-xl text-slate-600 mb-8">
-                From everyday banking to specialized financial products, we've
-                got you covered.
-              </p>
-
-              <div className="grid grid-cols-2 gap-4">
-                {bankingServices.map((service, index) => (
-                  <div
-                    key={service.id}
-                    className={`bg-white rounded-xl p-4 shadow-md hover-scale cursor-pointer stagger-item delay-${index * 100}`}
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <div
-                      className={`w-14 h-14 ${service.bgColor} rounded-xl flex items-center justify-center mb-3 hover-rotate`}
-                    >
-                      {service.icon}
-                    </div>
-                    <h3 className="font-bold text-slate-800 mb-1">
-                      {service.title}
-                    </h3>
-                    <p className="text-xs text-slate-600">
-                      {service.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 flex items-center space-x-4 animate-slideInUp">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3].map((i) => (
-                    <img
-                      key={i}
-                      src={`https://randomuser.me/api/portraits/${i % 2 === 0 ? "women" : "men"}/${i + 10}.jpg`}
-                      className="w-10 h-10 rounded-full border-2 border-white hover-scale cursor-pointer"
-                      alt="user"
-                      style={{ zIndex: i }}
-                    />
-                  ))}
-                </div>
-                <div className="text-sm text-slate-600 animate-pulse-slow">
-                  <span className="font-bold text-slate-800">10,000+</span>{" "}
-                  happy customers
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 animate-slideInRight">
-              <div className="space-y-4">
-                <div className="bg-[#0A2647] rounded-2xl p-6 text-white hover-scale cursor-pointer">
-                  <div className="animate-float">
-                    <FaMobile className="text-white text-4xl mb-4" />
-                  </div>
-                  <h3 className="font-bold text-xl mb-2 text-white">
-                    Mobile Banking
-                  </h3>
-                  <p className="text-sm text-white/90">
-                    Bank on the go with our mobile app
-                  </p>
-                </div>
-
-                <div className="bg-[#10b981] rounded-2xl p-6 text-white hover-scale cursor-pointer">
-                  <div className="animate-rotate-slow">
-                    <FaQrcode className="text-white text-4xl mb-4" />
-                  </div>
-                  <h3 className="font-bold text-xl mb-2 text-white">
-                    QR Payments
-                  </h3>
-                  <p className="text-sm text-white/90">
-                    Instant payments with QR code
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4 mt-8">
-                <div className="bg-[#f59e0b] rounded-2xl p-6 text-white hover-scale cursor-pointer">
-                  <div className="animate-pulse-slow">
-                    <FaFingerprint className="text-white text-4xl mb-4" />
-                  </div>
-                  <h3 className="font-bold text-xl mb-2 text-white">
-                    Biometric Login
-                  </h3>
-                  <p className="text-sm text-white/90">
-                    Secure fingerprint access
-                  </p>
-                </div>
-
-                <div className="bg-[#ef4444] rounded-2xl p-6 text-white hover-scale cursor-pointer">
-                  <div className="animate-wave">
-                    <FaBell className="text-white text-4xl mb-4" />
-                  </div>
-                  <h3 className="font-bold text-xl mb-2 text-white">
-                    Smart Alerts
-                  </h3>
-                  <p className="text-sm text-white/90">
-                    Real-time notifications
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* How It Works with Progress Animation */}
-      <div
-        data-section="howitworks"
-        className={`bg-gradient-to-b from-slate-50 to-white py-20 transition-all duration-1000 ${
-          isVisible.howitworks
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 animate-slideInUp">
-            <h2 className="text-4xl font-bold text-[#0A2647] mb-4 animate-pulse-slow">
-              How It Works
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Get started with Smart Bank in three simple steps
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Connection Line */}
-            <div className="absolute top-20 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-[#0A2647] via-[#10b981] to-[#f59e0b] hidden md:block progress-bar"></div>
-
-            {[1, 2, 3].map((step, index) => (
-              <div
-                key={step}
-                className={`text-center group stagger-item delay-${index * 200}`}
-                style={{ animationDelay: `${index * 0.2}s` }}
-              >
-                <div className="w-20 h-20 mx-auto bg-[#0A2647] rounded-2xl flex items-center justify-center text-white text-3xl font-bold mb-6 shadow-lg relative hover-scale">
-                  {step}
-                  <div className="absolute inset-0 bg-[#0A2647] rounded-2xl animate-pulse-slow opacity-50"></div>
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-[#0A2647] transition-colors">
-                  {step === 1
-                    ? "Create Account"
-                    : step === 2
-                      ? "Explore Features"
-                      : "Start Banking"}
-                </h3>
-                <p className="text-slate-600">
-                  {step === 1
-                    ? "Sign up in minutes with our digital KYC process. Upload your documents and verify instantly."
-                    : step === 2
-                      ? "Access all 8 core modules including loans, investments, fraud protection, and more."
-                      : "Enjoy seamless banking with real-time updates, 24/7 support, and complete security."}
+                <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-200 sm:text-lg">
+                  Designed for real banking operations with readable workflows, faster decisions,
+                  and dependable controls across onboarding, lending, and support.
                 </p>
+
+                <div className="mt-9 flex flex-wrap gap-4">
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center rounded-xl bg-[#f0b86a] px-6 py-3 text-sm font-bold text-[#1f3a5f] transition hover:bg-[#f4c480]"
+                  >
+                    Open an Account
+                    <FaArrowRight className="ml-2" />
+                  </Link>
+                  <Link
+                    to="/about"
+                    className="inline-flex items-center rounded-xl border border-white/60 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                  >
+                    Explore Features
+                  </Link>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Download App Section with Floating Animation */}
-      <div
-        data-section="download"
-        className={`py-20 bg-white transition-all duration-1000 ${
-          isVisible.download
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-[#0A2647] rounded-3xl p-12 text-white relative overflow-hidden hover-scale">
-            <div className="absolute inset-0 opacity-10 animate-rotate-slow">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-            </div>
-
-            <div className="relative grid lg:grid-cols-2 gap-12 items-center">
-              <div className="animate-slideInLeft">
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 animate-pulse-slow">
-                  Download the Smart Bank App
+              <aside className="rise-in rounded-3xl border border-white/20 bg-white/95 p-6 text-slate-900 shadow-2xl sm:p-8">
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-[#1f3a5f]">
+                  Performance Snapshot
                 </h2>
-                <p className="text-xl text-white/90 mb-8">
-                  Bank on the go with our mobile app. Available for iOS and
-                  Android.
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <button className="bg-black text-white px-6 py-3 rounded-lg flex items-center hover:bg-gray-900 transition-all hover-scale">
-                    <FaMobile className="text-white mr-2" />
-                    App Store
-                  </button>
-                  <button className="bg-black text-white px-6 py-3 rounded-lg flex items-center hover:bg-gray-900 transition-all hover-scale">
-                    <FaMobile className="text-white mr-2" />
-                    Google Play
-                  </button>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  {highlights.map((item) => (
+                    <div key={item.label} className="rounded-xl border border-slate-200 bg-white p-3">
+                      <p className="text-lg font-extrabold text-[#1f3a5f]">{item.value}</p>
+                      <p className="mt-1 text-xs text-slate-600">{item.label}</p>
+                    </div>
+                  ))}
                 </div>
-              </div>
 
-              <div className="hidden lg:block animate-float">
-                <img
-                  src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80"
-                  alt="Mobile App"
-                  className="rounded-2xl shadow-2xl hover-scale"
-                />
-              </div>
+                <div className="mt-5 rounded-xl bg-slate-900 p-4 text-slate-200">
+                  <p className="text-xs uppercase tracking-[0.14em] text-slate-400">Security Index</p>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-700">
+                    <div className="h-full w-[96%] rounded-full bg-emerald-400" />
+                  </div>
+                  <p className="mt-2 text-sm">96% automated risk-pattern identification.</p>
+                </div>
+              </aside>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* CTA Section with Particle Effect */}
-      <div
-        data-section="cta"
-        className={`bg-[#0A2647] text-white py-20 relative overflow-hidden transition-all duration-1000 ${
-          isVisible.cta
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-10"
-        }`}
-      >
-        {/* Animated Particles */}
-        {[...Array(30)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute bg-white rounded-full animate-float"
-            style={{
-              width: `${Math.random() * 4 + 1}px`,
-              height: `${Math.random() * 4 + 1}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${Math.random() * 5 + 3}s`,
-              opacity: 0.3,
-            }}
-          />
-        ))}
+        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="rounded-3xl border border-[#d8d2c8] bg-white p-7 shadow-sm sm:p-10">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9c5f2c]">
+                  Core Solutions
+                </p>
+                <h2 className="mt-2 text-3xl font-extrabold text-[#1f3a5f]">
+                  Readable, role-focused workflows
+                </h2>
+              </div>
+              <Link
+                to="/contact"
+                className="inline-flex items-center text-sm font-bold text-[#1f3a5f] hover:text-[#9c5f2c]"
+              >
+                Talk to our team
+                <FaArrowRight className="ml-2" />
+              </Link>
+            </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 animate-slideInUp">
-            Ready to Get Started?
-          </h2>
-
-          <p
-            className="text-xl text-white/80 mb-8 max-w-2xl mx-auto animate-slideInUp"
-            style={{ animationDelay: "0.2s" }}
-          >
-            Join thousands of satisfied customers and experience the future of
-            banking today.
-          </p>
-
-          <div
-            className="flex justify-center space-x-4 animate-slideInUp"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <Link
-              to="/register"
-              className="bg-white text-[#0A2647] px-8 py-4 rounded-lg font-semibold hover:bg-slate-100 hover:shadow-xl transition-all hover-scale inline-flex items-center group"
-            >
-              Open Account Now
-              <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-            </Link>
-
-            <Link
-              to="/contact"
-              className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-[#0A2647] transition-all hover-scale"
-            >
-              Contact Sales
-            </Link>
+            <div className="grid gap-4 md:grid-cols-2">
+              {corePillars.map((pillar) => {
+                const Icon = pillar.icon;
+                return (
+                  <article
+                    key={pillar.title}
+                    className="rounded-2xl border border-slate-200 bg-[#f9f7f3] p-5 transition hover:border-[#7fb0d9]/60 hover:bg-white"
+                  >
+                    <div className="mb-3 inline-flex rounded-lg bg-[#1f3a5f] p-3 text-white">
+                      <Icon className="text-base" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#1f3a5f]">{pillar.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{pillar.description}</p>
+                  </article>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section className="mx-auto grid max-w-7xl gap-6 px-4 pb-20 sm:px-6 lg:grid-cols-[1fr_1fr] lg:px-8">
+          <div className="rounded-3xl border border-[#d8d2c8] bg-white p-8 shadow-sm sm:p-10">
+            <div className="mb-4 inline-flex rounded-xl bg-[#1f3a5f] p-3 text-white">
+              <FaLock className="text-lg" />
+            </div>
+            <h2 className="text-3xl font-extrabold text-[#1f3a5f]">Compliance-First Architecture</h2>
+            <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-base">
+              Every workflow is built with audit visibility, controlled permissions, and secure operations to match the standards expected in modern banking.
+            </p>
+
+            <ul className="mt-6 space-y-3">
+              {trustItems.map((item) => (
+                <li key={item} className="flex items-start text-sm text-slate-700">
+                  <FaCheckCircle className="mr-3 mt-0.5 shrink-0 text-emerald-600" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-3xl bg-[#9c5f2c] p-8 text-white shadow-lg sm:p-10">
+            <div className="mb-4 inline-flex rounded-xl bg-white/20 p-3 text-white">
+              <FaHeadset className="text-lg" />
+            </div>
+            <h3 className="text-3xl font-extrabold">Start with Confidence</h3>
+            <p className="mt-4 text-sm leading-relaxed text-orange-100 sm:text-base">
+              Launch quickly with account onboarding, then expand into digital lending, fraud control, and support operations without adding workflow complexity.
+            </p>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#9c5f2c] transition hover:bg-orange-50"
+              >
+                Create Account
+              </Link>
+              <Link
+                to="/contact"
+                className="inline-flex items-center justify-center rounded-xl border border-white/60 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Request Demo
+              </Link>
+            </div>
+
+            <div className="mt-7 rounded-xl border border-white/30 bg-white/10 p-4">
+              <p className="text-xs uppercase tracking-[0.14em] text-orange-100">Support Promise</p>
+              <p className="mt-2 text-sm text-white">
+                Dedicated service specialists for onboarding, migration, and day-to-day operational guidance.
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 };
 
