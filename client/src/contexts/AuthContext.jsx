@@ -198,6 +198,56 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const completeOAuthLogin = async (authToken, newRefreshToken) => {
+    try {
+      setLoading(true);
+
+      localStorage.setItem('token', authToken);
+      if (newRefreshToken) {
+        localStorage.setItem('refreshToken', newRefreshToken);
+      }
+
+      setToken(authToken);
+      api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+
+      const response = await api.get('/auth/validate', {
+        headers: {
+          Authorization: `Bearer ${authToken}`
+        }
+      });
+
+      if (!response.data.success) {
+        throw new Error('OAuth login validation failed');
+      }
+
+      const userData = response.data.data?.user || response.data.user;
+
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      setIsAuthenticated(true);
+
+      toast.success(`Welcome back, ${userData.firstName || userData.email}!`);
+
+      return { success: true, user: userData };
+    } catch (error) {
+      console.error('OAuth login error:', error);
+
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+      delete api.defaults.headers.common['Authorization'];
+
+      toast.error(error.response?.data?.message || 'Google login failed. Please try again.');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Refresh token with proper promise handling
   const refreshToken = async () => {
     // If already refreshing, return the existing promise
@@ -624,6 +674,7 @@ export const AuthProvider = ({ children }) => {
     // Core auth functions
     register,
     login,
+    completeOAuthLogin,
     logout,
     
     // Email verification

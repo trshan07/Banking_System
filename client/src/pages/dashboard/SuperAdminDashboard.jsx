@@ -98,12 +98,57 @@ import AdminManagement from "../../components/superadmin/AdminManagement";
 import BranchManagement from "../../components/superadmin/BranchManagement";
 import SystemSettings from "../../components/superadmin/SystemSettings";
 
+const getFallbackChartData = () => ({
+  revenueGrowth: [
+    { month: "Jan", revenue: 125000, expenses: 98000, profit: 27000 },
+    { month: "Feb", revenue: 145000, expenses: 102000, profit: 43000 },
+    { month: "Mar", revenue: 168000, expenses: 110000, profit: 58000 },
+    { month: "Apr", revenue: 182000, expenses: 115000, profit: 67000 },
+    { month: "May", revenue: 195000, expenses: 120000, profit: 75000 },
+    { month: "Jun", revenue: 210000, expenses: 125000, profit: 85000 },
+  ],
+  userActivity: [
+    { hour: "00:00", active: 120 },
+    { hour: "04:00", active: 80 },
+    { hour: "08:00", active: 450 },
+    { hour: "12:00", active: 890 },
+    { hour: "16:00", active: 1200 },
+    { hour: "20:00", active: 650 },
+  ],
+  systemMetrics: [
+    { metric: "CPU Usage", value: 45 },
+    { metric: "Memory Usage", value: 62 },
+    { metric: "Disk Usage", value: 58 },
+    { metric: "Network Load", value: 35 },
+    { metric: "DB Load", value: 72 },
+  ],
+  branchPerformance: [
+    { branch: "NYC", transactions: 12500, revenue: 450000 },
+    { branch: "LA", transactions: 9800, revenue: 380000 },
+    { branch: "Chicago", transactions: 8700, revenue: 320000 },
+    { branch: "Miami", transactions: 6500, revenue: 250000 },
+    { branch: "Dallas", transactions: 5400, revenue: 210000 },
+  ],
+});
+
+const getFallbackStatusSummary = () => ([
+  { role: "superadmin", label: "Super Admins", total: 1, active: 1, pending: 0, inactive: 0, suspended: 0 },
+  { role: "admin", label: "Admins", total: 12, active: 10, pending: 1, inactive: 1, suspended: 0 },
+  { role: "employee", label: "Employees", total: 134, active: 121, pending: 8, inactive: 5, suspended: 0 },
+  { role: "customer", label: "Customers", total: 15273, active: 14120, pending: 860, inactive: 233, suspended: 60 },
+]);
+
+const getFallbackAdminSummary = () => ({ total: 0, active: 0, pending: 0, inactive: 0, suspended: 0 });
+
 const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
+    totalSuperAdmins: 0,
     totalAdmins: 0,
+    totalEmployees: 0,
+    totalCustomers: 0,
     totalBranches: 0,
     totalTransactions: 0,
     totalVolume: 0,
@@ -127,13 +172,11 @@ const SuperAdminDashboard = () => {
 
   const [recentAudits, setRecentAudits] = useState([]);
   const [recentAdmins, setRecentAdmins] = useState([]);
+  const [adminSummary, setAdminSummary] = useState(getFallbackAdminSummary());
+  const [statusSummary, setStatusSummary] = useState(getFallbackStatusSummary());
+  const [adminsLoading, setAdminsLoading] = useState(false);
   const [performanceData, setPerformanceData] = useState([]);
-  const [chartData, setChartData] = useState({
-    revenueGrowth: [],
-    userActivity: [],
-    systemMetrics: [],
-    branchPerformance: [],
-  });
+  const [chartData, setChartData] = useState(getFallbackChartData());
 
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [searchTerm, setSearchTerm] = useState("");
@@ -201,6 +244,7 @@ const SuperAdminDashboard = () => {
     fetchDashboardData();
     fetchSystemHealth();
     fetchAuditLogs();
+    fetchAdmins();
     fetchPerformanceData();
   }, [selectedPeriod, activeTab]);
 
@@ -210,12 +254,17 @@ const SuperAdminDashboard = () => {
       const response = await axios.get("/api/superadmin/stats", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setStats(response.data.data);
+      const data = response.data.data || {};
+      setStats((currentStats) => ({ ...currentStats, ...data }));
+      setStatusSummary(data.statusSummary || getFallbackStatusSummary());
     } catch (error) {
       console.error("Error fetching stats:", error);
       setStats({
         totalUsers: 15420,
+        totalSuperAdmins: 1,
         totalAdmins: 12,
+        totalEmployees: 134,
+        totalCustomers: 15273,
         totalBranches: 28,
         totalTransactions: 45678,
         totalVolume: 12500000,
@@ -227,6 +276,7 @@ const SuperAdminDashboard = () => {
         expenses: 1250000,
         profit: 1200000,
       });
+      setStatusSummary(getFallbackStatusSummary());
     }
   };
 
@@ -237,11 +287,14 @@ const SuperAdminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const health = response.data.data;
+      const databaseLoad = health.database?.maxConnections
+        ? (health.database.connections / health.database.maxConnections) * 100
+        : 72;
       setSystemHealth({
         cpu: health.cpu?.usage || 45,
         memory: health.memory?.percentage || 62,
         storage: health.disk?.percentage || 58,
-        database: (health.database?.connections / health.database?.maxConnections * 100) || 72,
+        database: databaseLoad,
         api: 98,
         uptime: 99.99,
       });
@@ -264,7 +317,6 @@ const SuperAdminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRecentAudits(response.data.data?.logs || []);
-      setRecentAdmins(response.data.data?.admins || []);
     } catch (error) {
       setRecentAudits([
         { id: 1, action: "Admin user created", user: "superadmin", target: "john.admin", time: "5 mins ago", status: "success", ip: "192.168.1.1" },
@@ -273,11 +325,25 @@ const SuperAdminDashboard = () => {
         { id: 4, action: "Failed login attempt", user: "unknown", target: "admin", time: "3 hours ago", status: "failed", ip: "10.0.0.5" },
         { id: 5, action: "Database backup completed", user: "system", target: "backup", time: "4 hours ago", status: "success", ip: "localhost" },
       ]);
-      setRecentAdmins([
-        { id: 1, name: "John Admin", email: "john@smartbank.com", role: "Admin", department: "IT", status: "active", lastActive: "2024-01-15" },
-        { id: 2, name: "Jane Smith", email: "jane@smartbank.com", role: "Admin", department: "Operations", status: "active", lastActive: "2024-01-14" },
-        { id: 3, name: "Bob Wilson", email: "bob@smartbank.com", role: "Supervisor", department: "Compliance", status: "inactive", lastActive: "2024-01-10" },
-      ]);
+    }
+  };
+
+  const fetchAdmins = async () => {
+    try {
+      setAdminsLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get("/api/superadmin/admins", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setRecentAdmins(response.data.data?.admins || []);
+      setAdminSummary(response.data.data?.summary || getFallbackAdminSummary());
+    } catch (error) {
+      console.error("Error fetching admins:", error);
+      setRecentAdmins([]);
+      setAdminSummary(getFallbackAdminSummary());
+    } finally {
+      setAdminsLoading(false);
     }
   };
 
@@ -287,40 +353,16 @@ const SuperAdminDashboard = () => {
       const response = await axios.get(`/api/superadmin/performance?period=${selectedPeriod}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setPerformanceData(response.data.data?.performance || []);
-    } catch (error) {
+      const data = response.data.data || {};
+      setPerformanceData(data.performance || []);
       setChartData({
-        revenueGrowth: [
-          { month: "Jan", revenue: 125000, expenses: 98000, profit: 27000 },
-          { month: "Feb", revenue: 145000, expenses: 102000, profit: 43000 },
-          { month: "Mar", revenue: 168000, expenses: 110000, profit: 58000 },
-          { month: "Apr", revenue: 182000, expenses: 115000, profit: 67000 },
-          { month: "May", revenue: 195000, expenses: 120000, profit: 75000 },
-          { month: "Jun", revenue: 210000, expenses: 125000, profit: 85000 },
-        ],
-        userActivity: [
-          { hour: "00:00", active: 120 },
-          { hour: "04:00", active: 80 },
-          { hour: "08:00", active: 450 },
-          { hour: "12:00", active: 890 },
-          { hour: "16:00", active: 1200 },
-          { hour: "20:00", active: 650 },
-        ],
-        systemMetrics: [
-          { metric: "CPU Usage", value: 45 },
-          { metric: "Memory Usage", value: 62 },
-          { metric: "Disk Usage", value: 58 },
-          { metric: "Network Load", value: 35 },
-          { metric: "DB Load", value: 72 },
-        ],
-        branchPerformance: [
-          { branch: "NYC", transactions: 12500, revenue: 450000 },
-          { branch: "LA", transactions: 9800, revenue: 380000 },
-          { branch: "Chicago", transactions: 8700, revenue: 320000 },
-          { branch: "Miami", transactions: 6500, revenue: 250000 },
-          { branch: "Dallas", transactions: 5400, revenue: 210000 },
-        ],
+        revenueGrowth: data.revenueGrowth || getFallbackChartData().revenueGrowth,
+        userActivity: data.userActivity || getFallbackChartData().userActivity,
+        systemMetrics: data.systemMetrics || getFallbackChartData().systemMetrics,
+        branchPerformance: data.branchPerformance || getFallbackChartData().branchPerformance,
       });
+    } catch (error) {
+      setChartData(getFallbackChartData());
       setPerformanceData([
         { metric: "Response Time", value: 245, target: 300 },
         { metric: "Success Rate", value: 98.5, target: 99 },
@@ -330,6 +372,52 @@ const SuperAdminDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshSuperAdminData = async () => {
+    await Promise.all([fetchDashboardData(), fetchAdmins(), fetchAuditLogs()]);
+  };
+
+  const handleCreateAdmin = async (adminData) => {
+    const token = localStorage.getItem("token");
+    await axios.post("/api/users", {
+      ...adminData,
+      role: "admin",
+    }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    toast.success("Admin created successfully");
+    await refreshSuperAdminData();
+  };
+
+  const handleUpdateAdmin = async (adminId, adminData) => {
+    const token = localStorage.getItem("token");
+    await axios.put(`/api/users/${adminId}`, adminData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    toast.success("Admin updated successfully");
+    await refreshSuperAdminData();
+  };
+
+  const handleToggleAdminStatus = async (admin) => {
+    const token = localStorage.getItem("token");
+    const nextStatus = admin.status === "active" ? "inactive" : "active";
+
+    await axios.put(`/api/users/${admin.id}`, { status: nextStatus }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    toast.success(`Admin ${nextStatus === "active" ? "activated" : "deactivated"}`);
+    await refreshSuperAdminData();
+  };
+
+  const handleDeleteAdmin = async (adminId) => {
+    const token = localStorage.getItem("token");
+    await axios.delete(`/api/users/${adminId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    toast.success("Admin deactivated successfully");
+    await refreshSuperAdminData();
   };
 
   const handleUpdateSettings = async () => {
@@ -365,6 +453,25 @@ const SuperAdminDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     window.location.href = "/login";
+  };
+
+  const handleUpdateProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const [firstName = "Super", ...lastNameParts] = profile.name.split(" ");
+      await axios.put("/api/users/profile", {
+        firstName,
+        lastName: lastNameParts.join(" ") || "Admin",
+        phone: profile.phone,
+        address: profile.address,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Profile updated successfully");
+      setIsEditingProfile(false);
+    } catch (error) {
+      toast.error("Failed to update profile");
+    }
   };
 
   const StatCard = ({ title, value, icon: Icon, color, trend, trendValue, suffix = "" }) => {
@@ -412,6 +519,26 @@ const SuperAdminDashboard = () => {
     );
   };
 
+  const StatusSummaryCard = ({ item }) => (
+    <div className="bg-white rounded-xl shadow-lg p-5 border border-slate-200">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <p className="text-sm text-slate-500">{item.label}</p>
+          <p className="text-2xl font-bold text-slate-800">{item.total}</p>
+        </div>
+        <div className="w-11 h-11 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+          <FaUsers className="w-5 h-5" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div className="rounded-lg bg-green-50 px-3 py-2 text-green-700">Active: {item.active}</div>
+        <div className="rounded-lg bg-amber-50 px-3 py-2 text-amber-700">Pending: {item.pending}</div>
+        <div className="rounded-lg bg-slate-100 px-3 py-2 text-slate-700">Inactive: {item.inactive}</div>
+        <div className="rounded-lg bg-red-50 px-3 py-2 text-red-700">Suspended: {item.suspended}</div>
+      </div>
+    </div>
+  );
+
   // Navigation Tabs
   const tabs = [
     { id: "dashboard", label: "Overview", icon: <FaTachometerAlt />, superOnly: false },
@@ -433,6 +560,8 @@ const SuperAdminDashboard = () => {
       </div>
     );
   }
+
+  const profitMargin = stats.revenue > 0 ? `${((stats.profit / stats.revenue) * 100).toFixed(1)}%` : "0.0%";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -493,13 +622,28 @@ const SuperAdminDashboard = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard title="Total Users" value={stats.totalUsers} icon={FaUsers} color="bg-blue-500" trend="up" trendValue="12%" />
+              <StatCard title="Super Admins" value={stats.totalSuperAdmins} icon={FaShieldAlt} color="bg-violet-600" />
               <StatCard title="System Admins" value={stats.totalAdmins} icon={FaUserCheck} color="bg-purple-500" />
+              <StatCard title="Employees" value={stats.totalEmployees} icon={FaIdCard} color="bg-sky-500" />
+              <StatCard title="Customers" value={stats.totalCustomers} icon={FaUserCircle} color="bg-amber-500" />
               <StatCard title="Total Branches" value={stats.totalBranches} icon={FaBuilding} color="bg-emerald-500" trend="up" trendValue="2" />
               <StatCard title="System Uptime" value={stats.systemUptime} icon={FaServer} color="bg-green-500" />
               <StatCard title="Total Transactions" value={stats.totalTransactions} icon={FaExchangeAlt} color="bg-cyan-500" />
               <StatCard title="Volume" value={`$${(stats.totalVolume / 1000000).toFixed(1)}M`} icon={FaMoneyBillWave} color="bg-emerald-500" trend="up" trendValue="15%" />
               <StatCard title="Active Sessions" value={stats.activeSessions} icon={FaUsers} color="bg-indigo-500" />
-              <StatCard title="Profit Margin" value={`${((stats.profit / stats.revenue) * 100).toFixed(1)}%`} icon={FaPercent} color="bg-teal-500" trend="up" trendValue="3%" />
+              <StatCard title="Profit Margin" value={profitMargin} icon={FaPercent} color="bg-teal-500" trend="up" trendValue="3%" />
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center"><FaChartPie className="mr-2 text-purple-600" /> User Status Overview</h3>
+                <p className="text-sm text-slate-500">Live database counts for super admins, admins, employees, and customers</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                {statusSummary.map((item) => (
+                  <StatusSummaryCard key={item.role} item={item} />
+                ))}
+              </div>
             </div>
 
             {/* System Health Metrics */}
@@ -616,7 +760,17 @@ const SuperAdminDashboard = () => {
         {activeTab === "system" && <SystemHealth systemHealth={systemHealth} performanceData={performanceData} />}
         
         {/* Admin Management Tab */}
-        {activeTab === "admins" && <AdminManagement admins={recentAdmins} />}
+        {activeTab === "admins" && (
+          <AdminManagement
+            admins={recentAdmins}
+            summary={adminSummary}
+            loading={adminsLoading}
+            onCreateAdmin={handleCreateAdmin}
+            onUpdateAdmin={handleUpdateAdmin}
+            onToggleAdminStatus={handleToggleAdminStatus}
+            onDeleteAdmin={handleDeleteAdmin}
+          />
+        )}
         
         {/* Branch Management Tab */}
         {activeTab === "branches" && <BranchManagement />}

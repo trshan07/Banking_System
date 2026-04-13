@@ -10,6 +10,7 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
+const { passport, configurePassport } = require('./config/auth');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -35,6 +36,8 @@ const { generalLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 const httpServer = createServer(app);
+
+configurePassport();
 
 // ============================================
 // CORS Configuration - FIXED FOR EXPRESS 5
@@ -120,6 +123,7 @@ app.use((req, res, next) => {
 
 // Add cookie parser middleware
 app.use(cookieParser());
+app.use(passport.initialize());
 
 // Security headers
 app.use(helmet({

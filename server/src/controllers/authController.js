@@ -5,6 +5,72 @@ const emailService = require('../services/emailService');
 const { validationResult } = require('express-validator');
 
 class AuthController {
+  constructor() {
+    this.getFrontendUrl = this.getFrontendUrl.bind(this);
+    this.createAuthSession = this.createAuthSession.bind(this);
+    this.setRefreshTokenCookie = this.setRefreshTokenCookie.bind(this);
+    this.redirectToOAuthResult = this.redirectToOAuthResult.bind(this);
+    this.register = this.register.bind(this);
+    this.login = this.login.bind(this);
+    this.refreshToken = this.refreshToken.bind(this);
+    this.logout = this.logout.bind(this);
+    this.verifyEmail = this.verifyEmail.bind(this);
+    this.resendVerification = this.resendVerification.bind(this);
+    this.forgotPassword = this.forgotPassword.bind(this);
+    this.resetPassword = this.resetPassword.bind(this);
+    this.changePassword = this.changePassword.bind(this);
+    this.updateProfile = this.updateProfile.bind(this);
+    this.getMe = this.getMe.bind(this);
+    this.getCurrentUser = this.getCurrentUser.bind(this);
+    this.validateToken = this.validateToken.bind(this);
+  }
+
+  getFrontendUrl() {
+    return process.env.FRONTEND_URL || 'http://localhost:5173';
+  }
+
+  async createAuthSession(user) {
+    const accessToken = tokenService.generateAccessToken(user);
+    const refreshToken = tokenService.generateRefreshToken(user);
+
+    user.refreshToken = tokenService.hashToken(refreshToken);
+    user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await user.save();
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.refreshToken;
+    delete userResponse.emailVerificationToken;
+    delete userResponse.__v;
+
+    return {
+      user: userResponse,
+      token: accessToken,
+      refreshToken
+    };
+  }
+
+  setRefreshTokenCookie(res, refreshToken) {
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+  }
+
+  redirectToOAuthResult(res, params = {}) {
+    const redirectUrl = new URL('/auth/login', this.getFrontendUrl());
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        redirectUrl.searchParams.set(key, value);
+      }
+    });
+
+    res.redirect(redirectUrl.toString());
+  }
+
   // Register new user
   async register(req, res) {
     try {
@@ -60,21 +126,7 @@ class AuthController {
         console.error('Failed to send verification email:', err);
       });
 
-      // Generate tokens
-      const accessToken = tokenService.generateAccessToken(user);
-      const refreshToken = tokenService.generateRefreshToken(user);
-
-      // Save refresh token hash
-      user.refreshToken = tokenService.hashToken(refreshToken);
-      user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      await user.save();
-
-      // Remove sensitive data
-      const userResponse = user.toObject();
-      delete userResponse.password;
-      delete userResponse.refreshToken;
-      delete userResponse.emailVerificationToken;
-      delete userResponse.__v;
+      const { user: userResponse, token: accessToken, refreshToken } = await this.createAuthSession(user);
 
       res.status(201).json({
         success: true,
@@ -151,28 +203,10 @@ class AuthController {
     user.lastLogin = new Date();
     await user.save();
 
-    // Generate tokens
-    const accessToken = tokenService.generateAccessToken(user);
-    const refreshToken = tokenService.generateRefreshToken(user);
-
-    // Save refresh token hash
-    user.refreshToken = tokenService.hashToken(refreshToken);
-    user.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    await user.save();
-
-    // Remove sensitive data
-    const userResponse = user.toObject();
-    delete userResponse.password;
-    delete userResponse.refreshToken;
-    delete userResponse.__v;
+    const { user: userResponse, token: accessToken, refreshToken } = await this.createAuthSession(user);
 
     // Set refresh token in HTTP-only cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', // Changed from 'strict' for better compatibility
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    this.setRefreshTokenCookie(res, refreshToken);
 
     console.log('Login successful for:', email);
 

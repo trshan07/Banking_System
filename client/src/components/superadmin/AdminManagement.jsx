@@ -1,68 +1,156 @@
-import React, { useState } from "react";
-import { FaPlus, FaEdit, FaTrash, FaBan, FaCheckCircle, FaSearch, FaFilter, FaEnvelope, FaPhone, FaUserShield, FaBuilding } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import {
+  FaBan,
+  FaCheckCircle,
+  FaEdit,
+  FaPhone,
+  FaPlus,
+  FaSearch,
+  FaTimesCircle,
+  FaTrash,
+  FaUserShield,
+} from "react-icons/fa";
 import { toast } from "react-hot-toast";
 
-const AdminManagement = ({ admins }) => {
+const EMPTY_ADMIN_FORM = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  phone: "",
+  address: "",
+  role: "admin",
+  status: "active",
+};
+
+const AdminManagement = ({
+  admins = [],
+  summary,
+  loading = false,
+  onCreateAdmin,
+  onUpdateAdmin,
+  onToggleAdminStatus,
+  onDeleteAdmin,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterRole, setFilterRole] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
-  const [newAdmin, setNewAdmin] = useState({
-    name: "",
-    email: "",
-    role: "admin",
-    department: "",
-    phone: "",
-    status: "active"
-  });
+  const [submitting, setSubmitting] = useState(false);
+  const [newAdmin, setNewAdmin] = useState(EMPTY_ADMIN_FORM);
+  const [editAdmin, setEditAdmin] = useState(EMPTY_ADMIN_FORM);
 
-  const defaultAdmins = admins || [
-    { id: 1, name: "John Admin", email: "john@smartbank.com", role: "Admin", department: "IT", status: "active", lastActive: "2024-01-15", phone: "+1 (555) 123-4567", permissions: ["users", "transactions", "reports"] },
-    { id: 2, name: "Jane Smith", email: "jane@smartbank.com", role: "Supervisor", department: "Operations", status: "active", lastActive: "2024-01-14", phone: "+1 (555) 987-6543", permissions: ["users", "transactions"] },
-    { id: 3, name: "Bob Wilson", email: "bob@smartbank.com", role: "Auditor", department: "Compliance", status: "inactive", lastActive: "2024-01-10", phone: "+1 (555) 456-7890", permissions: ["reports", "audit"] },
-    { id: 4, name: "Alice Brown", email: "alice@smartbank.com", role: "Admin", department: "Customer Service", status: "active", lastActive: "2024-01-13", phone: "+1 (555) 234-5678", permissions: ["users", "transactions", "support"] },
-  ];
+  useEffect(() => {
+    if (!selectedAdmin) {
+      return;
+    }
 
-  const handleAddAdmin = () => {
-    if (!newAdmin.name || !newAdmin.email) {
+    setEditAdmin({
+      firstName: selectedAdmin.firstName || "",
+      lastName: selectedAdmin.lastName || "",
+      email: selectedAdmin.email || "",
+      phone: selectedAdmin.phone || "",
+      address: selectedAdmin.address || "",
+      role: selectedAdmin.role || "admin",
+      status: selectedAdmin.status || "active",
+      password: "",
+    });
+  }, [selectedAdmin]);
+
+  const adminSummary = summary || {
+    total: admins.length,
+    active: admins.filter((admin) => admin.status === "active").length,
+    pending: admins.filter((admin) => admin.status === "pending").length,
+    inactive: admins.filter((admin) => admin.status === "inactive").length,
+    suspended: admins.filter((admin) => admin.status === "suspended").length,
+  };
+
+  const resetAddForm = () => {
+    setNewAdmin(EMPTY_ADMIN_FORM);
+    setShowAddModal(false);
+  };
+
+  const handleAddAdmin = async () => {
+    if (!newAdmin.firstName || !newAdmin.lastName || !newAdmin.email || !newAdmin.password || !newAdmin.phone || !newAdmin.address) {
       toast.error("Please fill in all required fields");
       return;
     }
-    toast.success("Admin added successfully");
-    setShowAddModal(false);
-    setNewAdmin({ name: "", email: "", role: "admin", department: "", phone: "", status: "active" });
+
+    if (!onCreateAdmin) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onCreateAdmin(newAdmin);
+      resetAddForm();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleEditAdmin = () => {
-    toast.success("Admin updated successfully");
-    setShowEditModal(false);
+  const handleEditAdmin = async () => {
+    if (!selectedAdmin || !onUpdateAdmin) {
+      return;
+    }
+
+    if (!editAdmin.firstName || !editAdmin.lastName || !editAdmin.email || !editAdmin.phone || !editAdmin.address) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onUpdateAdmin(selectedAdmin.id, {
+        firstName: editAdmin.firstName,
+        lastName: editAdmin.lastName,
+        email: editAdmin.email,
+        phone: editAdmin.phone,
+        address: editAdmin.address,
+        status: editAdmin.status,
+      });
+      setShowEditModal(false);
+      setSelectedAdmin(null);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDeleteAdmin = (id) => {
+  const handleDeleteAdmin = async (id) => {
+    if (!onDeleteAdmin) {
+      return;
+    }
+
     if (window.confirm("Are you sure you want to delete this admin?")) {
-      toast.success("Admin deleted successfully");
+      await onDeleteAdmin(id);
     }
   };
 
-  const handleToggleStatus = (id) => {
-    toast.success("Admin status updated");
+  const handleToggleStatus = async (admin) => {
+    if (!onToggleAdminStatus) {
+      return;
+    }
+
+    await onToggleAdminStatus(admin);
   };
 
-  const getRoleColor = (role) => {
-    switch (role) {
-      case "Admin": return "bg-purple-100 text-purple-700";
-      case "Supervisor": return "bg-blue-100 text-blue-700";
-      case "Auditor": return "bg-green-100 text-green-700";
-      default: return "bg-gray-100 text-gray-700";
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-700";
+      case "pending":
+        return "bg-amber-100 text-amber-700";
+      case "suspended":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-slate-100 text-slate-700";
     }
   };
 
-  const filteredAdmins = defaultAdmins.filter(admin => 
-    (admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     admin.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (filterRole === "all" || admin.role === filterRole) &&
+  const filteredAdmins = admins.filter((admin) =>
+    (`${admin.firstName || ""} ${admin.lastName || ""}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      admin.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (filterStatus === "all" || admin.status === filterStatus)
   );
 
@@ -72,26 +160,26 @@ const AdminManagement = ({ admins }) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-slate-500">Total Admins</p><p className="text-2xl font-bold">{defaultAdmins.length}</p></div>
+            <div><p className="text-sm text-slate-500">Total Admins</p><p className="text-2xl font-bold">{adminSummary.total}</p></div>
             <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"><FaUserShield className="text-purple-600" /></div>
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-slate-500">Active Admins</p><p className="text-2xl font-bold text-green-600">{defaultAdmins.filter(a => a.status === "active").length}</p></div>
+            <div><p className="text-sm text-slate-500">Active Admins</p><p className="text-2xl font-bold text-green-600">{adminSummary.active || 0}</p></div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><FaCheckCircle className="text-green-600" /></div>
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-slate-500">Roles</p><p className="text-2xl font-bold">{new Set(defaultAdmins.map(a => a.role)).size}</p></div>
+            <div><p className="text-sm text-slate-500">Pending Admins</p><p className="text-2xl font-bold text-amber-600">{adminSummary.pending || 0}</p></div>
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><FaUserShield className="text-blue-600" /></div>
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-slate-500">Departments</p><p className="text-2xl font-bold">{new Set(defaultAdmins.map(a => a.department)).size}</p></div>
-            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center"><FaBuilding className="text-emerald-600" /></div>
+            <div><p className="text-sm text-slate-500">Inactive/Suspended</p><p className="text-2xl font-bold text-red-600">{(adminSummary.inactive || 0) + (adminSummary.suspended || 0)}</p></div>
+            <div className="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center"><FaBan className="text-rose-600" /></div>
           </div>
         </div>
       </div>
@@ -101,7 +189,7 @@ const AdminManagement = ({ admins }) => {
         <div className="p-6 border-b flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold">Admin Management</h3>
-            <p className="text-sm text-slate-500 mt-1">Manage system administrators and their permissions</p>
+            <p className="text-sm text-slate-500 mt-1">Create, update, activate, and deactivate administrator accounts</p>
           </div>
           <button onClick={() => setShowAddModal(true)} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
             <FaPlus className="mr-2" /> Add Admin
@@ -122,23 +210,15 @@ const AdminManagement = ({ admins }) => {
               />
             </div>
             <select 
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="all">All Roles</option>
-              <option value="Admin">Admin</option>
-              <option value="Supervisor">Supervisor</option>
-              <option value="Auditor">Auditor</option>
-            </select>
-            <select 
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
+              <option value="pending">Pending</option>
               <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
             </select>
           </div>
 
@@ -149,34 +229,35 @@ const AdminManagement = ({ admins }) => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Active</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
+                {loading && (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-10 text-center text-slate-500">Loading admin records...</td>
+                  </tr>
+                )}
                 {filteredAdmins.map((admin) => (
                   <tr key={admin.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-medium text-slate-800">{admin.name}</p>
-                        <p className="text-xs text-slate-500">{admin.phone}</p>
+                        <p className="text-xs text-slate-500 uppercase">{admin.role}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-slate-600">{admin.email}</td>
+                    <td className="px-6 py-4 text-slate-600">{admin.phone || "N/A"}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(admin.role)}`}>
-                        {admin.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">{admin.department}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${admin.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(admin.status)}`}>
                         {admin.status}
                       </span>
                     </td>
+                    <td className="px-6 py-4 text-sm text-slate-500">{admin.createdAt ? new Date(admin.createdAt).toISOString().split("T")[0] : "N/A"}</td>
                     <td className="px-6 py-4 text-sm text-slate-500">{admin.lastActive}</td>
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">
@@ -191,7 +272,7 @@ const AdminManagement = ({ admins }) => {
                           <FaEdit />
                         </button>
                         <button 
-                          onClick={() => handleToggleStatus(admin.id)}
+                          onClick={() => handleToggleStatus(admin)}
                           className={`p-1 ${admin.status === 'active' ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'} transition-colors`}
                           title={admin.status === 'active' ? 'Deactivate' : 'Activate'}
                         >
@@ -232,15 +313,27 @@ const AdminManagement = ({ admins }) => {
                 </button>
               </div>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Full Name *</label>
-                  <input 
-                    type="text" 
-                    value={newAdmin.name}
-                    onChange={(e) => setNewAdmin({...newAdmin, name: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
-                    placeholder="Enter full name"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">First Name *</label>
+                    <input 
+                      type="text" 
+                      value={newAdmin.firstName}
+                      onChange={(e) => setNewAdmin({...newAdmin, firstName: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                      placeholder="First name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Last Name *</label>
+                    <input 
+                      type="text" 
+                      value={newAdmin.lastName}
+                      onChange={(e) => setNewAdmin({...newAdmin, lastName: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                      placeholder="Last name"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Email *</label>
@@ -253,29 +346,17 @@ const AdminManagement = ({ admins }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Role</label>
-                  <select 
-                    value={newAdmin.role}
-                    onChange={(e) => setNewAdmin({...newAdmin, role: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="admin">Admin</option>
-                    <option value="supervisor">Supervisor</option>
-                    <option value="auditor">Auditor</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Department</label>
+                  <label className="block text-sm font-medium mb-1">Password *</label>
                   <input 
-                    type="text" 
-                    value={newAdmin.department}
-                    onChange={(e) => setNewAdmin({...newAdmin, department: e.target.value})}
+                    type="password" 
+                    value={newAdmin.password}
+                    onChange={(e) => setNewAdmin({...newAdmin, password: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
-                    placeholder="Enter department"
+                    placeholder="Temporary password"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Phone</label>
+                  <label className="block text-sm font-medium mb-1">Phone *</label>
                   <input 
                     type="tel" 
                     value={newAdmin.phone}
@@ -284,10 +365,20 @@ const AdminManagement = ({ admins }) => {
                     placeholder="Enter phone number"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Address *</label>
+                  <textarea
+                    value={newAdmin.address}
+                    onChange={(e) => setNewAdmin({...newAdmin, address: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    rows="3"
+                    placeholder="Enter address"
+                  />
+                </div>
               </div>
               <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
                 <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
-                <button onClick={handleAddAdmin} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">Add Admin</button>
+                <button onClick={handleAddAdmin} disabled={submitting} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-60">{submitting ? "Saving..." : "Add Admin"}</button>
               </div>
             </div>
           </div>
@@ -306,42 +397,66 @@ const AdminManagement = ({ admins }) => {
                 </button>
               </div>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Full Name</label>
-                  <input 
-                    type="text" 
-                    defaultValue={selectedAdmin.name}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">First Name</label>
+                    <input 
+                      type="text" 
+                      value={editAdmin.firstName}
+                      onChange={(e) => setEditAdmin({...editAdmin, firstName: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Last Name</label>
+                    <input 
+                      type="text" 
+                      value={editAdmin.lastName}
+                      onChange={(e) => setEditAdmin({...editAdmin, lastName: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Email</label>
                   <input 
                     type="email" 
-                    defaultValue={selectedAdmin.email}
+                    value={editAdmin.email}
+                    onChange={(e) => setEditAdmin({...editAdmin, email: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Role</label>
-                  <select className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option selected={selectedAdmin.role === "Admin"}>Admin</option>
-                    <option selected={selectedAdmin.role === "Supervisor"}>Supervisor</option>
-                    <option selected={selectedAdmin.role === "Auditor"}>Auditor</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Department</label>
+                  <label className="block text-sm font-medium mb-1">Phone</label>
                   <input 
-                    type="text" 
-                    defaultValue={selectedAdmin.department}
+                    type="tel" 
+                    value={editAdmin.phone}
+                    onChange={(e) => setEditAdmin({...editAdmin, phone: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Address</label>
+                  <textarea
+                    value={editAdmin.address}
+                    onChange={(e) => setEditAdmin({...editAdmin, address: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    rows="3"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <select value={editAdmin.status} onChange={(e) => setEditAdmin({...editAdmin, status: e.target.value})} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="active">Active</option>
+                    <option value="pending">Pending</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
                 </div>
               </div>
               <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
                 <button onClick={() => setShowEditModal(false)} className="px-4 py-2 border rounded-lg hover:bg-slate-50">Cancel</button>
-                <button onClick={handleEditAdmin} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Save Changes</button>
+                <button onClick={handleEditAdmin} disabled={submitting} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60">{submitting ? "Saving..." : "Save Changes"}</button>
               </div>
             </div>
           </div>

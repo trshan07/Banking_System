@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
+const { passport, isGoogleAuthConfigured } = require('../config/auth');
 const authController = require('../controllers/authController');
 const { authMiddleware, protect } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
@@ -80,9 +81,57 @@ const changePasswordValidation = [
   validate
 ];
 
+const redirectOAuthError = (res, message) => {
+  authController.redirectToOAuthResult(res, { error: message });
+};
+
 // ============================================
 // Public Routes (No Authentication Required)
 // ============================================
+
+router.get('/google', (req, res, next) => {
+  if (!isGoogleAuthConfigured()) {
+    return redirectOAuthError(res, 'Google sign-in is not configured on the server.');
+  }
+
+  return passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false
+  })(req, res, next);
+});
+
+router.get('/google/callback', (req, res, next) => {
+  if (!isGoogleAuthConfigured()) {
+    return redirectOAuthError(res, 'Google sign-in is not configured on the server.');
+  }
+
+  return passport.authenticate('google', { session: false }, async (error, user) => {
+    if (error || !user) {
+      return redirectOAuthError(res, error?.message || 'Google sign-in failed.');
+    }
+
+    if (user.status !== 'active') {
+      return redirectOAuthError(res, 'Your account is not active. Please contact support.');
+    }
+
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      return redirectOAuthError(res, 'Your account is locked. Please try again later.');
+    }
+
+    try {
+      const session = await authController.createAuthSession(user);
+      authController.setRefreshTokenCookie(res, session.refreshToken);
+
+      return authController.redirectToOAuthResult(res, {
+        token: session.token,
+        refreshToken: session.refreshToken
+      });
+    } catch (sessionError) {
+      console.error('Google callback session error:', sessionError);
+      return redirectOAuthError(res, 'Google sign-in failed. Please try again.');
+    }
+  })(req, res, next);
+});
 
 // Register
 router.post('/register', authRateLimiter, registerValidation, authController.register);
