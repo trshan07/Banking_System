@@ -1,88 +1,124 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
-import { useNotification } from '../../contexts/NotificationContext'
-import { FaBell, FaUser, FaSignOutAlt, FaCog } from 'react-icons/fa'
+import React, { useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
+import {
+  FaBars,
+  FaBell,
+  FaCog,
+  FaSignOutAlt,
+  FaTimes,
+  FaUser,
+} from 'react-icons/fa';
 
 const Header = () => {
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
-  const { user, logout, isAuthenticated } = useAuth()
-  const { notifications, unreadCount, markAllAsRead } = useNotification()
-  const navigate = useNavigate()
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const { user, logout, isAuthenticated } = useAuth();
+  const { notifications, unreadCount, markAllAsRead } = useNotification();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout()
-    navigate('/')
-  }
+    await logout();
+    setIsProfileOpen(false);
+    setIsMobileMenuOpen(false);
+    navigate('/');
+  };
 
   const getDashboardLink = () => {
-    if (!user) return '/dashboard'
+    if (!user) return '/dashboard';
+
     switch (user.role) {
-      case 'super_admin': return '/super-admin'
-      case 'admin': return '/admin'
-      case 'employee': return '/employee'
-      default: return '/dashboard'
+      case 'super_admin':
+        return '/super-admin';
+      case 'admin':
+        return '/admin';
+      case 'employee':
+        return '/employee';
+      default:
+        return '/dashboard';
     }
+  };
+
+  const navItems = [
+    { label: 'Home', to: '/' },
+    { label: 'About', to: '/about' },
+    { label: 'Contact', to: '/contact' },
+  ];
+
+  if (isAuthenticated) {
+    navItems.push({ label: 'Dashboard', to: getDashboardLink() });
   }
 
+  const navClass = ({ isActive }) =>
+    `rounded-lg px-3 py-2 text-sm font-medium transition ${
+      isActive
+        ? 'bg-[#0f2742] text-white'
+        : 'text-slate-700 hover:bg-slate-100 hover:text-[#0f2742]'
+    }`;
+
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SB</span>
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-18 items-center justify-between">
+          <Link to="/" className="flex items-center gap-3" onClick={() => setIsMobileMenuOpen(false)}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0f2742] text-sm font-bold text-white shadow-sm">
+              SB
             </div>
-            <span className="text-xl font-bold text-gray-900 hidden sm:block">Smart Bank</span>
+            <div>
+              <p className="text-base font-extrabold leading-tight text-slate-900">Smart Bank</p>
+              <p className="text-xs font-medium tracking-wide text-slate-500">Digital Banking Platform</p>
+            </div>
           </Link>
 
-          {/* Navigation - Desktop */}
-          <nav className="hidden md:flex space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-primary-600 transition-colors">Home</Link>
-            <Link to="/about" className="text-gray-700 hover:text-primary-600 transition-colors">About</Link>
-            <Link to="/contact" className="text-gray-700 hover:text-primary-600 transition-colors">Contact</Link>
-            {isAuthenticated && (
-              <Link to={getDashboardLink()} className="text-gray-700 hover:text-primary-600 transition-colors">
-                Dashboard
-              </Link>
-            )}
+          <nav className="hidden items-center gap-2 md:flex">
+            {navItems.map((item) => (
+              <NavLink key={item.to} to={item.to} className={navClass} end={item.to === '/'}>
+                {item.label}
+              </NavLink>
+            ))}
           </nav>
 
-          {/* Right Section */}
-          <div className="flex items-center space-x-4">
+          <div className="hidden items-center gap-3 md:flex">
             {isAuthenticated ? (
               <>
-                {/* Notifications */}
                 <div className="relative">
                   <button
                     onClick={() => {
-                      setIsNotificationsOpen(!isNotificationsOpen)
-                      if (!isNotificationsOpen) markAllAsRead()
+                      setIsNotificationsOpen((prev) => !prev);
+                      if (!isNotificationsOpen) markAllAsRead();
                     }}
-                    className="relative p-2 text-gray-600 hover:text-primary-600 rounded-lg hover:bg-gray-100"
+                    className="relative rounded-lg p-2.5 text-slate-600 transition hover:bg-slate-100 hover:text-[#0f2742]"
+                    aria-label="Notifications"
                   >
-                    <FaBell className="text-xl" />
+                    <FaBell className="text-lg" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-danger-500 rounded-full"></span>
+                      <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
                     )}
                   </button>
 
-                  {/* Notifications Dropdown */}
                   {isNotificationsOpen && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <h3 className="font-semibold text-gray-900">Notifications</h3>
+                    <div className="absolute right-0 mt-2 w-80 overflow-hidden rounded-xl border border-slate-200 bg-white py-2 shadow-lg">
+                      <div className="border-b border-slate-200 px-4 py-2">
+                        <h3 className="text-sm font-semibold text-slate-900">Notifications</h3>
                       </div>
-                      <div className="max-h-96 overflow-y-auto">
+                      <div className="max-h-80 overflow-y-auto">
                         {notifications.length === 0 ? (
-                          <p className="text-center text-gray-500 py-4">No notifications</p>
+                          <p className="py-5 text-center text-sm text-slate-500">No notifications</p>
                         ) : (
-                          notifications.map(notif => (
-                            <div key={notif.id} className={`px-4 py-3 hover:bg-gray-50 cursor-pointer ${!notif.read ? 'bg-primary-50' : ''}`}>
-                              <p className="text-sm text-gray-900">{notif.message}</p>
-                              <p className="text-xs text-gray-500 mt-1">{new Date(notif.timestamp).toLocaleTimeString()}</p>
+                          notifications.map((notif) => (
+                            <div
+                              key={notif.id}
+                              className={`cursor-pointer px-4 py-3 transition hover:bg-slate-50 ${
+                                !notif.read ? 'bg-slate-50' : ''
+                              }`}
+                            >
+                              <p className="text-sm text-slate-800">{notif.message}</p>
+                              <p className="mt-1 text-xs text-slate-500">
+                                {new Date(notif.timestamp).toLocaleTimeString()}
+                              </p>
                             </div>
                           ))
                         )}
@@ -91,71 +127,115 @@ const Header = () => {
                   )}
                 </div>
 
-                {/* Profile */}
                 <div className="relative">
                   <button
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-2 p-2 text-gray-600 hover:text-primary-600 rounded-lg hover:bg-gray-100"
+                    onClick={() => setIsProfileOpen((prev) => !prev)}
+                    className="flex items-center gap-2 rounded-lg border border-slate-200 px-2.5 py-1.5 transition hover:border-slate-300 hover:bg-slate-50"
                   >
-                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                      <span className="text-primary-600 font-medium">
-                        {user?.name?.charAt(0) || 'U'}
-                      </span>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f2742]/10 text-sm font-semibold text-[#0f2742]">
+                      {user?.name?.charAt(0) || 'U'}
                     </div>
-                    <span className="hidden md:block text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-slate-700">
                       {user?.name?.split(' ')[0]}
                     </span>
                   </button>
 
-                  {/* Profile Dropdown */}
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
+                    <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-2 shadow-lg">
+                      <div className="border-b border-slate-200 px-4 py-2">
+                        <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
+                        <p className="text-xs text-slate-500">{user?.email}</p>
                       </div>
                       <Link
                         to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                         onClick={() => setIsProfileOpen(false)}
                       >
-                        <FaUser className="inline mr-2" /> Profile
+                        <FaUser className="mr-2 inline" /> Profile
                       </Link>
                       <Link
                         to="/settings"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                         onClick={() => setIsProfileOpen(false)}
                       >
-                        <FaCog className="inline mr-2" /> Settings
+                        <FaCog className="mr-2 inline" /> Settings
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-danger-600 hover:bg-gray-100"
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 transition hover:bg-slate-50"
                       >
-                        <FaSignOutAlt className="inline mr-2" /> Logout
+                        <FaSignOutAlt className="mr-2 inline" /> Logout
                       </button>
                     </div>
                   )}
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link to="/auth/login" className="text-gray-700 hover:text-primary-600 transition-colors">
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/auth/login"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-[#0f2742]"
+                >
                   Login
                 </Link>
                 <Link
                   to="/auth/register"
-                  className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                  className="rounded-lg bg-[#0f2742] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#183b61]"
                 >
                   Open Account
                 </Link>
               </div>
             )}
           </div>
+
+          <button
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            className="rounded-lg p-2 text-slate-700 transition hover:bg-slate-100 md:hidden"
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
+          </button>
         </div>
+
+        {isMobileMenuOpen && (
+          <div className="border-t border-slate-200 py-4 md:hidden">
+            <nav className="flex flex-col gap-2">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={navClass}
+                  end={item.to === '/'}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+
+            {!isAuthenticated && (
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Link
+                  to="/auth/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/auth/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-lg bg-[#0f2742] px-3 py-2 text-center text-sm font-semibold text-white"
+                >
+                  Open Account
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;
