@@ -20,22 +20,22 @@ const SavingsGoals = ({ goals, loading }) => {
   if (!goals || goals.length === 0) {
     return (
       <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-5">
-          <div className="flex items-center justify-between">
+        <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Savings</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Savings</p>
               <h2 className="mt-1 text-xl font-semibold text-slate-900">Savings Goals</h2>
             </div>
             <Link
               to="/dashboard/savings"
-              className="inline-flex items-center rounded-full bg-[#173d61] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#102d49]"
+              className="inline-flex items-center justify-center rounded-full bg-[#173d61] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#102d49] sm:justify-start"
             >
               <FaPlus className="mr-2 text-xs" /> Create Goal
             </Link>
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center">
             <FaBullseye className="mx-auto text-3xl text-slate-300" />
             <p className="mt-4 font-medium text-slate-900">No active savings goals yet</p>
@@ -52,29 +52,29 @@ const SavingsGoals = ({ goals, loading }) => {
 
   return (
     <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-6 py-5">
-        <div className="flex items-center justify-between gap-4">
+      <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Savings</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Savings</p>
             <h2 className="mt-1 text-xl font-semibold text-slate-900">Savings Goals</h2>
           </div>
           <Link
             to="/dashboard/savings"
-            className="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:justify-start"
           >
             <FaPlus className="mr-2 text-xs" /> New Goal
           </Link>
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-5 sm:p-6">
         <div className="mb-5 rounded-[1.5rem] bg-[linear-gradient(135deg,#fff9ef_0%,#fff4dd_100%)] p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">Overall Progress</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">Overall Progress</p>
               <p className="mt-2 text-2xl font-bold text-slate-900">{Math.min(overallProgress, 100).toFixed(1)}%</p>
             </div>
-            <div className="text-sm text-slate-600">
+            <div className="text-sm leading-6 text-slate-600">
               {formatCurrency(totalSaved)} saved of {formatCurrency(totalTarget)}
             </div>
           </div>
@@ -94,27 +94,27 @@ const SavingsGoals = ({ goals, loading }) => {
 
             return (
               <div key={goal.id} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-1 hover:shadow-md">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
                       <FaPiggyBank />
                     </div>
-                    <div>
-                      <p className="font-semibold text-slate-900">{goal.name || goal.goalName}</p>
-                      <p className="mt-1 text-sm text-slate-500">
+                    <div className="min-w-0">
+                      <p className="break-words font-semibold text-slate-900">{goal.name || goal.goalName}</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-500">
                         Target: {goal.targetDate ? formatDate(goal.targetDate) : 'No deadline'}
                       </p>
                     </div>
                   </div>
-                  <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-500">
+                  <span className="w-fit rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-500">
                     {progress.toFixed(0)}%
                   </span>
                 </div>
 
                 <div className="mt-5">
-                  <div className="mb-2 flex items-center justify-between text-sm">
+                  <div className="mb-2 flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-slate-500">Progress</span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="break-words font-semibold text-slate-900">
                       {formatCurrency(currentAmount)} / {formatCurrency(targetAmount)}
                     </span>
                   </div>

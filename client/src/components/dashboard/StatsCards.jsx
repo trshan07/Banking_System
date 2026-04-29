@@ -36,7 +36,7 @@ const statThemes = {
 const StatsCards = ({ stats, loading }) => {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="card animate-pulse">
             <div className="h-20 bg-gray-200 rounded"></div>
@@ -93,8 +93,8 @@ const StatsCards = ({ stats, loading }) => {
             <div className="absolute right-0 top-0 h-24 w-24 -translate-y-6 translate-x-6 rounded-full bg-white/10 blur-2xl" />
             <div className="relative flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${theme.label}`}>{stat.label}</p>
-                <p className={`mt-3 text-3xl font-bold tracking-tight ${theme.value}`}>
+                <p className={`text-[11px] font-semibold uppercase tracking-[0.14em] sm:text-xs ${theme.label}`}>{stat.label}</p>
+                <p className={`mt-3 break-words text-2xl font-bold tracking-tight sm:text-3xl ${theme.value}`}>
                   {stat.label === 'Account Balance' && Number.isFinite(numericValue)
                     ? formatCurrency(numericValue)
                     : stat.label === 'Monthly Expenses' && Number.isFinite(numericValue)
@@ -102,13 +102,13 @@ const StatsCards = ({ stats, loading }) => {
                     : String(rawValue)}
                 </p>
                 {stat.change ? (
-                  <p className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-medium ${theme.change} bg-white/10`}>
+                  <p className={`mt-4 inline-flex rounded-full px-3 py-1 text-[11px] font-medium sm:text-xs ${theme.change} bg-white/10`}>
                     {stat.change}
                   </p>
                 ) : null}
               </div>
-              <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${theme.iconWrap} shadow-sm`}>
-                <Icon className="text-2xl" />
+              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl sm:h-14 sm:w-14 ${theme.iconWrap} shadow-sm`}>
+                <Icon className="text-xl sm:text-2xl" />
               </div>
             </div>
           </div>

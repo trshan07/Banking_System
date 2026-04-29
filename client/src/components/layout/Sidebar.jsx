@@ -40,14 +40,14 @@ const Sidebar = () => {
       <div className="bg-[linear-gradient(135deg,#0f2742_0%,#173d61_55%,#1f5d88_100%)] px-5 py-5 text-white">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-200">Guided Actions</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-200">Guided Actions</p>
             <h2 className="mt-1 text-xl font-semibold">Smart Shortcuts</h2>
           </div>
           <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
             <FaBolt />
           </span>
         </div>
-        <p className="mt-3 text-sm text-slate-200">
+        <p className="mt-3 text-sm leading-6 text-slate-200">
           Context-aware shortcuts from the banking backend.
         </p>
       </div>
@@ -77,8 +77,8 @@ const Sidebar = () => {
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-slate-900">{item.title}</p>
-                  <p className="mt-2 text-sm text-slate-500">{item.description}</p>
+                  <p className="break-words font-semibold text-slate-900">{item.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">{item.description}</p>
                 </div>
                 <div className="flex flex-col items-end gap-3">
                   <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#173d61]">

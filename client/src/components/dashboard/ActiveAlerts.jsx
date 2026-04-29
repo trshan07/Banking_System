@@ -56,7 +56,7 @@ const ActiveAlerts = ({ alerts, onDismiss }) => {
     return (
       <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-5 py-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Attention</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Attention</p>
           <h2 className="mt-1 text-xl font-semibold text-slate-900">Active Alerts</h2>
         </div>
         <div className="p-6 text-center">
@@ -73,9 +73,9 @@ const ActiveAlerts = ({ alerts, onDismiss }) => {
   return (
     <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 px-5 py-5">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Attention</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Attention</p>
             <h2 className="mt-1 text-xl font-semibold text-slate-900">Active Alerts</h2>
           </div>
           <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
@@ -102,8 +102,8 @@ const ActiveAlerts = ({ alerts, onDismiss }) => {
                 {getAlertIcon(alert.type)}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-slate-900">{alert.title}</p>
-                <p className="mt-2 text-sm text-slate-600">{alert.message}</p>
+                <p className="break-words font-semibold text-slate-900">{alert.title}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{alert.message}</p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   {alert.action && (

@@ -59,61 +59,61 @@ const CustomerDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-5 lg:space-y-6">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-[2rem] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.16),_transparent_30%),linear-gradient(135deg,#0b1f36_0%,#123252_38%,#1e5a83_100%)] p-6 text-white shadow-[0_24px_60px_-24px_rgba(15,39,66,0.75)] sm:p-8">
+      <div className="relative overflow-hidden rounded-[1.75rem] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.16),_transparent_30%),linear-gradient(135deg,#0b1f36_0%,#123252_38%,#1e5a83_100%)] p-5 text-white shadow-[0_24px_60px_-24px_rgba(15,39,66,0.75)] sm:rounded-[2rem] sm:p-7 lg:p-8">
         <div className="absolute -right-16 top-8 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-2xl" />
-        <div className="relative grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
+        <div className="relative grid gap-5 lg:gap-6 xl:grid-cols-[1.4fr_0.6fr]">
           <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-200">Customer Dashboard</p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-200 sm:text-sm">Customer Dashboard</p>
+            <h1 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">
               Welcome back, {firstName}!
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-100/90 sm:text-base sm:leading-7">
               Your banking overview should feel calm and trustworthy. This view keeps balances, activity, savings, and support in one place without the clutter.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium text-slate-100">
+              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium text-slate-100/95">
                 {overview.activeAccounts} active account{overview.activeAccounts === 1 ? '' : 's'}
               </span>
-              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium text-slate-100">
+              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium text-slate-100/95">
                 {overview.pendingAlerts} pending alert{overview.pendingAlerts === 1 ? '' : 's'}
               </span>
-              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium capitalize text-slate-100">
+              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-medium capitalize text-slate-100/95">
                 KYC: {String(overview.kycStatus || 'not submitted').replace(/_/g, ' ')}
               </span>
             </div>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <button 
                 onClick={refreshData}
-                className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#0f2742] transition-colors hover:bg-slate-100"
+                className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#0f2742] transition-colors hover:bg-slate-100 sm:w-auto"
               >
                 Refresh Data
               </button>
-              <div className="rounded-xl border border-white/10 bg-white/8 px-4 py-2.5 text-sm text-slate-100">
+              <div className="rounded-xl border border-white/10 bg-white/8 px-4 py-2.5 text-sm leading-6 text-slate-100/95">
                 Synced with your live banking records
               </div>
             </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-            <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200">Available Balance</p>
-              <p className="mt-3 text-2xl font-bold text-white">
+            <div className="rounded-[1.35rem] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-200">Available Balance</p>
+              <p className="mt-3 break-words text-2xl font-bold leading-tight text-white">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalBalance)}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200">Recent Activity</p>
-              <p className="mt-3 text-2xl font-bold text-white">
+            <div className="rounded-[1.35rem] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-200">Recent Activity</p>
+              <p className="mt-3 text-2xl font-bold leading-tight text-white">
                 {transactions.length}
               </p>
-              <p className="mt-1 text-xs text-slate-200">transactions in view</p>
+              <p className="mt-1 text-xs leading-5 text-slate-200">transactions in view</p>
             </div>
-            <div className="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200">Monthly Spend</p>
-              <p className="mt-3 text-2xl font-bold text-white">
+            <div className="rounded-[1.35rem] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-200">Monthly Spend</p>
+              <p className="mt-3 break-words text-2xl font-bold leading-tight text-white">
                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalMonthlyExpenses)}
               </p>
             </div>

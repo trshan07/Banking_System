@@ -51,22 +51,22 @@ const LoanSummary = ({ loans, loading }) => {
 
   return (
     <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-6 py-5">
-        <div className="flex items-center justify-between gap-4">
+      <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Credit</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Credit</p>
             <h2 className="mt-1 text-xl font-semibold text-slate-900">Loan Summary</h2>
           </div>
           <Link
             to="/dashboard/loans/apply"
-            className="inline-flex items-center rounded-full bg-[#173d61] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#102d49]"
+            className="inline-flex items-center justify-center rounded-full bg-[#173d61] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#102d49] sm:justify-start"
           >
             Apply New Loan
           </Link>
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-5 sm:p-6">
         <div className="space-y-4">
           {loans.length === 0 ? (
             <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 py-10 text-center">
@@ -86,9 +86,9 @@ const LoanSummary = ({ loans, loading }) => {
                   <div>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(loan.status)}
-                      <span className="font-semibold text-slate-900">{loan.type}</span>
+                      <span className="break-words font-semibold text-slate-900">{loan.type}</span>
                     </div>
-                    <p className="mt-2 text-sm text-slate-500">Applied on {formatDate(loan.appliedDate)}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-500">Applied on {formatDate(loan.appliedDate)}</p>
                   </div>
                   <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(loan.status)}`}>
                     {loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
@@ -97,25 +97,25 @@ const LoanSummary = ({ loans, loading }) => {
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <div className="rounded-2xl bg-white p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Amount</p>
-                    <p className="mt-2 font-semibold text-slate-900">{formatCurrency(loan.amount)}</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">Amount</p>
+                    <p className="mt-2 break-words font-semibold text-slate-900">{formatCurrency(loan.amount)}</p>
                   </div>
                   <div className="rounded-2xl bg-white p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Interest</p>
-                    <p className="mt-2 font-semibold text-slate-900">{loan.interestRate}</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">Interest</p>
+                    <p className="mt-2 break-words font-semibold text-slate-900">{loan.interestRate}</p>
                   </div>
                   <div className="rounded-2xl bg-white p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Tenure</p>
-                    <p className="mt-2 font-semibold text-slate-900">{loan.tenure}</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">Tenure</p>
+                    <p className="mt-2 break-words font-semibold text-slate-900">{loan.tenure}</p>
                   </div>
                   <div className="rounded-2xl bg-white p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Remaining</p>
-                    <p className="mt-2 font-semibold text-slate-900">{formatCurrency(loan.remainingAmount)}</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">Remaining</p>
+                    <p className="mt-2 break-words font-semibold text-slate-900">{formatCurrency(loan.remainingAmount)}</p>
                   </div>
                 </div>
 
                 {loan.monthlyPayment > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-600">
+                  <div className="mt-4 flex flex-wrap gap-3 text-sm leading-6 text-slate-600">
                     <span className="rounded-full bg-white px-3 py-1.5">
                       Monthly payment: <strong className="text-slate-900">{formatCurrency(loan.monthlyPayment)}</strong>
                     </span>
@@ -134,7 +134,7 @@ const LoanSummary = ({ loans, loading }) => {
                 )}
 
                 {loan.status === 'approved' && loan.decisionDate && (
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
+                  <div className="mt-4 flex flex-col gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-xs font-medium text-green-700">
                       Approved on {formatDate(loan.decisionDate)}
                     </p>

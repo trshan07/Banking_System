@@ -70,14 +70,14 @@ const RecentTransactions = ({ transactions, loading }) => {
     <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 px-5 py-5">
         <div className="flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Activity</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Activity</p>
               <h2 className="mt-1 text-xl font-semibold text-slate-900">Recent Transactions</h2>
             </div>
             <Link
               to="/dashboard/banking/transactions"
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
             >
               View All
             </Link>
@@ -91,7 +91,7 @@ const RecentTransactions = ({ transactions, loading }) => {
                 placeholder="Search transactions"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full rounded-xl border border-slate-200 py-2 pl-9 pr-3 text-sm leading-6 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -126,14 +126,14 @@ const RecentTransactions = ({ transactions, loading }) => {
                 key={transaction.id}
                 className="rounded-[1.5rem] border border-slate-200 p-4 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 items-start gap-3">
                     <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${getTransactionColor(transaction.type)}`}>
                       {getTransactionIcon(transaction.type)}
                     </div>
-                    <div>
-                      <p className="font-semibold text-slate-900">{transaction.description}</p>
-                      <p className="mt-1 text-sm text-slate-500">{formatDateTime(transaction.date)}</p>
+                    <div className="min-w-0">
+                      <p className="break-words font-semibold text-slate-900">{transaction.description}</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-500">{formatDateTime(transaction.date)}</p>
                       {transaction.category && (
                         <span className="mt-2 inline-block rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-500">
                           {transaction.category}
@@ -141,8 +141,8 @@ const RecentTransactions = ({ transactions, loading }) => {
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`text-lg font-bold ${
+                  <div className="sm:text-right">
+                    <p className={`break-words text-lg font-bold ${
                       transaction.type === 'deposit'
                         ? 'text-green-600'
                         : transaction.type === 'withdrawal'
