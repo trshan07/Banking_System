@@ -13,6 +13,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const CustomerDashboard = () => {
   const { user } = useAuth()
+  const firstName = user?.firstName || user?.name?.split(' ')[0] || 'Customer'
   const { 
     stats, 
     accounts, 
@@ -20,6 +21,7 @@ const CustomerDashboard = () => {
     alerts, 
     savingsGoals, 
     loans,
+    overview,
     loading,
     error,
     dismissAlert,
@@ -54,20 +56,40 @@ const CustomerDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl p-6 text-white">
-        <div className="flex items-center justify-between">
+      <div className="rounded-3xl bg-gradient-to-r from-[#0f2742] via-[#16385d] to-[#1e5a83] p-6 text-white shadow-lg sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2 text-primary-600">
-              Welcome back, {user?.name?.split(' ')[0] || 'Customer'}!
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-200">Customer Dashboard</p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
+              Welcome back, {firstName}!
             </h1>
-            <p className="text-primary-400">Here's what's happening with your accounts today.</p>
+            <p className="mt-2 max-w-2xl text-sm text-slate-200 sm:text-base">
+              Here&apos;s a clear snapshot of your accounts, recent activity, savings progress, and support items.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-100">
+                {overview.activeAccounts} active account{overview.activeAccounts === 1 ? '' : 's'}
+              </span>
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-100">
+                {overview.pendingAlerts} pending alert{overview.pendingAlerts === 1 ? '' : 's'}
+              </span>
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-100">
+                KYC: {String(overview.kycStatus || 'not submitted').replace(/_/g, ' ')}
+              </span>
+            </div>
           </div>
-          <button 
-            onClick={refreshData}
-            className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors text-sm"
-          >
-            Refresh Data
-          </button>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button 
+              onClick={refreshData}
+              className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-[#0f2742] transition-colors hover:bg-slate-100"
+            >
+              Refresh Data
+            </button>
+            <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-slate-100">
+              <p className="font-semibold">{transactions.length} recent transaction{transactions.length === 1 ? '' : 's'}</p>
+              <p className="mt-1 text-xs text-slate-200">Updated from your live banking records</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -78,22 +100,19 @@ const CustomerDashboard = () => {
       <QuickActions accounts={accounts} loans={loans} savingsGoals={savingsGoals} />
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left Column - Account Summary and Savings Goals */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="space-y-6 xl:col-span-7">
           <AccountSummary accounts={accounts} loading={loading} />
           <SavingsGoals goals={savingsGoals} loading={loading} />
           <LoanSummary loans={loans} loading={loading} />
         </div>
 
-        {/* Center Column - Recent Transactions and Alerts */}
-        <div className="space-y-6 lg:col-span-1">
+        <div className="space-y-6 xl:col-span-3">
           <RecentTransactions transactions={transactions} loading={loading} />
           <ActiveAlerts alerts={alerts} onDismiss={dismissAlert} />
         </div>
 
-        {/* Sidebar Column - Backend-powered actions and navigation */}
-        <div className="space-y-6 lg:col-span-1">
+        <div className="space-y-6 xl:col-span-2">
           <Sidebar />
         </div>
       </div>

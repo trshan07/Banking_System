@@ -1,9 +1,22 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useSidebarData } from '../../hooks/useSidebarData'
 import LoadingSpinner from '../common/LoadingSpinner'
 
 const Sidebar = () => {
   const { items, loading, error, actionLoading, refreshSidebar, invokeSidebarAction } = useSidebarData()
+  const navigate = useNavigate()
+
+  const handleAction = async (actionId) => {
+    try {
+      const result = await invokeSidebarAction(actionId)
+      if (result?.redirectTo) {
+        navigate(result.redirectTo)
+      }
+    } catch (error) {
+      console.error('Sidebar action failed:', error)
+    }
+  }
 
   if (loading) {
     return (
@@ -43,7 +56,7 @@ const Sidebar = () => {
             <button
               key={item.id}
               type="button"
-              onClick={() => invokeSidebarAction(item.id)}
+              onClick={() => handleAction(item.id)}
               className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-left transition hover:bg-primary-50"
               disabled={actionLoading}
             >

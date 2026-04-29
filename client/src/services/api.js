@@ -148,13 +148,20 @@ api.interceptors.response.use(
 export default api;
 
 export const dashboardAPI = {
-  getData: () => api.get('/accounts'),
-  dismissAlert: (alertId) => api.patch(`/accounts/alerts/${alertId}/dismiss`)
+  getData: () => api.get('/dashboard/data'),
+  getSidebarItems: () => api.get('/dashboard/sidebar'),
+  executeAction: (actionId, payload = {}) => api.post(`/dashboard/sidebar/${actionId}/execute`, payload),
+  dismissAlert: (alertId) => api.put(`/dashboard/alerts/${alertId}/dismiss`)
 };
 
 export const bankingAPI = {
   getAccounts: () => api.get('/accounts'),
   transferFunds: (data) => api.post('/accounts/transfer', data),
+};
+
+export const transactionAPI = {
+  getTransactions: (params = {}) => api.get('/transactions', { params }),
+  getAccountTransactions: (accountId, params = {}) => api.get(`/transactions/account/${accountId}`, { params }),
 };
 
 export const loanAPI = {

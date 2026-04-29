@@ -17,9 +17,30 @@ const SavingsGoals = ({ goals, loading }) => {
     )
   }
 
-  const totalSaved = goals.reduce((sum, goal) => sum + goal.current, 0)
-  const totalTarget = goals.reduce((sum, goal) => sum + goal.target, 0)
-  const overallProgress = (totalSaved / totalTarget) * 100
+  if (!goals || goals.length === 0) {
+    return (
+      <div className="card">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">Savings Goals</h2>
+          <Link
+            to="/dashboard/savings"
+            className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center"
+          >
+            <FaPlus className="mr-1 text-xs" /> Create Goal
+          </Link>
+        </div>
+
+        <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center">
+          <p className="font-medium text-gray-900">No active savings goals yet</p>
+          <p className="mt-2 text-sm text-gray-500">Create your first goal to start tracking progress toward a milestone.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const totalSaved = goals.reduce((sum, goal) => sum + (Number(goal.current ?? goal.currentAmount) || 0), 0)
+  const totalTarget = goals.reduce((sum, goal) => sum + (Number(goal.target ?? goal.targetAmount) || 0), 0)
+  const overallProgress = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0
 
   return (
     <div className="card">
@@ -52,17 +73,19 @@ const SavingsGoals = ({ goals, loading }) => {
       {/* Goals List */}
       <div className="space-y-4">
         {goals.map((goal) => {
-          const progress = (goal.current / goal.target) * 100
+          const currentAmount = Number(goal.current ?? goal.currentAmount) || 0
+          const targetAmount = Number(goal.target ?? goal.targetAmount) || 0
+          const progress = targetAmount > 0 ? (currentAmount / targetAmount) * 100 : 0
           
           return (
             <div key={goal.id} className="group">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center space-x-2">
                   <FaPiggyBank className="text-primary-600" />
-                  <span className="font-medium text-gray-900">{goal.name}</span>
+                  <span className="font-medium text-gray-900">{goal.name || goal.goalName}</span>
                 </div>
                 <span className="text-sm font-semibold text-gray-900">
-                  {formatCurrency(goal.current)} / {formatCurrency(goal.target)}
+                  {formatCurrency(currentAmount)} / {formatCurrency(targetAmount)}
                 </span>
               </div>
               
@@ -88,9 +111,9 @@ const SavingsGoals = ({ goals, loading }) => {
 
               {/* Quick actions on hover */}
               <div className="hidden group-hover:flex items-center space-x-2 mt-2">
-                <button className="text-xs text-primary-600 hover:underline">Add Funds</button>
-                <button className="text-xs text-primary-600 hover:underline">Edit</button>
-                <Link to={`/dashboard/savings/${goal.id}`} className="text-xs text-primary-600 hover:underline">
+                <Link to="/dashboard/savings" className="text-xs text-primary-600 hover:underline">Add Funds</Link>
+                <Link to="/dashboard/savings" className="text-xs text-primary-600 hover:underline">Manage</Link>
+                <Link to="/dashboard/savings" className="text-xs text-primary-600 hover:underline">
                   Details
                 </Link>
               </div>

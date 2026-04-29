@@ -61,8 +61,9 @@ const RecentTransactions = ({ transactions, loading }) => {
   const filteredTransactions = transactions
     .filter(t => filter === 'all' || t.type === filter)
     .filter(t => 
-      t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.amount.toString().includes(searchTerm)
+      String(t?.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(t?.category || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(t?.amount ?? '').includes(searchTerm)
     )
     .slice(0, 5)
 
@@ -71,7 +72,7 @@ const RecentTransactions = ({ transactions, loading }) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <h2 className="text-xl font-semibold text-gray-900">Recent Transactions</h2>
         
-        <div className="flex items-center space-x-3 mt-3 sm:mt-0">
+        <div className="mt-3 flex flex-col gap-3 sm:mt-0 sm:flex-row sm:items-center">
           {/* Search */}
           <div className="relative">
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
@@ -137,8 +138,11 @@ const RecentTransactions = ({ transactions, loading }) => {
                   transaction.type === 'withdrawal' ? 'text-red-600' : 
                   'text-gray-900'
                 }`}>
-                  {transaction.type === 'deposit' ? '+' : 
-                   transaction.type === 'withdrawal' ? '-' : ''}
+                  {transaction.direction === 'in' || transaction.type === 'deposit'
+                    ? '+'
+                    : transaction.direction === 'out' || transaction.type === 'withdrawal'
+                      ? '-'
+                      : ''}
                   {formatCurrency(transaction.amount)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">

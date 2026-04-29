@@ -29,7 +29,7 @@ const AccountSummary = ({ accounts = [], loading }) => {
     )
   }
 
-  const totalBalance = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0)
+  const totalBalance = accounts.reduce((sum, acc) => sum + (Number(acc.balance) || 0), 0)
 
   return (
     <div className="card">
@@ -94,15 +94,15 @@ const AccountSummary = ({ accounts = [], loading }) => {
             </div>
 
             {selectedAccount === accountId && (
-              <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-3 gap-2 text-center">
+              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-gray-200 pt-3 text-center">
                 <Link to="/dashboard/banking/transfer" className="text-xs text-primary-600 hover:underline">
                   Transfer
                 </Link>
-                <Link to="/dashboard/banking/statement" className="text-xs text-primary-600 hover:underline">
-                  Statement
+                <Link to="/dashboard/banking/transactions" className="text-xs text-primary-600 hover:underline">
+                  History
                 </Link>
-                <Link to={`/dashboard/banking/accounts/${accountId}`} className="text-xs text-primary-600 hover:underline">
-                  Details
+                <Link to="/dashboard/savings" className="text-xs text-primary-600 hover:underline">
+                  Savings
                 </Link>
               </div>
             )}

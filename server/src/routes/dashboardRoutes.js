@@ -11,6 +11,7 @@ router.get('/data', dashboardController.getDashboardData);
 
 // Sidebar items (role-based quick actions)
 router.get('/sidebar', dashboardController.getSidebarItems);
+router.post('/sidebar/:actionId/execute', dashboardController.executeSidebarAction);
 
 // Alerts
 router.get('/alerts', dashboardController.getAllAlerts);

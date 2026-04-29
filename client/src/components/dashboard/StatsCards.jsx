@@ -1,5 +1,5 @@
 import React from 'react'
-import { FaUniversity, FaMoneyBillWave, FaPiggyBank, FaHeadset } from 'react-icons/fa'
+import { FaUniversity, FaMoneyBillWave, FaPiggyBank, FaReceipt } from 'react-icons/fa'
 import { formatCurrency } from '../../utils/formatters'
 
 const StatsCards = ({ stats, loading }) => {
@@ -20,7 +20,8 @@ const StatsCards = ({ stats, loading }) => {
       case 'Account Balance': return FaUniversity
       case 'Active Loans': return FaMoneyBillWave
       case 'Savings Goals': return FaPiggyBank
-      default: return FaHeadset
+      case 'Monthly Expenses': return FaReceipt
+      default: return FaReceipt
     }
   }
 
@@ -29,6 +30,7 @@ const StatsCards = ({ stats, loading }) => {
       case 'Account Balance': return 'bg-blue-500'
       case 'Active Loans': return 'bg-green-500'
       case 'Savings Goals': return 'bg-purple-500'
+      case 'Monthly Expenses': return 'bg-orange-500'
       default: return 'bg-orange-500'
     }
   }
@@ -51,8 +53,10 @@ const StatsCards = ({ stats, loading }) => {
         const color = getColor(stat.label)
         
         // Extract numeric value for formatting if needed
-        const rawValue = stat?.value ?? ''
-        const numericValue = parseFloat(String(rawValue).replace(/[^0-9.-]+/g, ''))
+        const rawValue = stat?.displayValue ?? stat?.value ?? ''
+        const numericValue = typeof rawValue === 'number'
+          ? rawValue
+          : parseFloat(String(rawValue).replace(/[^0-9.-]+/g, ''))
         
         return (
           <div key={index} className="card hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
@@ -61,6 +65,8 @@ const StatsCards = ({ stats, loading }) => {
                 <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
                   {stat.label === 'Account Balance' && Number.isFinite(numericValue)
+                    ? formatCurrency(numericValue)
+                    : stat.label === 'Monthly Expenses' && Number.isFinite(numericValue)
                     ? formatCurrency(numericValue)
                     : String(rawValue)}
                 </p>

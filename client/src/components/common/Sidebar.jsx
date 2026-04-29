@@ -36,6 +36,7 @@ const Sidebar = () => {
       icon: FaMoneyBillWave,
       label: "Transfer Funds",
     },
+    { to: "/dashboard/banking/transactions", icon: FaChartBar, label: "Transactions" },
     { to: "/dashboard/savings", icon: FaPiggyBank, label: "Savings Tracker" },
     { to: "/dashboard/support", icon: FaHeadset, label: "Support Tickets" },
     {
@@ -63,6 +64,7 @@ const Sidebar = () => {
   const getLinks = () => {
     switch (user?.role) {
       case "super_admin":
+      case "superadmin":
         return superAdminLinks;
 
       case "employee":
@@ -75,34 +77,65 @@ const Sidebar = () => {
   const links = getLinks();
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto">
-      <nav className="p-4">
-        <ul className="space-y-1">
-          {links.map((link) => (
-            <li key={link.to}>
-              <NavLink
-                to={link.to}
-                className={({ isActive }) =>
-                  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? "bg-primary-50 text-primary-600"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`
-                }
-                end={
-                  link.to === "/dashboard" ||
-                  link.to === "/super-admin" ||
-                  link.to === "/employee"
-                }
-              >
-                <link.icon className="text-lg" />
-                <span className="text-sm font-medium">{link.label}</span>
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </aside>
+    <>
+      <div className="border-b border-gray-200 bg-white md:hidden">
+        <nav className="overflow-x-auto px-4 py-3">
+          <ul className="flex min-w-max gap-2">
+            {links.map((link) => (
+              <li key={link.to}>
+                <NavLink
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `flex items-center space-x-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`
+                  }
+                  end={
+                    link.to === '/dashboard' ||
+                    link.to === '/super-admin' ||
+                    link.to === '/employee'
+                  }
+                >
+                  <link.icon className="text-sm" />
+                  <span>{link.label}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+
+      <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r border-gray-200 bg-white md:block">
+        <nav className="p-4">
+          <ul className="space-y-1">
+            {links.map((link) => (
+              <li key={link.to}>
+                <NavLink
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `flex items-center space-x-3 rounded-lg px-4 py-3 transition-colors ${
+                      isActive
+                        ? 'bg-primary-50 text-primary-600'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`
+                  }
+                  end={
+                    link.to === '/dashboard' ||
+                    link.to === '/super-admin' ||
+                    link.to === '/employee'
+                  }
+                >
+                  <link.icon className="text-lg" />
+                  <span className="text-sm font-medium">{link.label}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+    </>
   );
 };
 

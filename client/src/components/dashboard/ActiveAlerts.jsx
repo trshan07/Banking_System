@@ -69,13 +69,13 @@ const ActiveAlerts = ({ alerts, onDismiss }) => {
   }
 
   const handleDismiss = (alertId) => {
-    setDismissed([...dismissed, alertId])
+    setDismissed([...dismissed, String(alertId)])
     if (onDismiss) {
       onDismiss(alertId)
     }
   }
 
-  const activeAlerts = alerts.filter(alert => !dismissed.includes(alert.id))
+  const activeAlerts = alerts.filter((alert) => !dismissed.includes(String(alert.id || alert._id)))
 
   if (activeAlerts.length === 0) {
     return (
@@ -105,12 +105,12 @@ const ActiveAlerts = ({ alerts, onDismiss }) => {
           
           return (
             <div 
-              key={alert.id} 
+              key={alert.id || alert._id} 
               className={`${colors.bg} border ${colors.border} rounded-xl p-4 relative group hover:shadow-md transition-shadow`}
             >
               <button
-                onClick={() => handleDismiss(alert.id)}
-                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => handleDismiss(alert.id || alert._id)}
+                className="absolute right-2 top-2 text-gray-400 transition-opacity hover:text-gray-600 md:opacity-0 md:group-hover:opacity-100"
               >
                 <FaTimes />
               </button>
@@ -135,7 +135,7 @@ const ActiveAlerts = ({ alerts, onDismiss }) => {
 
                   {alert.date && (
                     <p className="text-xs text-gray-400 mt-2">
-                      {formatDateTime(alert.date)}
+                      {formatDateTime(alert.date || alert.createdAt)}
                     </p>
                   )}
                 </div>
@@ -146,10 +146,10 @@ const ActiveAlerts = ({ alerts, onDismiss }) => {
       </div>
 
       <Link 
-        to="/dashboard/notifications" 
+        to="/dashboard/support" 
         className="block text-center text-primary-600 hover:text-primary-700 text-sm font-medium mt-4 py-2 border-t border-gray-200"
       >
-        View All Notifications
+        Contact Support
       </Link>
     </div>
   )

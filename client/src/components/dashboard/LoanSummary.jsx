@@ -8,6 +8,9 @@ const LoanSummary = ({ loans, loading }) => {
     switch (status) {
       case 'approved':
         return <FaCheckCircle className="text-green-600" />
+      case 'active':
+      case 'disbursed':
+        return <FaMoneyBillWave className="text-emerald-600" />
       case 'pending':
         return <FaClock className="text-yellow-600" />
       case 'rejected':
@@ -21,6 +24,9 @@ const LoanSummary = ({ loans, loading }) => {
     switch (status) {
       case 'approved':
         return 'bg-green-100 text-green-800'
+      case 'active':
+      case 'disbursed':
+        return 'bg-emerald-100 text-emerald-800'
       case 'pending':
         return 'bg-yellow-100 text-yellow-800'
       case 'rejected':
@@ -99,6 +105,19 @@ const LoanSummary = ({ loans, loading }) => {
                 </div>
               </div>
 
+              {loan.monthlyPayment > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500">Monthly Payment</p>
+                    <p className="font-semibold text-gray-900">{formatCurrency(loan.monthlyPayment)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Remaining Amount</p>
+                    <p className="font-semibold text-gray-900">{formatCurrency(loan.remainingAmount)}</p>
+                  </div>
+                </div>
+              )}
+
               {loan.status === 'pending' && loan.expectedDecision && (
                 <div className="mt-3 pt-2 border-t border-gray-200">
                   <p className="text-xs text-yellow-600">
@@ -112,7 +131,7 @@ const LoanSummary = ({ loans, loading }) => {
                   <p className="text-xs text-green-600">
                     Approved on {formatDate(loan.decisionDate)}
                   </p>
-                  <Link to={`/dashboard/loans/${loan.id}`} className="text-xs text-primary-600 hover:underline">
+                  <Link to="/dashboard/loans/status" className="text-xs text-primary-600 hover:underline">
                     View Details
                   </Link>
                 </div>

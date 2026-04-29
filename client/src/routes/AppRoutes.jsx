@@ -31,6 +31,7 @@ import CreateTicket from '../pages/support/CreateTicket'
 import TicketDetails from '../pages/support/TicketDetails'
 import Accounts from '../pages/banking/Accounts'
 import TransferFunds from '../pages/banking/TransferFunds'
+import Transactions from '../pages/banking/Transactions'
 import SavingsTracker from '../pages/savings/SavingsTracker'
 import ReportFraud from '../pages/fraud/ReportFraud'
 import KYCVerification from '../pages/kyc/KYCVerification'
@@ -88,6 +89,7 @@ const AppRoutes = () => {
         <Route path="support/ticket/:id" element={<TicketDetails />} />
         <Route path="banking/accounts" element={<Accounts />} />
         <Route path="banking/transfer" element={<TransferFunds />} />
+        <Route path="banking/transactions" element={<Transactions />} />
         <Route path="savings" element={<SavingsTracker />} />
         <Route path="fraud/report" element={<ReportFraud />} />
         <Route path="kyc" element={<KYCVerification />} />
