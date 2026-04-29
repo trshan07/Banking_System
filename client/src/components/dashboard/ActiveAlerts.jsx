@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { 
-  FaExclamationTriangle, 
+import {
+  FaExclamationTriangle,
   FaTimes,
   FaCheckCircle,
   FaInfoCircle,
   FaShieldAlt,
-  FaBell
+  FaBell,
 } from 'react-icons/fa'
 import { formatDateTime } from '../../utils/formatters'
 
@@ -16,55 +16,30 @@ const ActiveAlerts = ({ alerts, onDismiss }) => {
   const getAlertIcon = (type) => {
     switch (type) {
       case 'warning':
-        return <FaExclamationTriangle className="text-yellow-600" />
+        return <FaExclamationTriangle className="text-amber-600" />
       case 'info':
-        return <FaInfoCircle className="text-blue-600" />
+        return <FaInfoCircle className="text-sky-600" />
       case 'success':
-        return <FaCheckCircle className="text-green-600" />
+        return <FaCheckCircle className="text-emerald-600" />
       case 'error':
-        return <FaShieldAlt className="text-red-600" />
+        return <FaShieldAlt className="text-rose-600" />
       default:
-        return <FaBell className="text-gray-600" />
+        return <FaBell className="text-slate-600" />
     }
   }
 
   const getAlertColors = (type) => {
     switch (type) {
       case 'warning':
-        return {
-          bg: 'bg-yellow-50',
-          border: 'border-yellow-200',
-          text: 'text-yellow-800',
-          subtext: 'text-yellow-600'
-        }
+        return 'border-amber-200 bg-amber-50'
       case 'info':
-        return {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          text: 'text-blue-800',
-          subtext: 'text-blue-600'
-        }
+        return 'border-sky-200 bg-sky-50'
       case 'success':
-        return {
-          bg: 'bg-green-50',
-          border: 'border-green-200',
-          text: 'text-green-800',
-          subtext: 'text-green-600'
-        }
+        return 'border-emerald-200 bg-emerald-50'
       case 'error':
-        return {
-          bg: 'bg-red-50',
-          border: 'border-red-200',
-          text: 'text-red-800',
-          subtext: 'text-red-600'
-        }
+        return 'border-rose-200 bg-rose-50'
       default:
-        return {
-          bg: 'bg-gray-50',
-          border: 'border-gray-200',
-          text: 'text-gray-800',
-          subtext: 'text-gray-600'
-        }
+        return 'border-slate-200 bg-slate-50'
     }
   }
 
@@ -79,78 +54,86 @@ const ActiveAlerts = ({ alerts, onDismiss }) => {
 
   if (activeAlerts.length === 0) {
     return (
-      <div className="card">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Alerts</h2>
-        <div className="text-center py-8">
-          <FaCheckCircle className="text-green-500 text-4xl mx-auto mb-3" />
-          <p className="text-gray-600">No active alerts</p>
-          <p className="text-sm text-gray-500 mt-1">All systems are running smoothly</p>
+      <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-5 py-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Attention</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-900">Active Alerts</h2>
+        </div>
+        <div className="p-6 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <FaCheckCircle className="text-2xl" />
+          </div>
+          <p className="mt-4 font-medium text-slate-900">No active alerts</p>
+          <p className="mt-2 text-sm text-slate-500">Everything looks normal across your banking profile.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="card">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Active Alerts</h2>
-        <span className="bg-red-100 text-red-600 text-xs font-semibold px-2 py-1 rounded-full">
-          {activeAlerts.length} New
-        </span>
+    <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-200 px-5 py-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Attention</p>
+            <h2 className="mt-1 text-xl font-semibold text-slate-900">Active Alerts</h2>
+          </div>
+          <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
+            {activeAlerts.length} live
+          </span>
+        </div>
       </div>
 
-      <div className="space-y-3">
-        {activeAlerts.map((alert) => {
-          const colors = getAlertColors(alert.type)
-          
-          return (
-            <div 
-              key={alert.id || alert._id} 
-              className={`${colors.bg} border ${colors.border} rounded-xl p-4 relative group hover:shadow-md transition-shadow`}
+      <div className="space-y-3 p-5">
+        {activeAlerts.map((alert) => (
+          <div
+            key={alert.id || alert._id}
+            className={`group relative rounded-[1.5rem] border p-4 ${getAlertColors(alert.type)}`}
+          >
+            <button
+              onClick={() => handleDismiss(alert.id || alert._id)}
+              className="absolute right-3 top-3 rounded-full p-1 text-slate-400 transition hover:bg-white/80 hover:text-slate-700"
             >
-              <button
-                onClick={() => handleDismiss(alert.id || alert._id)}
-                className="absolute right-2 top-2 text-gray-400 transition-opacity hover:text-gray-600 md:opacity-0 md:group-hover:opacity-100"
-              >
-                <FaTimes />
-              </button>
+              <FaTimes />
+            </button>
 
-              <div className="flex items-start space-x-3">
-                <div className="mt-1">
-                  {getAlertIcon(alert.type)}
-                </div>
-                <div className="flex-1">
-                  <p className={`font-semibold ${colors.text}`}>{alert.title}</p>
-                  <p className={`text-sm ${colors.subtext} mt-1`}>{alert.message}</p>
-                  
+            <div className="flex items-start gap-3 pr-8">
+              <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/80 shadow-sm">
+                {getAlertIcon(alert.type)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">{alert.title}</p>
+                <p className="mt-2 text-sm text-slate-600">{alert.message}</p>
+
+                <div className="mt-3 flex flex-wrap items-center gap-3">
                   {alert.action && (
-                    <Link 
-                      to={alert.action.link} 
-                      className={`inline-flex items-center text-sm font-medium ${colors.text} hover:underline mt-3`}
+                    <Link
+                      to={alert.action.link}
+                      className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
                     >
                       {alert.action.label}
-                      <span className="ml-1">→</span>
                     </Link>
                   )}
-
                   {alert.date && (
-                    <p className="text-xs text-gray-400 mt-2">
+                    <span className="text-xs text-slate-400">
                       {formatDateTime(alert.date || alert.createdAt)}
-                    </p>
+                    </span>
                   )}
                 </div>
               </div>
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
 
-      <Link 
-        to="/dashboard/support" 
-        className="block text-center text-primary-600 hover:text-primary-700 text-sm font-medium mt-4 py-2 border-t border-gray-200"
-      >
-        Contact Support
-      </Link>
+      <div className="border-t border-slate-200 px-5 py-4">
+        <Link
+          to="/dashboard/support"
+          className="block text-center text-sm font-semibold text-[#173d61] transition hover:text-[#102d49]"
+        >
+          Contact Support
+        </Link>
+      </div>
     </div>
   )
 }
