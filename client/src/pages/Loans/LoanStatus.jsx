@@ -10,14 +10,79 @@ import {
   FaEye,
   FaDownload,
   FaFilePdf,
-  FaCalendarAlt,
-  FaUser,
-  FaPercent,
-  FaDollarSign
+  FaSpinner
 } from 'react-icons/fa'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { loanService } from '../../services/loanService'
+
+const formatLoanType = (loanType = '') =>
+  loanType
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ') + ' Loan'
+
+const buildStatusHistory = (loan) => [
+  {
+    date: loan.createdAt,
+    status: 'Application Submitted',
+    description: 'Loan application received',
+  },
+  ...(loan.approvedAt
+    ? [{ date: loan.approvedAt, status: 'Approved', description: 'Loan approved by the loan team' }]
+    : []),
+  ...(loan.disbursedAt
+    ? [{ date: loan.disbursedAt, status: 'Disbursed', description: 'Funds disbursed to your account' }]
+    : []),
+  ...(loan.status === 'rejected'
+    ? [{ date: loan.updatedAt, status: 'Rejected', description: loan.adminComment || 'Application rejected' }]
+    : []),
+]
+
+const normalizeDocuments = (documents = []) =>
+  Array.isArray(documents)
+    ? documents.map((doc, index) => ({
+        id: doc?._id || doc?.id || `document-${index}`,
+        name: doc?.fileName || doc?.originalName || doc?.documentType || `Document ${index + 1}`,
+        type: doc?.documentType || 'loan_document',
+        url: doc?.cloudinaryUrl || '',
+      }))
+    : []
+
+const mapLoan = (loan) => {
+  const paidAmount = Array.isArray(loan.payments)
+    ? loan.payments
+        .filter((payment) => payment.status === 'paid')
+        .reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0)
+    : 0
+  const total = Number(loan.totalPayment) || Number(loan.amount) || 0
+  const progress = total > 0 ? Math.min(100, Math.round((paidAmount / total) * 100)) : 0
+
+  return {
+    id: loan.id || loan._id,
+    lookupId: loan._id || loan.id,
+    type: formatLoanType(loan.loanType),
+    amount: Number(loan.amount) || 0,
+    interestRate: `${Number(loan.interestRate) || 0}%`,
+    tenure: `${Number(loan.term) || 0} months`,
+    status: loan.status,
+    appliedDate: loan.createdAt,
+    approvedDate: loan.approvedAt,
+    disbursedDate: loan.disbursedAt,
+    emiAmount: Number(loan.monthlyPayment) || 0,
+    nextEMIDate: loan.nextPaymentDate,
+    remainingAmount: Number.isFinite(Number(loan.remainingAmount))
+      ? Number(loan.remainingAmount)
+      : Math.max(0, total - paidAmount),
+    progress: Number.isFinite(Number(loan.progress)) ? Number(loan.progress) : progress,
+    purpose: loan.purpose,
+    documents: normalizeDocuments(loan.documents),
+    rejectionReason: loan.status === 'rejected' ? loan.adminComment : '',
+    statusHistory: buildStatusHistory(loan),
+    account: loan.accountId || null,
+    updatedAt: loan.updatedAt,
+  }
+}
 
 const LoanStatus = () => {
   const [loading, setLoading] = useState(true)
@@ -26,61 +91,10 @@ const LoanStatus = () => {
   const [filter, setFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLoan, setSelectedLoan] = useState(null)
+  const [loanDetails, setLoanDetails] = useState({})
+  const [detailsLoadingId, setDetailsLoadingId] = useState('')
 
   useEffect(() => {
-    const formatLoanType = (loanType = '') =>
-      loanType
-        .split('_')
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ') + ' Loan'
-
-    const mapLoan = (loan) => {
-      const paidAmount = Array.isArray(loan.payments)
-        ? loan.payments
-            .filter((payment) => payment.status === 'paid')
-            .reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0)
-        : 0
-      const total = Number(loan.totalPayment) || Number(loan.amount) || 0
-      const progress = total > 0 ? Math.min(100, Math.round((paidAmount / total) * 100)) : 0
-
-      return {
-        id: loan.id || loan._id,
-        type: formatLoanType(loan.loanType),
-        amount: Number(loan.amount) || 0,
-        interestRate: `${Number(loan.interestRate) || 0}%`,
-        tenure: `${Number(loan.term) || 0} months`,
-        status: loan.status,
-        appliedDate: loan.createdAt,
-        approvedDate: loan.approvedAt,
-        disbursedDate: loan.disbursedAt,
-        emiAmount: Number(loan.monthlyPayment) || 0,
-        nextEMIDate: loan.nextPaymentDate,
-        remainingAmount: Math.max(0, total - paidAmount),
-        progress,
-        purpose: loan.purpose,
-        documents: Array.isArray(loan.documents)
-          ? loan.documents.map((doc, index) => doc?.documentType || doc?.originalName || `Document ${index + 1}`)
-          : [],
-        rejectionReason: loan.status === 'rejected' ? loan.adminComment : '',
-        statusHistory: [
-          {
-            date: loan.createdAt,
-            status: 'Application Submitted',
-            description: 'Loan application received'
-          },
-          ...(loan.approvedAt
-            ? [{ date: loan.approvedAt, status: 'Approved', description: 'Loan approved by loan officer' }]
-            : []),
-          ...(loan.disbursedAt
-            ? [{ date: loan.disbursedAt, status: 'Disbursed', description: 'Funds disbursed to your account' }]
-            : []),
-          ...(loan.status === 'rejected'
-            ? [{ date: loan.updatedAt, status: 'Rejected', description: loan.adminComment || 'Application rejected' }]
-            : [])
-        ]
-      }
-    }
-
     const fetchUserLoans = async () => {
       try {
         setLoading(true)
@@ -99,6 +113,35 @@ const LoanStatus = () => {
 
     fetchUserLoans()
   }, [])
+
+  const handleToggleDetails = async (loan) => {
+    if (selectedLoan === loan.id) {
+      setSelectedLoan(null)
+      return
+    }
+
+    setSelectedLoan(loan.id)
+
+    if (loanDetails[loan.id]) {
+      return
+    }
+
+    try {
+      setDetailsLoadingId(loan.id)
+      const response = await loanService.getLoanStatus(loan.lookupId)
+      const detailedLoan = response?.data?.data
+      if (detailedLoan) {
+        setLoanDetails((current) => ({
+          ...current,
+          [loan.id]: mapLoan(detailedLoan),
+        }))
+      }
+    } catch (err) {
+      console.error('Failed to fetch loan details:', err)
+    } finally {
+      setDetailsLoadingId('')
+    }
+  }
 
   const getStatusIcon = (status) => {
     switch(status) {
@@ -269,10 +312,7 @@ const LoanStatus = () => {
             </div>
           ) : (
             filteredLoans.map((loan) => (
-              <div
-                key={loan.id}
-                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
+              <div key={loan.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                 {/* Loan Header */}
                 <div className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -307,7 +347,7 @@ const LoanStatus = () => {
 
                     <div className="mt-4 lg:mt-0 flex space-x-2">
                       <button
-                        onClick={() => setSelectedLoan(selectedLoan === loan.id ? null : loan.id)}
+                        onClick={() => handleToggleDetails(loan)}
                         className="text-primary-600 hover:text-primary-700 flex items-center px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                       >
                         <FaEye className="mr-1" /> Details
@@ -321,7 +361,7 @@ const LoanStatus = () => {
                   </div>
 
                   {/* Progress Bar for Active Loans */}
-                  {loan.status === 'approved' && loan.progress !== undefined && (
+                  {['approved', 'disbursed', 'active', 'completed'].includes(loan.status) && loan.progress !== undefined && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="flex items-center justify-between text-sm mb-1">
                         <span className="text-gray-600">Repayment Progress</span>
@@ -343,6 +383,16 @@ const LoanStatus = () => {
                   {/* Expanded Details */}
                   {selectedLoan === loan.id && (
                     <div className="mt-6 pt-6 border-t border-gray-200">
+                      {detailsLoadingId === loan.id ? (
+                        <div className="flex items-center justify-center py-8 text-gray-500">
+                          <FaSpinner className="mr-2 animate-spin" /> Loading latest loan details...
+                        </div>
+                      ) : null}
+
+                      {(() => {
+                        const activeLoan = loanDetails[loan.id] || loan
+
+                        return (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Left Column - Details */}
                         <div>
@@ -350,69 +400,82 @@ const LoanStatus = () => {
                           <dl className="space-y-2">
                             <div className="flex justify-between">
                               <dt className="text-sm text-gray-600">Purpose:</dt>
-                              <dd className="text-sm font-medium text-gray-900">{loan.purpose}</dd>
+                              <dd className="text-sm font-medium text-gray-900">{activeLoan.purpose}</dd>
                             </div>
                             <div className="flex justify-between">
                               <dt className="text-sm text-gray-600">Tenure:</dt>
-                              <dd className="text-sm font-medium text-gray-900">{loan.tenure}</dd>
+                              <dd className="text-sm font-medium text-gray-900">{activeLoan.tenure}</dd>
                             </div>
-                            {loan.approvedDate && (
+                            {activeLoan.approvedDate && (
                               <div className="flex justify-between">
                                 <dt className="text-sm text-gray-600">Approved Date:</dt>
-                                <dd className="text-sm font-medium text-gray-900">{formatDate(loan.approvedDate)}</dd>
+                                <dd className="text-sm font-medium text-gray-900">{formatDate(activeLoan.approvedDate)}</dd>
                               </div>
                             )}
-                            {loan.disbursedDate && (
+                            {activeLoan.disbursedDate && (
                               <div className="flex justify-between">
                                 <dt className="text-sm text-gray-600">Disbursed Date:</dt>
-                                <dd className="text-sm font-medium text-gray-900">{formatDate(loan.disbursedDate)}</dd>
+                                <dd className="text-sm font-medium text-gray-900">{formatDate(activeLoan.disbursedDate)}</dd>
                               </div>
                             )}
-                            {loan.expectedDecision && (
+                            {activeLoan.nextEMIDate && (
                               <div className="flex justify-between">
-                                <dt className="text-sm text-gray-600">Expected Decision:</dt>
-                                <dd className="text-sm font-medium text-gray-900">{formatDate(loan.expectedDecision)}</dd>
+                                <dt className="text-sm text-gray-600">Next EMI Date:</dt>
+                                <dd className="text-sm font-medium text-gray-900">{formatDate(activeLoan.nextEMIDate)}</dd>
                               </div>
                             )}
-                            {loan.rejectionReason && (
+                            {activeLoan.account?.accountNumber && (
+                              <div className="flex justify-between">
+                                <dt className="text-sm text-gray-600">Linked Account:</dt>
+                                <dd className="text-sm font-medium text-gray-900">{activeLoan.account.accountNumber}</dd>
+                              </div>
+                            )}
+                            {activeLoan.rejectionReason && (
                               <div className="flex justify-between">
                                 <dt className="text-sm text-gray-600">Rejection Reason:</dt>
-                                <dd className="text-sm font-medium text-red-600">{loan.rejectionReason}</dd>
+                                <dd className="text-sm font-medium text-red-600">{activeLoan.rejectionReason}</dd>
                               </div>
                             )}
                           </dl>
-
-                          {loan.officer && (
-                            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                              <p className="text-sm font-medium text-gray-900">Loan Officer</p>
-                              <p className="text-sm text-gray-600">{loan.officer}</p>
-                              <p className="text-xs text-gray-500">{loan.officerContact}</p>
-                            </div>
-                          )}
                         </div>
 
                         {/* Right Column - Documents */}
                         <div>
                           <h4 className="font-semibold text-gray-900 mb-3">Documents</h4>
-                          <ul className="space-y-2">
-                            {loan.documents?.map((doc, index) => (
-                              <li key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                <span className="text-sm text-gray-700 flex items-center">
-                                  <FaFilePdf className="text-red-500 mr-2" />
-                                  {doc}
-                                </span>
-                                <button className="text-primary-600 hover:text-primary-700 text-sm">
-                                  View
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
+                          {activeLoan.documents?.length ? (
+                            <ul className="space-y-2">
+                              {activeLoan.documents.map((doc) => (
+                                <li key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                  <span className="text-sm text-gray-700 flex items-center">
+                                    <FaFilePdf className="text-red-500 mr-2" />
+                                    {doc.name}
+                                  </span>
+                                  {doc.url ? (
+                                    <a
+                                      href={doc.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-primary-600 hover:text-primary-700 text-sm"
+                                    >
+                                      View
+                                    </a>
+                                  ) : (
+                                    <span className="text-xs text-gray-500">Uploaded</span>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="rounded-lg bg-gray-50 px-3 py-4 text-sm text-gray-500">
+                              No supporting documents have been linked yet.
+                            </div>
+                          )}
 
                           {/* Status Timeline */}
                           <h4 className="font-semibold text-gray-900 mt-4 mb-3">Status Timeline</h4>
                           <div className="space-y-2">
-                            {loan.statusHistory?.map((event, index) => (
-                              <div key={index} className="flex items-start space-x-3">
+                            {activeLoan.statusHistory?.map((event, index) => (
+                              <div key={`${event.status}-${index}`} className="flex items-start space-x-3">
                                 <div className="w-2 h-2 mt-2 rounded-full bg-primary-600" />
                                 <div>
                                   <p className="text-sm font-medium text-gray-900">{event.status}</p>
@@ -424,16 +487,18 @@ const LoanStatus = () => {
                           </div>
                         </div>
                       </div>
+                        )
+                      })()}
 
                       {/* Action Buttons */}
                       <div className="mt-6 flex flex-wrap gap-3">
-                        <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
-                          Download Application
-                        </button>
-                        <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                        <Link
+                          to="/dashboard/support/create"
+                          className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                        >
                           Contact Support
-                        </button>
-                        {loan.status === 'approved' && (
+                        </Link>
+                        {['approved', 'disbursed', 'active'].includes(loan.status) && (
                           <button className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">
                             Make Payment
                           </button>

@@ -1,17 +1,35 @@
 // src/controllers/loanController.js
 const Loan = require('../models/Loan');
 const Account = require('../models/Account');
-const User = require('../models/User');
-const Document = require('../models/Document');
+const mongoose = require('mongoose');
+
+const buildLoanLookup = (loanId, userId) => {
+  const orConditions = [{ id: loanId }];
+
+  if (mongoose.Types.ObjectId.isValid(loanId)) {
+    orConditions.push({ _id: loanId });
+  }
+
+  return {
+    userId,
+    $or: orConditions,
+  };
+};
+
+const attachLoanRelations = (query) =>
+  query
+    .populate('userId', 'firstName lastName email')
+    .populate('accountId', 'accountNumber accountType status balance')
+    .populate('documents');
 
 // @desc    Get user loans
 // @route   GET /api/loans
 // @access  Private
 exports.getUserLoans = async (req, res) => {
   try {
-    const loans = await Loan.find({ userId: req.user._id })
-      .populate('userId', 'firstName lastName email')
-      .sort({ createdAt: -1 });
+    const loans = await attachLoanRelations(
+      Loan.find({ userId: req.user._id }).sort({ createdAt: -1 })
+    );
 
     res.json({
       success: true,
@@ -32,13 +50,9 @@ exports.getUserLoans = async (req, res) => {
 // @access  Private
 exports.getLoanDetails = async (req, res) => {
   try {
-    const loan = await Loan.findOne({
-      _id: req.params.loanId,
-      userId: req.user._id
-    })
-      .populate('userId', 'firstName lastName email')
-      .populate('accountId', 'accountNumber accountType')
-      .populate('documents');
+    const loan = await attachLoanRelations(
+      Loan.findOne(buildLoanLookup(req.params.loanId, req.user._id))
+    );
 
     if (!loan) {
       return res.status(404).json({
@@ -56,6 +70,49 @@ exports.getLoanDetails = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get loan details'
+    });
+  }
+};
+
+// @desc    Get focused loan status details
+// @route   GET /api/loans/:loanId/status
+// @access  Private
+exports.getLoanStatus = async (req, res) => {
+  try {
+    const loan = await attachLoanRelations(
+      Loan.findOne(buildLoanLookup(req.params.loanId, req.user._id))
+    );
+
+    if (!loan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Loan not found'
+      });
+    }
+
+    const paidAmount = Array.isArray(loan.payments)
+      ? loan.payments
+          .filter((payment) => payment.status === 'paid')
+          .reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0)
+      : 0;
+    const totalPayment = Number(loan.totalPayment) || Number(loan.amount) || 0;
+    const remainingAmount = Math.max(totalPayment - paidAmount, 0);
+    const progress = totalPayment > 0 ? Math.min(100, Math.round((paidAmount / totalPayment) * 100)) : 0;
+
+    res.json({
+      success: true,
+      data: {
+        ...loan.toObject(),
+        paidAmount,
+        remainingAmount,
+        progress,
+      }
+    });
+  } catch (error) {
+    console.error('Get loan status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get loan status'
     });
   }
 };

@@ -17,6 +17,7 @@ const applyLoanValidation = [
 
 // User routes
 router.get('/', authMiddleware, loanController.getUserLoans);
+router.get('/:loanId/status', authMiddleware, loanController.getLoanStatus);
 router.get('/:loanId', authMiddleware, loanController.getLoanDetails);
 router.post('/apply', authMiddleware, applyLoanValidation, loanController.applyForLoan);
 
