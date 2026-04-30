@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaBolt, FaArrowRight } from 'react-icons/fa'
+import { FaArrowRight, FaBolt } from 'react-icons/fa'
 import { useSidebarData } from '../../hooks/useSidebarData'
 import LoadingSpinner from '../common/LoadingSpinner'
 
@@ -37,18 +37,18 @@ const Sidebar = () => {
 
   return (
     <aside className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-      <div className="bg-[linear-gradient(135deg,#0f2742_0%,#173d61_55%,#1f5d88_100%)] px-5 py-5 text-white">
+      <div className="border-b border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#f6fbff_100%)] px-5 py-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-200">Guided Actions</p>
-            <h2 className="mt-1 text-xl font-semibold">Smart Shortcuts</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Guided Actions</p>
+            <h2 className="mt-1 text-xl font-semibold text-slate-900">Smart Shortcuts</h2>
           </div>
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
             <FaBolt />
           </span>
         </div>
-        <p className="mt-3 text-sm leading-6 text-slate-200">
-          Context-aware shortcuts from the banking backend.
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+          Context-aware shortcuts from the banking backend, presented in a cleaner support area.
         </p>
       </div>
 
@@ -63,9 +63,9 @@ const Sidebar = () => {
         </button>
       </div>
 
-      <div className="space-y-3 p-5">
+      <div className="grid gap-3 p-5 md:grid-cols-2">
         {items.length === 0 ? (
-          <p className="rounded-2xl bg-slate-50 px-4 py-6 text-sm text-slate-500">No shortcuts available right now.</p>
+          <p className="rounded-2xl bg-slate-50 px-4 py-6 text-sm text-slate-500 md:col-span-2">No shortcuts available right now.</p>
         ) : (
           items.map((item) => (
             <button

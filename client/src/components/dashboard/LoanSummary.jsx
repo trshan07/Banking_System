@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { FaMoneyBillWave, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa'
+import { FaCheckCircle, FaClock, FaMoneyBillWave, FaTimesCircle } from 'react-icons/fa'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 
 const LoanSummary = ({ loans, loading }) => {
@@ -51,11 +51,14 @@ const LoanSummary = ({ loans, loading }) => {
 
   return (
     <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+      <div className="border-b border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#f7fbf7_100%)] px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Credit</p>
             <h2 className="mt-1 text-xl font-semibold text-slate-900">Loan Summary</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Track applications, active repayments, and upcoming milestones.
+            </p>
           </div>
           <Link
             to="/dashboard/loans/apply"
@@ -67,6 +70,27 @@ const LoanSummary = ({ loans, loading }) => {
       </div>
 
       <div className="p-5 sm:p-6">
+        {loans.length > 0 && (
+          <div className="mb-5 grid gap-3 lg:grid-cols-3">
+            <div className="rounded-[1.5rem] bg-slate-50 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Applications</p>
+              <p className="mt-2 text-2xl font-bold text-slate-900">{loans.length}</p>
+            </div>
+            <div className="rounded-[1.5rem] bg-slate-50 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Active Loans</p>
+              <p className="mt-2 text-2xl font-bold text-slate-900">
+                {loans.filter((loan) => ['active', 'approved', 'disbursed'].includes(loan.status)).length}
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] bg-slate-50 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Outstanding</p>
+              <p className="mt-2 break-words text-2xl font-bold text-slate-900">
+                {formatCurrency(loans.reduce((sum, loan) => sum + (Number(loan.remainingAmount) || 0), 0))}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
           {loans.length === 0 ? (
             <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 py-10 text-center">

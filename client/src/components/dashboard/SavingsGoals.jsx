@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { FaPiggyBank, FaPlus, FaBullseye } from 'react-icons/fa'
+import { FaBullseye, FaPiggyBank, FaPlus } from 'react-icons/fa'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 
 const SavingsGoals = ({ goals, loading }) => {
@@ -20,7 +20,7 @@ const SavingsGoals = ({ goals, loading }) => {
   if (!goals || goals.length === 0) {
     return (
       <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+        <div className="border-b border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#fff8eb_100%)] px-5 py-5 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Savings</p>
@@ -52,11 +52,14 @@ const SavingsGoals = ({ goals, loading }) => {
 
   return (
     <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-5 py-5 sm:px-6">
+      <div className="border-b border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#fff8eb_100%)] px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Savings</p>
             <h2 className="mt-1 text-xl font-semibold text-slate-900">Savings Goals</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Track progress clearly and keep your funding goals moving.
+            </p>
           </div>
           <Link
             to="/dashboard/savings"
@@ -68,21 +71,29 @@ const SavingsGoals = ({ goals, loading }) => {
       </div>
 
       <div className="p-5 sm:p-6">
-        <div className="mb-5 rounded-[1.5rem] bg-[linear-gradient(135deg,#fff9ef_0%,#fff4dd_100%)] p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">Overall Progress</p>
-              <p className="mt-2 text-2xl font-bold text-slate-900">{Math.min(overallProgress, 100).toFixed(1)}%</p>
+        <div className="mb-5 grid gap-3 lg:grid-cols-3">
+          <div className="rounded-[1.5rem] bg-[linear-gradient(135deg,#fff9ef_0%,#fff4dd_100%)] p-5 lg:col-span-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">Overall Progress</p>
+                <p className="mt-2 text-2xl font-bold text-slate-900">{Math.min(overallProgress, 100).toFixed(1)}%</p>
+              </div>
+              <div className="text-sm leading-6 text-slate-600">
+                {formatCurrency(totalSaved)} saved of {formatCurrency(totalTarget)}
+              </div>
             </div>
-            <div className="text-sm leading-6 text-slate-600">
-              {formatCurrency(totalSaved)} saved of {formatCurrency(totalTarget)}
+            <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/70">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,#d97706_0%,#f59e0b_100%)] transition-all duration-500"
+                style={{ width: `${Math.min(overallProgress, 100)}%` }}
+              />
             </div>
           </div>
-          <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/70">
-            <div
-              className="h-full rounded-full bg-[linear-gradient(90deg,#d97706_0%,#f59e0b_100%)] transition-all duration-500"
-              style={{ width: `${Math.min(overallProgress, 100)}%` }}
-            />
+
+          <div className="rounded-[1.5rem] bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Active Goals</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{goals.length}</p>
+            <p className="mt-2 text-sm text-slate-500">Savings goals currently being tracked.</p>
           </div>
         </div>
 
