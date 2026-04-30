@@ -531,6 +531,10 @@ exports.executeSidebarAction = async (req, res) => {
       }).select('_id accountType balance');
 
       const customerActions = {
+        dashboard: {
+          redirectTo: '/dashboard',
+          message: 'Opening your customer dashboard overview.',
+        },
         transfer: {
           redirectTo: activeAccounts.length >= 2 ? '/dashboard/banking/transfer' : '/dashboard/banking/accounts',
           message: activeAccounts.length >= 2
@@ -551,6 +555,18 @@ exports.executeSidebarAction = async (req, res) => {
           redirectTo: '/dashboard/loans/apply',
           message: 'Opening the loan application form.',
         },
+        'loan-status': {
+          redirectTo: '/dashboard/loans/status',
+          message: 'Opening your loan applications and repayment status.',
+        },
+        accounts: {
+          redirectTo: '/dashboard/banking/accounts',
+          message: 'Opening your linked bank accounts.',
+        },
+        transactions: {
+          redirectTo: '/dashboard/banking/transactions',
+          message: 'Opening your recent transactions and activity history.',
+        },
         savings: {
           redirectTo: '/dashboard/savings',
           message: 'Opening your savings tracker.',
@@ -562,6 +578,18 @@ exports.executeSidebarAction = async (req, res) => {
         support: {
           redirectTo: '/dashboard/support/create',
           message: 'Opening support so you can contact the bank team quickly.',
+        },
+        'support-tickets': {
+          redirectTo: '/dashboard/support',
+          message: 'Opening your support tickets.',
+        },
+        'report-fraud': {
+          redirectTo: '/dashboard/fraud/report',
+          message: 'Opening the fraud reporting form.',
+        },
+        'kyc-verification': {
+          redirectTo: '/dashboard/kyc',
+          message: 'Opening your KYC verification workspace.',
         },
       };
 
@@ -623,13 +651,128 @@ exports.getSidebarItems = async (req, res) => {
     const user = req.user;
     const role = user.role || 'customer';
 
-    const customerItems = [
-      { id: 'transfer', title: 'Transfer Funds', description: 'Send money between accounts', tag: 'Banking' },
-      { id: 'pay-bills', title: 'Pay Bills', description: 'Pay your utility bills', tag: 'Payments' },
-      { id: 'apply-loan', title: 'Apply for Loan', description: 'Get a personal or business loan', tag: 'Loans' },
-      { id: 'savings', title: 'Savings Goals', description: 'Track your savings progress', tag: 'Savings' },
-      { id: 'support', title: 'Get Support', description: 'Contact customer service', tag: 'Help' },
-    ];
+    let customerItems = [];
+
+    if (role === 'customer') {
+      const accountDocs = await Account.find({ userId: user._id }).select('_id status');
+      const accountIds = accountDocs.map((account) => account._id);
+      const activeAccounts = accountDocs.filter((account) => String(account.status || '').toLowerCase() === 'active').length;
+
+      const [
+        totalLoans,
+        pendingLoans,
+        totalSavingsGoals,
+        openTickets,
+        totalFraudReports,
+        kycApplication,
+        totalTransactions,
+      ] = await Promise.all([
+        Loan.countDocuments({ userId: user._id }),
+        Loan.countDocuments({ userId: user._id, status: { $in: ['pending', 'approved', 'active', 'disbursed'] } }),
+        SavingsGoal.countDocuments({ userId: user._id }),
+        SupportTicket.countDocuments({
+          userId: user._id,
+          status: { $in: ['open', 'in_progress', 'awaiting_reply'] },
+        }),
+        FraudReport.countDocuments({ reportedBy: user._id }),
+        KYCApplication.findOne({ userId: user._id }).select('status'),
+        accountIds.length > 0
+          ? Transaction.countDocuments({
+              $or: [
+                { fromAccountId: { $in: accountIds } },
+                { toAccountId: { $in: accountIds } },
+              ],
+            })
+          : Promise.resolve(0),
+      ]);
+
+      const kycStatus = kycApplication?.status
+        ? formatTitle(String(kycApplication.status).replace(/_/g, ' '))
+        : 'Not Submitted';
+
+      customerItems = [
+        {
+          id: 'dashboard',
+          title: 'Dashboard',
+          description: 'Return to your main banking overview and see the latest account updates.',
+          tag: 'Overview',
+          route: '/dashboard',
+          metric: `${activeAccounts} active account${activeAccounts === 1 ? '' : 's'}`,
+        },
+        {
+          id: 'apply-loan',
+          title: 'Apply for Loan',
+          description: 'Start a new loan application with your saved customer details.',
+          tag: 'Loans',
+          route: '/dashboard/loans/apply',
+          metric: pendingLoans > 0 ? `${pendingLoans} in review` : 'Ready to apply',
+        },
+        {
+          id: 'loan-status',
+          title: 'Loan Status',
+          description: 'Track applications, approvals, and repayment progress from one place.',
+          tag: 'Loans',
+          route: '/dashboard/loans/status',
+          metric: `${totalLoans} loan record${totalLoans === 1 ? '' : 's'}`,
+        },
+        {
+          id: 'accounts',
+          title: 'Accounts',
+          description: 'Review account balances, details, and linked banking profiles.',
+          tag: 'Banking',
+          route: '/dashboard/banking/accounts',
+          metric: `${accountDocs.length} total account${accountDocs.length === 1 ? '' : 's'}`,
+        },
+        {
+          id: 'transfer-funds',
+          title: 'Transfer Funds',
+          description: 'Move money between eligible accounts quickly and securely.',
+          tag: 'Payments',
+          route: '/dashboard/banking/transfer',
+          metric: activeAccounts >= 2 ? 'Transfer ready' : 'Need 2 active accounts',
+        },
+        {
+          id: 'transactions',
+          title: 'Transactions',
+          description: 'See payment history, transfers, deposits, and recent account activity.',
+          tag: 'History',
+          route: '/dashboard/banking/transactions',
+          metric: `${totalTransactions} transaction${totalTransactions === 1 ? '' : 's'}`,
+        },
+        {
+          id: 'savings',
+          title: 'Savings Tracker',
+          description: 'Follow your savings goals and keep progress moving steadily.',
+          tag: 'Savings',
+          route: '/dashboard/savings',
+          metric: `${totalSavingsGoals} goal${totalSavingsGoals === 1 ? '' : 's'}`,
+        },
+        {
+          id: 'support-tickets',
+          title: 'Support Tickets',
+          description: 'Create a ticket or review replies from the bank support team.',
+          tag: 'Support',
+          route: '/dashboard/support',
+          metric: `${openTickets} open ticket${openTickets === 1 ? '' : 's'}`,
+        },
+        {
+          id: 'report-fraud',
+          title: 'Report Fraud',
+          description: 'Report suspicious activity and protect your accounts quickly.',
+          tag: 'Security',
+          route: '/dashboard/fraud/report',
+          metric: totalFraudReports > 0 ? `${totalFraudReports} report${totalFraudReports === 1 ? '' : 's'}` : 'Stay protected',
+        },
+        {
+          id: 'kyc-verification',
+          title: 'KYC Verification',
+          description: 'Complete identity verification or review your current compliance status.',
+          tag: 'Compliance',
+          route: '/dashboard/kyc',
+          metric: kycStatus,
+        },
+      ];
+    }
 
     const adminItems = [
       { id: 'manage-users', title: 'Manage Users', description: 'View and manage user accounts', tag: 'Admin' },

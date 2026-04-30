@@ -285,8 +285,8 @@ const CustomerDashboard = () => {
           </div>
           <div className="xl:col-span-7">
             <Sidebar
-              title="Help, tools, and next steps"
-              subtitle="Find the most useful account actions here, with a layout that stays cleaner as your shortcuts change."
+              title="Customer services and shortcuts"
+              subtitle="Open every main customer area here in a cleaner layout, with live status and counts coming from your account data."
             />
           </div>
         </div>

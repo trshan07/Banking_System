@@ -21,9 +21,11 @@ export const useSidebarData = () => {
     try {
       const data = await fetchSidebarItems()
       setItems(data.items || [])
+      setError(null)
     } catch (err) {
       console.warn('Sidebar load failed:', err.message)
       setItems([])
+      setError(err?.message || 'Unable to load customer services right now.')
     } finally {
       setLoading(false)
     }
