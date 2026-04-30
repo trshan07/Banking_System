@@ -131,30 +131,40 @@ const AccountSummary = ({ accounts = [], loading }) => {
               >
                 <div className={`mb-4 h-1.5 w-16 rounded-full ${theme.accent}`} />
 
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex min-w-0 items-center space-x-4">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${theme.iconWrap}`}>
-                      <Icon />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="break-words font-semibold text-slate-900">{accountName}</p>
-                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ${theme.badge}`}>
-                          {accountType}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {accountNum ? formatAccountNumber(accountNum) : 'Account number unavailable'}
+                <div className="flex items-start gap-4">
+                  <div className={`mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${theme.iconWrap}`}>
+                    <Icon />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="break-words text-xl font-semibold leading-snug text-slate-900">
+                        {accountName}
                       </p>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${theme.badge}`}
+                      >
+                        {accountType}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
+                      <span>
+                        {accountNum ? formatAccountNumber(accountNum) : 'Account number unavailable'}
+                      </span>
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium capitalize text-slate-600">
+                        {account.status || 'active'}
+                      </span>
                     </div>
                   </div>
-                  <div className="sm:text-right">
-                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">Available</p>
-                    <p className="mt-2 break-words text-2xl font-bold text-slate-900">
-                      {showBalances ? formatCurrency(account.balance || 0) : 'Hidden'}
-                    </p>
-                    <p className="mt-1 text-xs capitalize text-slate-500">{account.status || 'active'}</p>
-                  </div>
+                </div>
+
+                <div className="mt-5 rounded-[1.25rem] bg-slate-50 p-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
+                    Available balance
+                  </p>
+                  <p className="mt-2 break-words text-3xl font-bold leading-tight text-slate-900">
+                    {showBalances ? formatCurrency(account.balance || 0) : 'Hidden'}
+                  </p>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
