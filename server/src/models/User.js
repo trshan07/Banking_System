@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     },
     language: { type: String, default: 'en' },
     theme: { type: String, default: 'light' },
-    currency: { type: String, default: 'USD' }
+    currency: { type: String, default: 'LKR' }
   },
   refreshToken: { type: String, select: false },
   refreshTokenExpires: { type: Date, default: null },

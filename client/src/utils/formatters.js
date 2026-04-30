@@ -1,11 +1,22 @@
-export const formatCurrency = (amount, currency = 'USD') => {
-  return new Intl.NumberFormat('en-US', {
+export const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-LK', {
     style: 'currency',
-    currency: currency
+    currency: 'LKR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount)
 }
 
-export const formatDate = (date, format = 'PPP') => {
+export const formatCompactCurrency = (amount) => {
+  return new Intl.NumberFormat('en-LK', {
+    style: 'currency',
+    currency: 'LKR',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(amount)
+}
+
+export const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',

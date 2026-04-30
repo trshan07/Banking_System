@@ -106,7 +106,7 @@ const kycApplicationSchema = new mongoose.Schema({
     annualIncome: Number,
     incomeCurrency: {
       type: String,
-      default: 'USD'
+      default: 'LKR'
     },
     sourceOfFunds: String
   },

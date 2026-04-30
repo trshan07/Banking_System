@@ -21,6 +21,7 @@ import {
 } from 'react-icons/fa'
 import { useAuth } from '../../contexts/AuthContext'
 import { loanService } from '../../services/loanService'
+import { formatCurrency } from '../../utils/formatters'
 
 const LoanApplication = () => {
   const [step, setStep] = useState(1)
@@ -129,11 +130,11 @@ const LoanApplication = () => {
         isValid = false
       } else {
         if (selectedLoan?.minAmount && amount < selectedLoan.minAmount) {
-          setError('loanAmount', { type: 'manual', message: `Minimum amount is $${selectedLoan.minAmount.toLocaleString()}` })
+          setError('loanAmount', { type: 'manual', message: `Minimum amount is ${formatCurrency(selectedLoan.minAmount)}` })
           isValid = false
         }
         if (selectedLoan?.maxAmount && amount > selectedLoan.maxAmount) {
-          setError('loanAmount', { type: 'manual', message: `Maximum amount is $${selectedLoan.maxAmount.toLocaleString()}` })
+          setError('loanAmount', { type: 'manual', message: `Maximum amount is ${formatCurrency(selectedLoan.maxAmount)}` })
           isValid = false
         }
       }
@@ -393,7 +394,7 @@ const LoanApplication = () => {
                                 <span className="font-medium">Interest:</span> {loan.interest}
                               </p>
                               <p className="text-xs text-gray-500">
-                                <span className="font-medium">Amount:</span> ${loan.minAmount.toLocaleString()} - ${loan.maxAmount.toLocaleString()}
+                                <span className="font-medium">Amount:</span> {formatCurrency(loan.minAmount)} - {formatCurrency(loan.maxAmount)}
                               </p>
                               <p className="text-xs text-gray-500">
                                 <span className="font-medium">Tenure:</span> {loan.tenure}
@@ -426,18 +427,18 @@ const LoanApplication = () => {
 
                 {/* Loan Amount */}
                 <div>
-                  <label className="form-label">Loan Amount (USD) *</label>
+                  <label className="form-label">Loan Amount (LKR) *</label>
                   <input
                     type="number"
                     {...register('loanAmount', { 
                       required: 'Loan amount is required',
                       min: { 
                         value: selectedLoan?.minAmount || 1000, 
-                        message: `Minimum amount is $${selectedLoan?.minAmount?.toLocaleString() || '1,000'}`
+                        message: `Minimum amount is ${selectedLoan?.minAmount ? formatCurrency(selectedLoan.minAmount) : 'LKR 1,000.00'}`
                       },
                       max: { 
                         value: selectedLoan?.maxAmount || 50000, 
-                        message: `Maximum amount is $${selectedLoan?.maxAmount?.toLocaleString() || '50,000'}`
+                        message: `Maximum amount is ${selectedLoan?.maxAmount ? formatCurrency(selectedLoan.maxAmount) : 'LKR 50,000.00'}`
                       }
                     })}
                     className="input-field"
@@ -619,12 +620,12 @@ const LoanApplication = () => {
                   </div>
 
                   <div>
-                    <label className="form-label">Monthly Income (USD) *</label>
+                    <label className="form-label">Monthly Income (LKR) *</label>
                     <input
                       type="number"
                       {...register('monthlyIncome', { 
                         required: 'Monthly income is required',
-                        min: { value: 500, message: 'Minimum monthly income is $500' }
+                        min: { value: 500, message: 'Minimum monthly income is LKR 500.00' }
                       })}
                       className="input-field"
                       placeholder="Enter monthly income"

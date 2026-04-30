@@ -1,6 +1,7 @@
 // backend/src/services/reportService.js
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
+const { formatCurrency } = require('../utils/formatCurrency');
 
 class ReportService {
   async generateTransactionReport(transactions, format = 'excel') {
@@ -19,7 +20,7 @@ class ReportService {
     worksheet.columns = [
       { header: 'Date', key: 'date', width: 20 },
       { header: 'Description', key: 'description', width: 30 },
-      { header: 'Amount', key: 'amount', width: 15 },
+      { header: 'Amount (LKR)', key: 'amount', width: 20 },
       { header: 'Type', key: 'type', width: 10 },
       { header: 'Status', key: 'status', width: 10 }
     ];
@@ -29,7 +30,7 @@ class ReportService {
       worksheet.addRow({
         date: transaction.createdAt,
         description: transaction.description,
-        amount: transaction.amount,
+        amount: formatCurrency(transaction.amount),
         type: transaction.type,
         status: transaction.status
       });
@@ -59,7 +60,7 @@ class ReportService {
         doc.fontSize(10)
           .text(`Date: ${transaction.createdAt}`)
           .text(`Description: ${transaction.description}`)
-          .text(`Amount: $${transaction.amount}`)
+          .text(`Amount: ${formatCurrency(transaction.amount)}`)
           .text(`Type: ${transaction.type}`)
           .text(`Status: ${transaction.status}`)
           .moveDown();

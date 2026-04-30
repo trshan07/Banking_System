@@ -31,7 +31,7 @@ exports.getAccounts = async (req, res) => {
 // @access  Private
 exports.createAccount = async (req, res) => {
   try {
-    const { accountType, initialDeposit = 0, currency = 'USD' } = req.body;
+    const { accountType, initialDeposit = 0, currency = 'LKR' } = req.body;
     const userId = req.user.id;
     
     // Check if user already has this type of account
@@ -75,7 +75,7 @@ exports.createAccount = async (req, res) => {
         userId,
         type: 'general',
         title: 'Account Created',
-        message: `Your ${accountType} account (${accountNumber}) has been created with $${initialDeposit} initial deposit`,
+        message: `Your ${accountType} account (${accountNumber}) has been created with LKR ${Number(initialDeposit).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} initial deposit`,
         severity: 'low'
       });
     }
@@ -229,13 +229,13 @@ exports.transferFunds = async (req, res) => {
       
       await transaction.save({ session });
       
-      // Create alert for large transactions (> $1000)
+      // Create alert for large transactions (> LKR 1,000)
       if (amount > 1000) {
         await Alert.create({
           userId,
           type: 'transaction',
           title: 'Large Transfer Alert',
-          message: `A transfer of $${amount} was made from your account to ${toAccountNumber}`,
+          message: `A transfer of LKR ${Number(amount).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} was made from your account to ${toAccountNumber}`,
           severity: 'medium'
         });
       }

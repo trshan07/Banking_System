@@ -2,6 +2,7 @@
 const SavingsGoal = require('../models/SavingsGoal');
 const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
+const { formatCurrency } = require('../utils/formatCurrency');
 
 // @desc    Get user savings goals
 // @route   GET /api/savings/goals
@@ -183,7 +184,7 @@ exports.updateProgress = async (req, res) => {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
-        message: `This contribution would exceed your target amount by $${(goal.currentAmount + amount) - goal.targetAmount}`
+        message: `This contribution would exceed your target amount by ${formatCurrency((goal.currentAmount + amount) - goal.targetAmount)}`
       });
     }
 
@@ -240,7 +241,7 @@ exports.updateProgress = async (req, res) => {
       amount,
       date: new Date(),
       transactionId: transaction._id,
-      note: note || `Contribution of $${amount}`
+      note: note || `Contribution of ${formatCurrency(amount)}`
     });
 
     // Check if goal is completed

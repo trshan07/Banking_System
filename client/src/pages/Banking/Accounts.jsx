@@ -25,7 +25,7 @@ const mapApiAccountToViewModel = (account) => ({
   number: account.accountNumber,
   balance: Number(account.balance) || 0,
   type: account.accountType || 'checking',
-  currency: account.currency || 'USD',
+  currency: account.currency || 'LKR',
   interestRate: `${Number(account.interestRate || 0).toFixed(2)}%`,
   openedDate: account.openedAt || account.createdAt,
   status: account.status || 'active'
@@ -71,7 +71,7 @@ const Accounts = () => {
   }, [])
 
   const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0)
-  const primaryCurrency = accounts[0]?.currency || 'USD'
+  const primaryCurrency = accounts[0]?.currency || 'LKR'
 
   if (loading) {
     return (

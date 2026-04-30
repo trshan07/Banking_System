@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { 
   FaExclamationTriangle, 
@@ -13,7 +13,6 @@ import {
 const ReportFraud = () => {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
   const { register, handleSubmit, formState: { errors } } = useForm()
 
   const fraudTypes = [
@@ -129,14 +128,14 @@ const ReportFraud = () => {
 
             {/* Amount Involved */}
             <div>
-              <label className="form-label">Amount Involved (if known)</label>
+              <label className="form-label">Amount Involved (LKR, if known)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">LKR</span>
                 <input
                   type="number"
                   step="0.01"
                   {...register('amount')}
-                  className="input-field pl-8"
+                  className="input-field pl-14"
                   placeholder="0.00"
                 />
               </div>

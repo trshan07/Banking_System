@@ -1,7 +1,7 @@
 // Mock data - replace with actual API calls
 const mockDashboardData = {
   stats: [
-    { label: 'Account Balance', value: '$12,450.00', change: '+2.5%' },
+    { label: 'Account Balance', value: 'LKR 12,450.00', change: '+2.5%' },
     { label: 'Active Loans', value: '2', change: '1 pending' },
     { label: 'Savings Goals', value: '3', change: '68% achieved' },
     { label: 'Support Tickets', value: '1', change: 'Awaiting response' }
@@ -14,7 +14,7 @@ const mockDashboardData = {
       number: '1234567890',
       balance: 8450.50,
       type: 'checking',
-      currency: 'USD'
+      currency: 'LKR'
     },
     {
       id: 2,
@@ -22,7 +22,7 @@ const mockDashboardData = {
       number: '0987654321',
       balance: 12500.75,
       type: 'savings',
-      currency: 'USD'
+      currency: 'LKR'
     },
     {
       id: 3,
@@ -30,7 +30,7 @@ const mockDashboardData = {
       number: '5678901234',
       balance: 25000.00,
       type: 'business',
-      currency: 'USD'
+      currency: 'LKR'
     }
   ],
 

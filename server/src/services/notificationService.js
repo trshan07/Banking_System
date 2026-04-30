@@ -39,7 +39,9 @@ class NotificationService {
   }
 
   async sendTransactionAlert(user, transaction) {
-    const message = `Your account has been ${transaction.type === 'credit' ? 'credited' : 'debited'} with $${transaction.amount}. New balance: $${transaction.newBalance}`;
+    const formattedAmount = Number(transaction.amount || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const formattedBalance = Number(transaction.newBalance || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const message = `Your account has been ${transaction.type === 'credit' ? 'credited' : 'debited'} with LKR ${formattedAmount}. New balance: LKR ${formattedBalance}`;
     
     if (user.email && user.preferences?.notifications?.email) {
       await emailService.sendEmail({

@@ -18,6 +18,7 @@ import {
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import axios from "axios";
+import { formatCurrency } from "../../utils/formatters";
 import {
   LineChart,
   Line,
@@ -339,7 +340,7 @@ const FraudModule = () => {
                     <td className="px-6 py-4 font-mono text-sm">{alert.id}</td>
                     <td className="px-6 py-4">{alert.type}</td>
                     <td className="px-6 py-4 font-medium">{alert.user}</td>
-                    <td className="px-6 py-4">${alert.amount.toLocaleString()}</td>
+                    <td className="px-6 py-4">{formatCurrency(alert.amount)}</td>
                     <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(alert.priority)}`}>{alert.priority}</span></td>
                     <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(alert.status)}`}>{alert.status}</span></td>
                     <td className="px-6 py-4"><span className={`font-bold ${getRiskScoreColor(alert.riskScore)}`}>{alert.riskScore}</span></td>
@@ -373,7 +374,7 @@ const FraudModule = () => {
                   <div><p className="text-sm text-slate-500">Type</p><p className="font-medium">{selectedAlert.type}</p></div>
                   <div><p className="text-sm text-slate-500">User</p><p className="font-medium">{selectedAlert.user}</p></div>
                   <div><p className="text-sm text-slate-500">User ID</p><p className="font-medium">{selectedAlert.userId}</p></div>
-                  <div><p className="text-sm text-slate-500">Amount</p><p className="font-medium">${selectedAlert.amount.toLocaleString()}</p></div>
+                  <div><p className="text-sm text-slate-500">Amount</p><p className="font-medium">{formatCurrency(selectedAlert.amount)}</p></div>
                   <div><p className="text-sm text-slate-500">Risk Score</p><p className={`font-bold ${getRiskScoreColor(selectedAlert.riskScore)}`}>{selectedAlert.riskScore}</p></div>
                   <div><p className="text-sm text-slate-500">Date & Time</p><p className="font-medium">{new Date(selectedAlert.date).toLocaleString()}</p></div>
                   <div><p className="text-sm text-slate-500">Location</p><p className="font-medium">{selectedAlert.location}</p></div>

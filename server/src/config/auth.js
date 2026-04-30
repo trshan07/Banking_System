@@ -71,7 +71,7 @@ const configurePassport = () => {
 								notifications: { email: true, sms: false, push: true },
 								language: 'en',
 								theme: 'light',
-								currency: 'USD'
+								currency: 'LKR'
 							}
 						});
 					} else {

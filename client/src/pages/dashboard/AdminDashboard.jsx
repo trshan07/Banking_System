@@ -38,6 +38,7 @@ import {
 } from "react-icons/fa";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
+import { formatCompactCurrency } from "../../utils/formatters";
 import {
   LineChart,
   Line,
@@ -426,7 +427,7 @@ const AdminDashboard = () => {
               <StatCard title="Pending KYC" value={stats.pendingKYC} icon={FaUserClock} color="bg-yellow-500" trend="down" trendValue="5%" />
               <StatCard title="Fraud Alerts" value={stats.fraudAlerts} icon={FaShieldAlt} color="bg-red-500" trend="up" trendValue="2%" />
               <StatCard title="Total Transactions" value={stats.totalTransactions} icon={FaExchangeAlt} color="bg-purple-500" />
-              <StatCard title="Transaction Volume" value={`$${(stats.totalVolume / 1000000).toFixed(1)}M`} icon={FaMoneyBillWave} color="bg-emerald-500" trend="up" trendValue="15%" />
+              <StatCard title="Transaction Volume" value={formatCompactCurrency(stats.totalVolume)} icon={FaMoneyBillWave} color="bg-emerald-500" trend="up" trendValue="15%" />
               <StatCard title="Pending Tickets" value={stats.pendingTickets} icon={FaTicketAlt} color="bg-orange-500" trend="down" trendValue="3%" />
               <StatCard title="Approval Rate" value={`${stats.approvalRate}%`} icon={FaPercent} color="bg-teal-500" trend="up" trendValue="2%" />
             </div>

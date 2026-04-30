@@ -66,6 +66,7 @@ import {
 } from "react-icons/fa";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
+import { formatCompactCurrency, formatCurrency } from "../../utils/formatters";
 import {
   LineChart,
   Line,
@@ -499,6 +500,16 @@ const SuperAdminDashboard = () => {
     );
   };
 
+  const formatMoneyTooltip = (value, name) => {
+    const metricName = String(name).toLowerCase();
+    const isCurrencyMetric =
+      metricName.includes("revenue") ||
+      metricName.includes("expenses") ||
+      metricName.includes("profit");
+
+    return [isCurrencyMetric ? formatCurrency(value) : Number(value || 0).toLocaleString(), name];
+  };
+
   const HealthMetric = ({ title, value, icon: Icon, color, max = 100 }) => {
     const numValue = typeof value === 'number' ? value : 0;
     const percentage = (numValue / max) * 100;
@@ -629,7 +640,7 @@ const SuperAdminDashboard = () => {
               <StatCard title="Total Branches" value={stats.totalBranches} icon={FaBuilding} color="bg-emerald-500" trend="up" trendValue="2" />
               <StatCard title="System Uptime" value={stats.systemUptime} icon={FaServer} color="bg-green-500" />
               <StatCard title="Total Transactions" value={stats.totalTransactions} icon={FaExchangeAlt} color="bg-cyan-500" />
-              <StatCard title="Volume" value={`$${(stats.totalVolume / 1000000).toFixed(1)}M`} icon={FaMoneyBillWave} color="bg-emerald-500" trend="up" trendValue="15%" />
+              <StatCard title="Volume" value={formatCompactCurrency(stats.totalVolume)} icon={FaMoneyBillWave} color="bg-emerald-500" trend="up" trendValue="15%" />
               <StatCard title="Active Sessions" value={stats.activeSessions} icon={FaUsers} color="bg-indigo-500" />
               <StatCard title="Profit Margin" value={profitMargin} icon={FaPercent} color="bg-teal-500" trend="up" trendValue="3%" />
             </div>
@@ -676,11 +687,11 @@ const SuperAdminDashboard = () => {
                     <XAxis dataKey="month" />
                     <YAxis yAxisId="left" />
                     <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip />
+                    <Tooltip formatter={formatMoneyTooltip} />
                     <Legend />
-                    <Bar yAxisId="left" dataKey="revenue" fill="#3b82f6" name="Revenue" />
-                    <Bar yAxisId="left" dataKey="expenses" fill="#ef4444" name="Expenses" />
-                    <Line yAxisId="right" type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={2} name="Profit" />
+                    <Bar yAxisId="left" dataKey="revenue" fill="#3b82f6" name="Revenue (LKR)" />
+                    <Bar yAxisId="left" dataKey="expenses" fill="#ef4444" name="Expenses (LKR)" />
+                    <Line yAxisId="right" type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={2} name="Profit (LKR)" />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
@@ -708,10 +719,10 @@ const SuperAdminDashboard = () => {
                   <XAxis dataKey="branch" />
                   <YAxis yAxisId="left" />
                   <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
+                  <Tooltip formatter={formatMoneyTooltip} />
                   <Legend />
                   <Bar yAxisId="left" dataKey="transactions" fill="#3b82f6" name="Transactions" />
-                  <Bar yAxisId="right" dataKey="revenue" fill="#10b981" name="Revenue ($)" />
+                  <Bar yAxisId="right" dataKey="revenue" fill="#10b981" name="Revenue (LKR)" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

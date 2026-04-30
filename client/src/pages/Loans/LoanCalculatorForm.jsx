@@ -99,8 +99,8 @@ const LoanCalculatorForm = ({ compact = false }) => {
             className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
           />
           <div className="mt-1 flex justify-between text-xs text-gray-500">
-            <span>$1,000</span>
-            <span>$1,000,000</span>
+            <span>LKR 1,000</span>
+            <span>LKR 1,000,000</span>
           </div>
         </div>
 

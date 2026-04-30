@@ -5,6 +5,7 @@ const FraudReport = require('../models/FraudReport');
 const KYCApplication = require('../models/KYCApplication');
 const LoanApplication = require('../models/LoanApplication');
 const LeaveRequest = require('../models/LeaveRequest');
+const { formatCurrency } = require('../utils/formatCurrency');
 
 // Get dashboard statistics
 exports.getStats = async (req, res) => {
@@ -142,7 +143,7 @@ exports.getRecentActivities = async (req, res) => {
       })),
       ...recentTransactions.map(t => ({
         id: t._id,
-        action: `Transaction of $${t.amount}`,
+        action: `Transaction of ${formatCurrency(t.amount)}`,
         user: t.userId?.name || 'Unknown',
         time: getTimeAgo(t.createdAt),
         type: 'transaction'

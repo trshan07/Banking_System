@@ -24,8 +24,8 @@ const accountSchema = new mongoose.Schema({
   },
   currency: {
     type: String,
-    default: 'USD',
-    enum: ['USD', 'EUR', 'GBP', 'JPY']
+    default: 'LKR',
+    enum: ['LKR', 'USD', 'EUR', 'GBP', 'JPY']
   },
   status: {
     type: String,

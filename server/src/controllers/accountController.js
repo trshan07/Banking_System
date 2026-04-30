@@ -52,7 +52,7 @@ exports.getDashboardData = async (req, res) => {
       success: true,
       data: {
         stats: [
-          { label: 'Account Balance', value: `$${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, change: `${accounts.length} account${accounts.length === 1 ? '' : 's'}` },
+          { label: 'Account Balance', value: new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalBalance), change: `${accounts.length} account${accounts.length === 1 ? '' : 's'}` },
           { label: 'Active Accounts', value: String(accounts.filter((account) => account.status === 'active').length), change: `${accounts.length} total` },
           { label: 'Recent Transactions', value: String(transactions.length), change: 'Last 10 items' },
           { label: 'Support Tickets', value: '0', change: 'No data yet' }
@@ -107,7 +107,7 @@ exports.getAccountDetails = async (req, res) => {
 // @access  Private
 exports.createAccount = async (req, res) => {
   try {
-    const { accountType, initialDeposit = 0, currency = 'USD' } = req.body;
+    const { accountType, initialDeposit = 0, currency = 'LKR' } = req.body;
 
     // Check if user already has an account of this type
     const existingAccount = await Account.findOne({
@@ -231,7 +231,7 @@ exports.transferMoney = async (req, res) => {
     if (todayTotal + amount > (fromAccount.dailyTransactionLimit || 10000)) {
       return res.status(400).json({
         success: false,
-        message: `Daily transaction limit of $${fromAccount.dailyTransactionLimit || 10000} exceeded`
+        message: `Daily transaction limit of LKR ${Number(fromAccount.dailyTransactionLimit || 10000).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} exceeded`
       });
     }
 

@@ -18,6 +18,7 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { formatCompactCurrency, formatCurrency } from "../../utils/formatters";
 import axios from "axios";
 import {
   LineChart,
@@ -218,11 +219,16 @@ const TransactionsModule = () => {
   };
 
   const formatAmount = (amount, type) => {
-    const formatted = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
+    const formatted = formatCurrency(amount);
     return type === "withdrawal" || type === "payment" ? `-${formatted}` : `+${formatted}`;
+  };
+
+  const formatVolumeTooltip = (value, name) => {
+    if (String(name).toLowerCase().includes("volume")) {
+      return [formatCurrency(value), name];
+    }
+
+    return [Number(value || 0).toLocaleString(), name];
   };
 
   const exportToCSV = () => {
@@ -266,7 +272,7 @@ const TransactionsModule = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Total Volume</p>
-              <p className="text-2xl font-bold text-slate-800">$12.5M</p>
+              <p className="text-2xl font-bold text-slate-800">{formatCompactCurrency(12500000)}</p>
             </div>
             <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
               <FaMoneyBillWave className="text-emerald-600" />
@@ -317,9 +323,9 @@ const TransactionsModule = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
-              <Tooltip />
+              <Tooltip formatter={formatVolumeTooltip} />
               <Legend />
-              <Bar dataKey="volume" fill="#3b82f6" name="Volume ($)" />
+              <Bar dataKey="volume" fill="#3b82f6" name="Volume (LKR)" />
               <Bar dataKey="count" fill="#10b981" name="Count" />
             </BarChart>
           </ResponsiveContainer>

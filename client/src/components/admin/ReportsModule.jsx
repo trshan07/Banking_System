@@ -9,6 +9,7 @@ import {
   FaMoneyBillWave,
   FaShieldAlt,
   FaUserCheck,
+  FaCheckCircle,
   FaClock,
   FaPrint,
   FaEnvelope,
@@ -16,6 +17,8 @@ import {
   FaFilter,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import axios from "axios";
+import { formatCompactCurrency, formatCurrency } from "../../utils/formatters";
 import {
   LineChart,
   Line,
@@ -112,7 +115,15 @@ const ReportsModule = () => {
     window.print();
   };
 
-  const SummaryCard = ({ title, value, icon: Icon, color }) => (
+  const formatVolumeTooltip = (value, name) => {
+    if (String(name).toLowerCase().includes("volume")) {
+      return [formatCurrency(value), name];
+    }
+
+    return [Number(value || 0).toLocaleString(), name];
+  };
+
+  const SummaryCard = ({ title, value, icon, color }) => (
     <div className="bg-white rounded-xl shadow-lg p-4">
       <div className="flex items-center justify-between">
         <div>
@@ -120,7 +131,7 @@ const ReportsModule = () => {
           <p className="text-2xl font-bold text-slate-800">{typeof value === 'number' ? value.toLocaleString() : value}</p>
         </div>
         <div className={`w-10 h-10 ${color} rounded-lg flex items-center justify-center text-white`}>
-          <Icon className="w-5 h-5" />
+          {React.createElement(icon, { className: "w-5 h-5" })}
         </div>
       </div>
     </div>
@@ -219,13 +230,13 @@ const ReportsModule = () => {
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <SummaryCard title="Total Transactions" value={reportData.summary.totalTransactions} icon={FaMoneyBillWave} color="bg-blue-500" />
-            <SummaryCard title="Total Volume" value={`$${(reportData.summary.totalVolume / 1000000).toFixed(1)}M`} icon={FaChartLine} color="bg-green-500" />
+            <SummaryCard title="Total Volume" value={formatCompactCurrency(reportData.summary.totalVolume)} icon={FaChartLine} color="bg-green-500" />
             <SummaryCard title="Active Users" value={reportData.summary.activeUsers} icon={FaUsers} color="bg-purple-500" />
             <SummaryCard title="KYC Completed" value={reportData.summary.kycCompleted} icon={FaUserCheck} color="bg-emerald-500" />
             {reportData.summary.revenue && (
               <>
-                <SummaryCard title="Revenue" value={`$${(reportData.summary.revenue / 1000).toFixed(0)}K`} icon={FaMoneyBillWave} color="bg-teal-500" />
-                <SummaryCard title="Expenses" value={`$${(reportData.summary.expenses / 1000).toFixed(0)}K`} icon={FaMoneyBillWave} color="bg-red-500" />
+                <SummaryCard title="Revenue" value={formatCompactCurrency(reportData.summary.revenue)} icon={FaMoneyBillWave} color="bg-teal-500" />
+                <SummaryCard title="Expenses" value={formatCompactCurrency(reportData.summary.expenses)} icon={FaMoneyBillWave} color="bg-red-500" />
               </>
             )}
             {reportData.summary.fraudAlerts && (
@@ -246,10 +257,10 @@ const ReportsModule = () => {
                   <XAxis dataKey="date" />
                   <YAxis yAxisId="left" />
                   <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
+                  <Tooltip formatter={formatVolumeTooltip} />
                   <Legend />
                   <Line yAxisId="left" type="monotone" dataKey="transactions" stroke="#3b82f6" name="Transactions" />
-                  <Line yAxisId="right" type="monotone" dataKey="volume" stroke="#10b981" name="Volume ($)" />
+                  <Line yAxisId="right" type="monotone" dataKey="volume" stroke="#10b981" name="Volume (LKR)" />
                 </LineChart>
               </ResponsiveContainer>
             </div>

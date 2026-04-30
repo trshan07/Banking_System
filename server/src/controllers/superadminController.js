@@ -5,6 +5,7 @@ const Branch = require('../models/Branch');
 const FraudReport = require('../models/FraudReport');
 const Transaction = require('../models/Transaction');
 const User = require('../models/User');
+const { formatCurrency } = require('../utils/formatCurrency');
 
 const TRACKED_ROLES = ['superadmin', 'admin', 'employee', 'customer'];
 const TRACKED_STATUSES = ['active', 'pending', 'inactive', 'suspended'];
@@ -292,7 +293,7 @@ exports.getAuditLogs = async (req, res) => {
       id: `transaction-${transaction._id}`,
       action: `${transaction.type} transaction`,
       user: transaction.reference || 'transaction',
-      target: `$${transaction.amount?.toLocaleString?.() || transaction.amount}`,
+      target: formatCurrency(transaction.amount),
       time: getTimeAgo(transaction.createdAt),
       timestamp: transaction.createdAt,
       status: transaction.status === 'completed' ? 'success' : transaction.status,

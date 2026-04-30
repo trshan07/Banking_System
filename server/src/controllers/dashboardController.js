@@ -63,7 +63,7 @@ const mapAccount = (account) => ({
   accountNumber: account.accountNumber,
   accountType: account.accountType,
   balance: Number(account.balance) || 0,
-  currency: account.currency || 'USD',
+  currency: account.currency || 'LKR',
   status: account.status || 'active',
   interestRate: Number(account.interestRate) || 0,
   openedAt: account.openedAt || account.createdAt,

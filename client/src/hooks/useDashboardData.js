@@ -29,7 +29,7 @@ const normalizeAccount = (account) => ({
   balance: Number(account?.balance) || 0,
   type: account?.accountType || account?.type || 'checking',
   accountType: account?.accountType || account?.type || 'checking',
-  currency: account?.currency || 'USD',
+  currency: account?.currency || 'LKR',
   status: account?.status || 'active',
   interestRate: Number(account?.interestRate) || 0,
   openedAt: account?.openedAt || account?.createdAt || null,

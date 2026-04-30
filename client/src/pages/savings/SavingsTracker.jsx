@@ -725,7 +725,7 @@ const SavingsTracker = () => {
                             <div
                               key={`${goal.id}-${milestone.amount}`}
                               className={`h-1 flex-1 rounded-full ${milestone.achieved ? colors.bar : 'bg-gray-200'}`}
-                              title={`$${milestone.amount.toLocaleString()}`}
+                              title={formatCurrency(milestone.amount)}
                             />
                           ))}
                         </div>
@@ -945,7 +945,7 @@ const SavingsTracker = () => {
                     ) : (
                       accounts.map((account) => (
                         <option key={account._id || account.id} value={account._id || account.id}>
-                          {`${String(account.accountType || 'account').replace(/^./, (character) => character.toUpperCase())} • ${formatAccountNumber(account.accountNumber || account.id || '0000')} • ${formatCurrency(Number(account.balance) || 0, account.currency || 'USD')}`}
+                          {`${String(account.accountType || 'account').replace(/^./, (character) => character.toUpperCase())} • ${formatAccountNumber(account.accountNumber || account.id || '0000')} • ${formatCurrency(Number(account.balance) || 0, account.currency || 'LKR')}`}
                         </option>
                       ))
                     )}

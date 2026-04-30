@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FaPlus, FaEdit, FaTrash, FaMapMarkerAlt, FaPhone, FaEnvelope, FaSearch, FaFilter, FaBuilding, FaUserTie, FaClock, FaChartLine, FaCheckCircle, FaUsers } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { formatCompactCurrency } from "../../utils/formatters";
 
 const BranchManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -226,7 +227,7 @@ const BranchManagement = () => {
                     </div>
                     <div>
                       <p className="text-slate-500">Revenue</p>
-                      <p className="font-medium text-green-600">${(branch.revenue / 1000000).toFixed(1)}M</p>
+                      <p className="font-medium text-green-600">{formatCompactCurrency(branch.revenue)}</p>
                     </div>
                   </div>
                 </div>

@@ -43,7 +43,9 @@ class SMSService {
 
   async sendTransactionAlert(to, amount, type, balance) {
     const action = type === 'credit' ? 'credited to' : 'debited from';
-    const message = `Smart Bank Alert: $${amount} ${action} your account. New balance: $${balance}`;
+    const formattedAmount = Number(amount || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const formattedBalance = Number(balance || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const message = `Smart Bank Alert: LKR ${formattedAmount} ${action} your account. New balance: LKR ${formattedBalance}`;
     return this.sendSMS(to, message);
   }
 
