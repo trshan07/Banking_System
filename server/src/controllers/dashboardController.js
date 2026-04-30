@@ -556,8 +556,8 @@ exports.executeSidebarAction = async (req, res) => {
           message: 'Opening the loan application form.',
         },
         'loan-status': {
-          redirectTo: '/dashboard/loans/status',
-          message: 'Opening your loan applications and repayment status.',
+          redirectTo: '/dashboard/loans',
+          message: 'Opening your loan dashboard and repayment overview.',
         },
         accounts: {
           redirectTo: '/dashboard/banking/accounts',
@@ -712,7 +712,7 @@ exports.getSidebarItems = async (req, res) => {
           title: 'Loan Status',
           description: 'Track applications, approvals, and repayment progress from one place.',
           tag: 'Loans',
-          route: '/dashboard/loans/status',
+          route: '/dashboard/loans',
           metric: `${totalLoans} loan record${totalLoans === 1 ? '' : 's'}`,
         },
         {

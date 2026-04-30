@@ -25,7 +25,7 @@ const Sidebar = () => {
       icon: FaMoneyBillWave,
       label: "Apply for Loan",
     },
-    { to: "/dashboard/loans/status", icon: FaTasks, label: "Loan Status" },
+    { to: "/dashboard/loans", icon: FaTasks, label: "Loan Status" },
     {
       to: "/dashboard/banking/accounts",
       icon: FaUniversity,

@@ -17,6 +17,22 @@ export const loanService = {
     return api.get(`/loans/${id}/status`)
   },
 
+  async getPendingLoans(params = {}) {
+    return api.get('/loans/admin/pending', { params })
+  },
+
+  async approveLoan(loanId, adminComment = '') {
+    return api.put(`/loans/${loanId}/approve`, { adminComment })
+  },
+
+  async rejectLoan(loanId, adminComment) {
+    return api.put(`/loans/${loanId}/reject`, { adminComment })
+  },
+
+  async addLoanComment(loanId, comment) {
+    return api.post(`/loans/${loanId}/comment`, { comment })
+  },
+
   // Upload a single document tied to a loan
   async uploadDocument(loanId, file, documentType) {
     const formData = new FormData()

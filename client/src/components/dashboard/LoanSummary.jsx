@@ -162,7 +162,7 @@ const LoanSummary = ({ loans, loading }) => {
                     <p className="text-xs font-medium text-green-700">
                       Approved on {formatDate(loan.decisionDate)}
                     </p>
-                    <Link to="/dashboard/loans/status" className="text-xs font-semibold text-[#173d61] hover:text-[#102d49]">
+                    <Link to="/dashboard/loans" className="text-xs font-semibold text-[#173d61] hover:text-[#102d49]">
                       View Details
                     </Link>
                   </div>
@@ -180,7 +180,7 @@ const LoanSummary = ({ loans, loading }) => {
 
         {loans.length > 0 && (
           <Link
-            to="/dashboard/loans/status"
+            to="/dashboard/loans"
             className="mt-5 block border-t border-slate-200 pt-4 text-center text-sm font-semibold text-[#173d61] transition hover:text-[#102d49]"
           >
             View All Loans

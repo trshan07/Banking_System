@@ -24,7 +24,10 @@ import ResetPassword from '../pages/auth/ResetPassword'
 
 // Customer Pages
 import CustomerDashboard from '../pages/dashboard/CustomerDashboard'
+import LoansDashboard from '../pages/loans/LoansDashboard'
 import LoanApplication from '../pages/loans/LoanApplication'
+import LoanCalculator from '../pages/loans/LoanCalculator'
+import LoanDetails from '../pages/loans/LoanDetails'
 import LoanStatus from '../pages/loans/LoanStatus'
 import SupportTickets from '../pages/support/SupportTickets'
 import CreateTicket from '../pages/support/CreateTicket'
@@ -82,8 +85,11 @@ const AppRoutes = () => {
         </PrivateRoute>
       }>
         <Route index element={<CustomerDashboard />} />
+        <Route path="loans" element={<LoansDashboard />} />
         <Route path="loans/apply" element={<LoanApplication />} />
+        <Route path="loans/calculator" element={<LoanCalculator />} />
         <Route path="loans/status" element={<LoanStatus />} />
+        <Route path="loans/:loanId" element={<LoanDetails />} />
         <Route path="support" element={<SupportTickets />} />
         <Route path="support/create" element={<CreateTicket />} />
         <Route path="support/ticket/:id" element={<TicketDetails />} />
