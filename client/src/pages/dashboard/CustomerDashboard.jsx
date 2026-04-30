@@ -284,7 +284,10 @@ const CustomerDashboard = () => {
             <ActiveAlerts alerts={alerts} onDismiss={dismissAlert} />
           </div>
           <div className="xl:col-span-7">
-            <Sidebar />
+            <Sidebar
+              title="Help, tools, and next steps"
+              subtitle="Find the most useful account actions here, with a layout that stays cleaner as your shortcuts change."
+            />
           </div>
         </div>
       </section>
