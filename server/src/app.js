@@ -26,6 +26,7 @@ const savingsRoutes = require('./routes/savingsRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
 const leaveRoutes = require('./routes/leaveRoutes');
 const superadminRoutes = require('./routes/superadminRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 
 // Import middleware
@@ -198,6 +199,7 @@ app.use('/api/savings', savingsRoutes);
 app.use('/api/employee', employeeRoutes);
 app.use('/api/leave', leaveRoutes);
 app.use('/api/superadmin', superadminRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
 // ============================================

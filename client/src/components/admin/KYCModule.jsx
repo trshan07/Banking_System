@@ -19,7 +19,7 @@ import {
   FaBriefcase,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
-import axios from "axios";
+import api from "../../services/api";
 
 const KYCModule = () => {
   const [loading, setLoading] = useState(true);
@@ -43,10 +43,8 @@ const KYCModule = () => {
 
   const fetchApplications = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/kyc/applications", {
+      const response = await api.get("/admin/kyc/applications", {
         params: { status: filterStatus, page: currentPage },
-        headers: { Authorization: `Bearer ${token}` },
       });
       setApplications(response.data.data);
     } catch (error) {
@@ -124,10 +122,7 @@ const KYCModule = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/kyc/stats", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/admin/kyc/stats");
       setStats(response.data.data);
     } catch (error) {
       setStats({ total: 156, pending: 34, approved: 112, rejected: 10 });
@@ -136,10 +131,7 @@ const KYCModule = () => {
 
   const handleApprove = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(`/api/admin/kyc/${id}/approve`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.put(`/admin/kyc/${id}/approve`, {});
       toast.success("KYC application approved");
       fetchApplications();
       fetchStats();
@@ -152,10 +144,7 @@ const KYCModule = () => {
     const reason = prompt("Please provide rejection reason:");
     if (reason) {
       try {
-        const token = localStorage.getItem("token");
-        await axios.put(`/api/admin/kyc/${id}/reject`, { reason }, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.put(`/admin/kyc/${id}/reject`, { reason });
         toast.success("KYC application rejected");
         fetchApplications();
         fetchStats();
@@ -181,6 +170,27 @@ const KYCModule = () => {
       case "high": return "bg-red-100 text-red-700";
       default: return "bg-gray-100 text-gray-700";
     }
+  };
+
+  const exportApplications = () => {
+    const headers = ["Name", "Email", "Phone", "Status", "Submitted Date", "Risk Level"];
+    const rows = applications.map((application) => [
+      application.name,
+      application.email,
+      application.phone,
+      application.status,
+      application.submittedDate,
+      application.riskLevel,
+    ]);
+    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `kyc_applications_${new Date().toISOString()}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export started");
   };
 
   if (loading) {
@@ -247,7 +257,7 @@ const KYCModule = () => {
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
           </select>
-          <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center">
+          <button onClick={exportApplications} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center">
             <FaDownload className="mr-2" /> Export
           </button>
         </div>
@@ -373,7 +383,7 @@ const KYCModule = () => {
                             <span className={doc.status === "verified" ? "text-green-600" : doc.status === "uploaded" ? "text-blue-600" : "text-red-600"}>
                               {doc.status}
                             </span>
-                            <button className="text-blue-600 hover:text-blue-700"><FaDownload /></button>
+                            <button onClick={() => doc.url && window.open(doc.url, "_blank", "noopener,noreferrer")} className="text-blue-600 hover:text-blue-700"><FaDownload /></button>
                           </div>
                         </div>
                       ))}

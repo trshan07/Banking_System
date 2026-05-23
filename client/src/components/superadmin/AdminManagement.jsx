@@ -85,6 +85,8 @@ const AdminManagement = ({
       setSubmitting(true);
       await onCreateAdmin(newAdmin);
       resetAddForm();
+    } catch (error) {
+      // Parent handler already surfaces the backend error to the user.
     } finally {
       setSubmitting(false);
     }
@@ -112,6 +114,8 @@ const AdminManagement = ({
       });
       setShowEditModal(false);
       setSelectedAdmin(null);
+    } catch (error) {
+      // Parent handler already surfaces the backend error to the user.
     } finally {
       setSubmitting(false);
     }
@@ -123,7 +127,11 @@ const AdminManagement = ({
     }
 
     if (window.confirm("Are you sure you want to delete this admin?")) {
-      await onDeleteAdmin(id);
+      try {
+        await onDeleteAdmin(id);
+      } catch (error) {
+        // Parent handler already surfaces the backend error to the user.
+      }
     }
   };
 
@@ -132,7 +140,11 @@ const AdminManagement = ({
       return;
     }
 
-    await onToggleAdminStatus(admin);
+    try {
+      await onToggleAdminStatus(admin);
+    } catch (error) {
+      // Parent handler already surfaces the backend error to the user.
+    }
   };
 
   const getStatusColor = (status) => {

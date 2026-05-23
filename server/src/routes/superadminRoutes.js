@@ -5,6 +5,7 @@ const {
   getAdmins,
   getAuditLogs,
   getPerformance,
+  getSettings,
   getStats,
   getSystemHealth,
   setMaintenanceMode,
@@ -29,6 +30,9 @@ router.get('/performance', getPerformance);
 
 // Get admin management data
 router.get('/admins', getAdmins);
+
+// Get current settings
+router.get('/settings', getSettings);
 
 // Update system settings
 router.put('/settings', updateSettings);

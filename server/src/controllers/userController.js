@@ -1,5 +1,33 @@
 // backend/src/controllers/userController.js
+const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
+
+const ADMIN_MANAGEABLE_STATUSES = ['active', 'pending', 'inactive', 'suspended'];
+const EDITABLE_ROLES = {
+  superadmin: ['admin', 'employee', 'customer'],
+  admin: ['employee', 'customer'],
+  employee: ['customer'],
+};
+
+const getAllowedRolesForUser = (role) => EDITABLE_ROLES[role] || [];
+const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : email);
+
+const createAuditEntry = async (req, action, target, details, metadata = {}, entity = 'user', entityId = null) => {
+  await AuditLog.create({
+    userId: req.user?._id || null,
+    userEmail: req.user?.email || 'system',
+    action,
+    entity,
+    entityId: entityId ? String(entityId) : null,
+    target,
+    details,
+    status: 'success',
+    ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+    userAgent: req.get('User-Agent') || '',
+    metadata,
+    timestamp: new Date(),
+  });
+};
 
 // Get current user profile
 exports.getProfile = async (req, res) => {
@@ -22,9 +50,27 @@ exports.getProfile = async (req, res) => {
 // Update current user profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, phone, address } = req.body;
+    const { firstName, lastName, email, phone, address } = req.body;
     
     const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already registered'
+        });
+      }
+      user.email = email;
+    }
     
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
@@ -32,6 +78,15 @@ exports.updateProfile = async (req, res) => {
     if (address) user.address = address;
     
     await user.save();
+    await createAuditEntry(
+      req,
+      'Profile updated',
+      user.email,
+      'User updated their profile information.',
+      { updatedFields: Object.keys(req.body) },
+      'profile',
+      user._id
+    );
     
     const updatedUser = await User.findById(req.user.id).select('-password -refreshToken -__v');
     
@@ -62,6 +117,15 @@ exports.uploadProfilePicture = async (req, res) => {
     const user = await User.findById(req.user.id);
     user.profileImage = `/uploads/${req.file.filename}`;
     await user.save();
+    await createAuditEntry(
+      req,
+      'Admin user created',
+      user.email,
+      `Created ${role} account for ${firstName} ${lastName}.`,
+      { role },
+      'user',
+      user._id
+    );
 
     res.json({
       success: true,
@@ -214,14 +278,8 @@ exports.createUser = async (req, res) => {
     const currentUser = req.user;
 
     // Role hierarchy validation
-    const allowedRoles = {
-      'superadmin': ['admin', 'employee', 'customer'],
-      'admin': ['employee', 'customer'],
-      'employee': ['customer']
-    };
-
     // Check if current user can create the requested role
-    if (!allowedRoles[currentUser.role] || !allowedRoles[currentUser.role].includes(role)) {
+    if (!getAllowedRolesForUser(currentUser.role).includes(role)) {
       return res.status(403).json({
         success: false,
         message: `You cannot create users with role '${role}'. Your role: ${currentUser.role}`
@@ -229,7 +287,8 @@ exports.createUser = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const normalizedEmail = normalizeEmail(email);
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -260,7 +319,7 @@ exports.createUser = async (req, res) => {
     const user = new User({
       firstName,
       lastName,
-      email,
+      email: normalizedEmail,
       password,
       phone,
       address,
@@ -271,6 +330,15 @@ exports.createUser = async (req, res) => {
     });
 
     await user.save();
+    await createAuditEntry(
+      req,
+      'Admin user created',
+      user.email,
+      `Created ${role} account for ${firstName} ${lastName}.`,
+      { role },
+      'user',
+      user._id
+    );
 
     // Remove sensitive data from response
     const userResponse = user.toObject();
@@ -325,6 +393,7 @@ exports.updateUser = async (req, res) => {
   try {
     const { userId } = req.params;
     const { firstName, lastName, email, phone, address, role, status } = req.body;
+    const currentUser = req.user;
     
     const user = await User.findById(userId);
     
@@ -334,10 +403,45 @@ exports.updateUser = async (req, res) => {
         message: 'User not found'
       });
     }
+
+    if (currentUser.role !== 'superadmin' && user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only super admins can modify admin accounts.'
+      });
+    }
+
+    if (role && role !== user.role) {
+      if (!getAllowedRolesForUser(currentUser.role).includes(role)) {
+        return res.status(403).json({
+          success: false,
+          message: `You cannot assign role '${role}'.`
+        });
+      }
+
+    }
+
+    if (status && !ADMIN_MANAGEABLE_STATUSES.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status provided'
+      });
+    }
+
+    if (email) {
+      const normalizedEmail = normalizeEmail(email);
+      const existingUser = await User.findOne({ email: normalizedEmail, _id: { $ne: user._id } });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already registered'
+        });
+      }
+      user.email = normalizedEmail;
+    }
     
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
-    if (email) user.email = email;
     if (phone) user.phone = phone;
     if (address) user.address = address;
     if (role) user.role = role;
@@ -346,6 +450,15 @@ exports.updateUser = async (req, res) => {
     await user.save();
     
     const updatedUser = await User.findById(userId).select('-password -refreshToken -__v');
+    await createAuditEntry(
+      req,
+      'User account updated',
+      updatedUser.email,
+      `Updated account details for ${updatedUser.firstName} ${updatedUser.lastName}.`,
+      { updatedFields: Object.keys(req.body) },
+      'user',
+      updatedUser._id
+    );
     
     res.json({
       success: true,
@@ -361,7 +474,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Delete user by ID (super admin only)
+// Delete user by ID (admin and super admin)
 exports.deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -374,10 +487,33 @@ exports.deleteUser = async (req, res) => {
         message: 'User not found'
       });
     }
+
+    if (user.role === 'superadmin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Super admin accounts cannot be deleted from this panel'
+      });
+    }
+
+    if (req.user.role !== 'superadmin' && user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only super admins can deactivate admin accounts'
+      });
+    }
     
     // Soft delete - set status to inactive
     user.status = 'inactive';
     await user.save();
+    await createAuditEntry(
+      req,
+      'User account deactivated',
+      user.email,
+      `Deactivated account for ${user.firstName} ${user.lastName}.`,
+      {},
+      'user',
+      user._id
+    );
     
     res.json({
       success: true,

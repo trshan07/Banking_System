@@ -11,6 +11,14 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true, select: false },
   phone: { type: String, required: true, trim: true },
   address: { type: String, required: true, trim: true },
+  city: { type: String, default: '', trim: true },
+  state: { type: String, default: '', trim: true },
+  zipCode: { type: String, default: '', trim: true },
+  country: { type: String, default: '', trim: true },
+  dateOfBirth: { type: Date, default: null },
+  department: { type: String, default: '', trim: true },
+  employeeId: { type: String, default: '', trim: true },
+  profileImage: { type: String, default: '' },
   role: { type: String, enum: ['customer', 'employee', 'admin', 'superadmin'], default: 'customer' },
   status: { type: String, enum: ['pending', 'active', 'inactive', 'suspended'], default: 'pending' },
   isEmailVerified: { type: Boolean, default: false },
@@ -25,7 +33,41 @@ const userSchema = new mongoose.Schema({
     },
     language: { type: String, default: 'en' },
     theme: { type: String, default: 'light' },
-    currency: { type: String, default: 'LKR' }
+    currency: { type: String, default: 'LKR' },
+    adminDashboard: {
+      notifications: {
+        email: { type: Boolean, default: true },
+        push: { type: Boolean, default: true },
+        sms: { type: Boolean, default: false },
+        inApp: { type: Boolean, default: true },
+        dailyDigest: { type: Boolean, default: true },
+        weeklyReport: { type: Boolean, default: true }
+      },
+      security: {
+        twoFactorAuth: { type: Boolean, default: true },
+        sessionTimeout: { type: Number, default: 30 },
+        loginAlerts: { type: Boolean, default: true },
+        deviceManagement: { type: Boolean, default: true }
+      },
+      appearance: {
+        theme: { type: String, default: 'light' },
+        compactMode: { type: Boolean, default: false },
+        animations: { type: Boolean, default: true },
+        sidebarCollapsed: { type: Boolean, default: false }
+      },
+      preferences: {
+        language: { type: String, default: 'en' },
+        timezone: { type: String, default: 'Asia/Colombo' },
+        dateFormat: { type: String, default: 'YYYY-MM-DD' },
+        numberFormat: { type: String, default: 'en-US' }
+      },
+      system: {
+        backupSchedule: { type: String, default: 'daily' },
+        autoUpdate: { type: Boolean, default: true },
+        maintenanceMode: { type: Boolean, default: false },
+        logRetention: { type: Number, default: 90 }
+      }
+    }
   },
   refreshToken: { type: String, select: false },
   refreshTokenExpires: { type: Date, default: null },

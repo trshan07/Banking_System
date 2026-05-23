@@ -17,7 +17,7 @@ import {
   FaEnvelope,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
-import axios from "axios";
+import api from "../../services/api";
 import { formatCurrency } from "../../utils/formatters";
 import {
   LineChart,
@@ -57,10 +57,8 @@ const FraudModule = () => {
 
   const fetchAlerts = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/fraud/alerts", {
+      const response = await api.get("/admin/fraud/alerts", {
         params: { priority: filterPriority, status: filterStatus },
-        headers: { Authorization: `Bearer ${token}` },
       });
       setAlerts(response.data.data);
     } catch (error) {
@@ -138,10 +136,7 @@ const FraudModule = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/fraud/stats", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/admin/fraud/stats");
       setStats(response.data.data);
     } catch (error) {
       setStats({ total: 45, high: 12, medium: 18, low: 15, resolved: 20 });
@@ -150,10 +145,7 @@ const FraudModule = () => {
 
   const fetchTrendData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/fraud/trends", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/admin/fraud/trends");
       setTrendData(response.data.data);
     } catch (error) {
       setTrendData([
@@ -167,10 +159,7 @@ const FraudModule = () => {
 
   const handleResolve = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(`/api/admin/fraud/${id}/resolve`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.put(`/admin/fraud/${id}/resolve`, {});
       toast.success("Alert marked as resolved");
       fetchAlerts();
       fetchStats();
@@ -181,10 +170,7 @@ const FraudModule = () => {
 
   const handleEscalate = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(`/api/admin/fraud/${id}/escalate`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.put(`/admin/fraud/${id}/escalate`, {});
       toast.success("Alert escalated to higher authority");
       fetchAlerts();
     } catch (error) {

@@ -4,8 +4,15 @@ const mongoose = require('mongoose');
 const branchSchema = new mongoose.Schema({
   id: {
     type: String,
-    required: true,
-    unique: true
+    unique: true,
+    sparse: true
+  },
+  code: {
+    type: String,
+    required: [true, 'Branch code is required'],
+    unique: true,
+    trim: true,
+    uppercase: true
   },
   name: {
     type: String,
@@ -18,11 +25,11 @@ const branchSchema = new mongoose.Schema({
   },
   latitude: {
     type: Number,
-    required: [true, 'Latitude is required']
+    default: null
   },
   longitude: {
     type: Number,
-    required: [true, 'Longitude is required']
+    default: null
   },
   services: [{
     type: String,
@@ -45,6 +52,47 @@ const branchSchema = new mongoose.Schema({
     type: String,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
   },
+  managerName: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  city: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  state: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  country: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  status: {
+    type: String,
+    enum: ['active', 'maintenance', 'closed'],
+    default: 'active'
+  },
+  employeeCount: {
+    type: Number,
+    default: 0
+  },
+  customerCount: {
+    type: Number,
+    default: 0
+  },
+  revenue: {
+    type: Number,
+    default: 0
+  },
+  established: {
+    type: Date,
+    default: Date.now
+  },
   openingHours: {
     monday: { type: String, default: '9:00 AM - 5:00 PM' },
     tuesday: { type: String, default: '9:00 AM - 5:00 PM' },
@@ -62,7 +110,16 @@ const branchSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Create geospatial index for location-based queries
-branchSchema.index({ location: '2dsphere' });
+branchSchema.pre('save', function(next) {
+  if (!this.id) {
+    this.id = `BR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  }
+
+  this.isActive = this.status === 'active';
+  next();
+});
+
+branchSchema.index({ code: 1, status: 1 });
+branchSchema.index({ latitude: 1, longitude: 1 });
 
 module.exports = mongoose.model('Branch', branchSchema);

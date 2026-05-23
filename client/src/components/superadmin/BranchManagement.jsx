@@ -1,151 +1,189 @@
-import React, { useState } from "react";
-import { FaPlus, FaEdit, FaTrash, FaMapMarkerAlt, FaPhone, FaEnvelope, FaSearch, FaFilter, FaBuilding, FaUserTie, FaClock, FaChartLine, FaCheckCircle, FaUsers } from "react-icons/fa";
+import React, { useMemo, useState } from "react";
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaEnvelope,
+  FaSearch,
+  FaBuilding,
+  FaUserTie,
+  FaCheckCircle,
+  FaUsers,
+  FaTimesCircle,
+} from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { formatCompactCurrency } from "../../utils/formatters";
 
-const BranchManagement = () => {
+const EMPTY_BRANCH_FORM = {
+  code: "",
+  name: "",
+  address: "",
+  city: "",
+  state: "",
+  country: "",
+  phone: "",
+  email: "",
+  manager: "",
+  status: "active",
+  employees: 0,
+  customers: 0,
+  revenue: 0,
+  established: "",
+};
+
+const BranchManagement = ({
+  branches = [],
+  loading = false,
+  onCreateBranch,
+  onUpdateBranch,
+  onDeleteBranch,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
-  
-  const [branches, setBranches] = useState([
-    { 
-      id: 1, 
-      name: "New York Headquarters", 
-      code: "NYC001", 
-      address: "123 Wall Street, Manhattan, NY 10001", 
-      phone: "+1 (212) 555-0100", 
-      email: "nyc@smartbank.com", 
-      manager: "John Smith", 
-      status: "active",
-      employees: 45,
-      customers: 12500,
-      revenue: 4500000,
-      established: "2010-01-15"
-    },
-    { 
-      id: 2, 
-      name: "Los Angeles Branch", 
-      code: "LA002", 
-      address: "456 Sunset Boulevard, Los Angeles, CA 90210", 
-      phone: "+1 (310) 555-0200", 
-      email: "la@smartbank.com", 
-      manager: "Jane Doe", 
-      status: "active",
-      employees: 32,
-      customers: 8900,
-      revenue: 3200000,
-      established: "2012-03-20"
-    },
-    { 
-      id: 3, 
-      name: "Chicago Branch", 
-      code: "CHI003", 
-      address: "789 Michigan Avenue, Chicago, IL 60601", 
-      phone: "+1 (312) 555-0300", 
-      email: "chicago@smartbank.com", 
-      manager: "Bob Johnson", 
-      status: "active",
-      employees: 28,
-      customers: 7600,
-      revenue: 2800000,
-      established: "2014-06-10"
-    },
-    { 
-      id: 4, 
-      name: "Miami Branch", 
-      code: "MIA004", 
-      address: "321 Ocean Drive, Miami, FL 33139", 
-      phone: "+1 (305) 555-0400", 
-      email: "miami@smartbank.com", 
-      manager: "Alice Brown", 
-      status: "maintenance",
-      employees: 22,
-      customers: 5400,
-      revenue: 2100000,
-      established: "2016-09-05"
-    },
-    { 
-      id: 5, 
-      name: "Dallas Branch", 
-      code: "DAL005", 
-      address: "654 Main Street, Dallas, TX 75201", 
-      phone: "+1 (214) 555-0500", 
-      email: "dallas@smartbank.com", 
-      manager: "Charlie Wilson", 
-      status: "active",
-      employees: 25,
-      customers: 6200,
-      revenue: 2400000,
-      established: "2018-01-30"
-    },
-  ]);
+  const [submitting, setSubmitting] = useState(false);
+  const [newBranch, setNewBranch] = useState(EMPTY_BRANCH_FORM);
+  const [editBranch, setEditBranch] = useState(EMPTY_BRANCH_FORM);
 
-  const handleAddBranch = () => {
-    toast.success("Branch added successfully");
-    setShowAddModal(false);
-  };
+  const branchStats = useMemo(() => ({
+    total: branches.length,
+    active: branches.filter((branch) => branch.status === "active").length,
+    employees: branches.reduce((sum, branch) => sum + Number(branch.employees || 0), 0),
+    customers: branches.reduce((sum, branch) => sum + Number(branch.customers || 0), 0),
+  }), [branches]);
 
-  const handleEditBranch = () => {
-    toast.success("Branch updated successfully");
-    setShowEditModal(false);
-  };
-
-  const handleDeleteBranch = (id) => {
-    if (window.confirm("Are you sure you want to delete this branch?")) {
-      toast.success("Branch deleted successfully");
-    }
-  };
+  const filteredBranches = useMemo(() => branches.filter((branch) =>
+    (branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      branch.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      branch.city?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (filterStatus === "all" || branch.status === filterStatus)
+  ), [branches, filterStatus, searchTerm]);
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "active": return "bg-green-100 text-green-700";
-      case "maintenance": return "bg-yellow-100 text-yellow-700";
-      case "closed": return "bg-red-100 text-red-700";
-      default: return "bg-gray-100 text-gray-700";
+      case "active":
+        return "bg-green-100 text-green-700";
+      case "maintenance":
+        return "bg-yellow-100 text-yellow-700";
+      case "closed":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
   };
 
-  const filteredBranches = branches.filter(branch => 
-    (branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     branch.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     branch.city?.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (filterStatus === "all" || branch.status === filterStatus)
-  );
+  const openEditModal = (branch) => {
+    setSelectedBranch(branch);
+    setEditBranch({
+      code: branch.code || "",
+      name: branch.name || "",
+      address: branch.address || "",
+      city: branch.city || "",
+      state: branch.state || "",
+      country: branch.country || "",
+      phone: branch.phone || "",
+      email: branch.email || "",
+      manager: branch.manager || "",
+      status: branch.status || "active",
+      employees: branch.employees || 0,
+      customers: branch.customers || 0,
+      revenue: branch.revenue || 0,
+      established: branch.established ? new Date(branch.established).toISOString().split("T")[0] : "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleAddBranch = async () => {
+    if (!newBranch.code || !newBranch.name || !newBranch.address || !newBranch.phone) {
+      toast.error("Please fill in the required branch fields");
+      return;
+    }
+
+    if (!onCreateBranch) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onCreateBranch(newBranch);
+      setNewBranch(EMPTY_BRANCH_FORM);
+      setShowAddModal(false);
+    } catch (error) {
+      // Parent handler already surfaces the backend error to the user.
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEditBranch = async () => {
+    if (!selectedBranch || !onUpdateBranch) {
+      return;
+    }
+
+    if (!editBranch.code || !editBranch.name || !editBranch.address || !editBranch.phone) {
+      toast.error("Please fill in the required branch fields");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await onUpdateBranch(selectedBranch.id, editBranch);
+      setShowEditModal(false);
+      setSelectedBranch(null);
+    } catch (error) {
+      // Parent handler already surfaces the backend error to the user.
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteBranch = async (branchId) => {
+    if (!onDeleteBranch) {
+      return;
+    }
+
+    if (window.confirm("Are you sure you want to delete this branch?")) {
+      try {
+        await onDeleteBranch(branchId);
+      } catch (error) {
+        // Parent handler already surfaces the backend error to the user.
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-slate-500">Total Branches</p><p className="text-2xl font-bold">{branches.length}</p></div>
+            <div><p className="text-sm text-slate-500">Total Branches</p><p className="text-2xl font-bold">{branchStats.total}</p></div>
             <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"><FaBuilding className="text-purple-600" /></div>
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-slate-500">Active Branches</p><p className="text-2xl font-bold text-green-600">{branches.filter(b => b.status === "active").length}</p></div>
+            <div><p className="text-sm text-slate-500">Active Branches</p><p className="text-2xl font-bold text-green-600">{branchStats.active}</p></div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><FaCheckCircle className="text-green-600" /></div>
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-slate-500">Total Employees</p><p className="text-2xl font-bold">{branches.reduce((sum, b) => sum + b.employees, 0)}</p></div>
+            <div><p className="text-sm text-slate-500">Total Employees</p><p className="text-2xl font-bold">{branchStats.employees}</p></div>
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><FaUserTie className="text-blue-600" /></div>
           </div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-slate-500">Total Customers</p><p className="text-2xl font-bold">{branches.reduce((sum, b) => sum + b.customers, 0).toLocaleString()}</p></div>
+            <div><p className="text-sm text-slate-500">Total Customers</p><p className="text-2xl font-bold">{branchStats.customers.toLocaleString()}</p></div>
             <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center"><FaUsers className="text-emerald-600" /></div>
           </div>
         </div>
       </div>
 
-      {/* Main Card */}
       <div className="bg-white rounded-xl shadow-lg">
         <div className="p-6 border-b flex justify-between items-center">
           <div>
@@ -156,21 +194,20 @@ const BranchManagement = () => {
             <FaPlus className="mr-2" /> Add Branch
           </button>
         </div>
-        
+
         <div className="p-6">
-          {/* Filters */}
           <div className="flex flex-wrap gap-4 mb-6">
             <div className="flex-1 min-w-[200px] relative">
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Search by name, code, or city..." 
+              <input
+                type="text"
+                placeholder="Search by name, code, or city..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
-            <select 
+            <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -182,8 +219,10 @@ const BranchManagement = () => {
             </select>
           </div>
 
-          {/* Branches Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {loading && (
+              <div className="col-span-full text-center py-8 text-slate-500">Loading branch records...</div>
+            )}
             {filteredBranches.map((branch) => (
               <div key={branch.id} className="border rounded-xl p-5 hover:shadow-lg transition-all hover:border-purple-200">
                 <div className="flex justify-between items-start mb-3">
@@ -195,27 +234,27 @@ const BranchManagement = () => {
                     {branch.status}
                   </span>
                 </div>
-                
+
                 <div className="space-y-2 mb-4">
                   <p className="text-sm text-slate-600 flex items-start">
-                    <FaMapMarkerAlt className="mr-2 mt-0.5 flex-shrink-0 text-slate-400" /> 
+                    <FaMapMarkerAlt className="mr-2 mt-0.5 flex-shrink-0 text-slate-400" />
                     <span>{branch.address}</span>
                   </p>
                   <p className="text-sm text-slate-600 flex items-center">
-                    <FaPhone className="mr-2 text-slate-400" /> 
+                    <FaPhone className="mr-2 text-slate-400" />
                     {branch.phone}
                   </p>
                   <p className="text-sm text-slate-600 flex items-center">
-                    <FaEnvelope className="mr-2 text-slate-400" /> 
-                    {branch.email}
+                    <FaEnvelope className="mr-2 text-slate-400" />
+                    {branch.email || "N/A"}
                   </p>
                 </div>
-                
+
                 <div className="bg-gray-50 rounded-lg p-3 mb-4">
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <p className="text-slate-500">Manager</p>
-                      <p className="font-medium text-slate-800">{branch.manager}</p>
+                      <p className="font-medium text-slate-800">{branch.manager || "N/A"}</p>
                     </div>
                     <div>
                       <p className="text-slate-500">Employees</p>
@@ -223,26 +262,23 @@ const BranchManagement = () => {
                     </div>
                     <div>
                       <p className="text-slate-500">Customers</p>
-                      <p className="font-medium text-slate-800">{branch.customers.toLocaleString()}</p>
+                      <p className="font-medium text-slate-800">{Number(branch.customers || 0).toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-slate-500">Revenue</p>
-                      <p className="font-medium text-green-600">{formatCompactCurrency(branch.revenue)}</p>
+                      <p className="font-medium text-green-600">{formatCompactCurrency(branch.revenue || 0)}</p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end space-x-2 pt-3 border-t">
-                  <button 
-                    onClick={() => {
-                      setSelectedBranch(branch);
-                      setShowEditModal(true);
-                    }}
+                  <button
+                    onClick={() => openEditModal(branch)}
                     className="px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center"
                   >
                     <FaEdit className="mr-1" /> Edit
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleDeleteBranch(branch.id)}
                     className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center"
                   >
@@ -253,134 +289,125 @@ const BranchManagement = () => {
             ))}
           </div>
 
-          {filteredBranches.length === 0 && (
-            <div className="text-center py-8 text-slate-500">
-              No branches found matching your criteria
+          {!loading && filteredBranches.length === 0 && (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center py-10 text-slate-500">
+              No branches found matching your criteria.
             </div>
           )}
         </div>
       </div>
 
-      {/* Add Branch Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Add New Branch</h3>
-                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-slate-100 rounded-lg">
-                  <FaTimesCircle className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Branch Name *</label>
-                    <input type="text" className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter branch name" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Branch Code *</label>
-                    <input type="text" className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter branch code" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Address *</label>
-                  <textarea rows="2" className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter full address"></textarea>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Phone *</label>
-                    <input type="tel" className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter phone number" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Email *</label>
-                    <input type="email" className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter email address" />
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Branch Manager</label>
-                    <input type="text" className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter manager name" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Status</label>
-                    <select className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                      <option>active</option>
-                      <option>maintenance</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
-                <button onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-lg hover:bg-slate-50">Cancel</button>
-                <button onClick={handleAddBranch} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Add Branch</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <BranchModal
+          title="Add New Branch"
+          branch={newBranch}
+          setBranch={setNewBranch}
+          onCancel={() => setShowAddModal(false)}
+          onSubmit={handleAddBranch}
+          submitting={submitting}
+          submitLabel="Add Branch"
+        />
       )}
 
-      {/* Edit Branch Modal */}
       {showEditModal && selectedBranch && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Edit Branch</h3>
-                <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-slate-100 rounded-lg">
-                  <FaTimesCircle className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Branch Name</label>
-                    <input type="text" defaultValue={selectedBranch.name} className="w-full px-3 py-2 border rounded-lg" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Branch Code</label>
-                    <input type="text" defaultValue={selectedBranch.code} className="w-full px-3 py-2 border rounded-lg" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Address</label>
-                  <textarea rows="2" defaultValue={selectedBranch.address} className="w-full px-3 py-2 border rounded-lg"></textarea>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Phone</label>
-                    <input type="tel" defaultValue={selectedBranch.phone} className="w-full px-3 py-2 border rounded-lg" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" defaultValue={selectedBranch.email} className="w-full px-3 py-2 border rounded-lg" />
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Manager</label>
-                    <input type="text" defaultValue={selectedBranch.manager} className="w-full px-3 py-2 border rounded-lg" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Status</label>
-                    <select defaultValue={selectedBranch.status} className="w-full px-3 py-2 border rounded-lg">
-                      <option>active</option>
-                      <option>maintenance</option>
-                      <option>closed</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
-                <button onClick={() => setShowEditModal(false)} className="px-4 py-2 border rounded-lg hover:bg-slate-50">Cancel</button>
-                <button onClick={handleEditBranch} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Save Changes</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <BranchModal
+          title="Edit Branch"
+          branch={editBranch}
+          setBranch={setEditBranch}
+          onCancel={() => setShowEditModal(false)}
+          onSubmit={handleEditBranch}
+          submitting={submitting}
+          submitLabel="Save Changes"
+        />
       )}
     </div>
   );
 };
+
+const BranchModal = ({ title, branch, setBranch, onCancel, onSubmit, submitting, submitLabel }) => (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold">{title}</h3>
+          <button onClick={onCancel} className="p-2 hover:bg-slate-100 rounded-lg">
+            <FaTimesCircle className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <Field label="Branch Name *">
+              <input type="text" value={branch.name} onChange={(e) => setBranch({ ...branch, name: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+            <Field label="Branch Code *">
+              <input type="text" value={branch.code} onChange={(e) => setBranch({ ...branch, code: e.target.value.toUpperCase() })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+          </div>
+          <Field label="Address *">
+            <textarea rows="2" value={branch.address} onChange={(e) => setBranch({ ...branch, address: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+          </Field>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Field label="City">
+              <input type="text" value={branch.city} onChange={(e) => setBranch({ ...branch, city: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+            <Field label="State">
+              <input type="text" value={branch.state} onChange={(e) => setBranch({ ...branch, state: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+            <Field label="Country">
+              <input type="text" value={branch.country} onChange={(e) => setBranch({ ...branch, country: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Field label="Phone *">
+              <input type="tel" value={branch.phone} onChange={(e) => setBranch({ ...branch, phone: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+            <Field label="Email">
+              <input type="email" value={branch.email} onChange={(e) => setBranch({ ...branch, email: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Field label="Manager">
+              <input type="text" value={branch.manager} onChange={(e) => setBranch({ ...branch, manager: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+            <Field label="Status">
+              <select value={branch.status} onChange={(e) => setBranch({ ...branch, status: e.target.value })} className="w-full px-3 py-2 border rounded-lg">
+                <option value="active">active</option>
+                <option value="maintenance">maintenance</option>
+                <option value="closed">closed</option>
+              </select>
+            </Field>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Field label="Employees">
+              <input type="number" value={branch.employees} onChange={(e) => setBranch({ ...branch, employees: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+            <Field label="Customers">
+              <input type="number" value={branch.customers} onChange={(e) => setBranch({ ...branch, customers: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+            <Field label="Revenue (LKR)">
+              <input type="number" value={branch.revenue} onChange={(e) => setBranch({ ...branch, revenue: Number(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
+            </Field>
+          </div>
+          <Field label="Established Date">
+            <input type="date" value={branch.established} onChange={(e) => setBranch({ ...branch, established: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+          </Field>
+        </div>
+        <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+          <button onClick={onCancel} className="px-4 py-2 border rounded-lg hover:bg-slate-50">Cancel</button>
+          <button onClick={onSubmit} disabled={submitting} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60">
+            {submitting ? "Saving..." : submitLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const Field = ({ label, children }) => (
+  <div>
+    <label className="block text-sm font-medium mb-1">{label}</label>
+    {children}
+  </div>
+);
 
 export default BranchManagement;

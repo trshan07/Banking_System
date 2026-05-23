@@ -4,6 +4,15 @@ const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
+const getSuperAdminConfig = () => ({
+  firstName: process.env.SUPERADMIN_FIRST_NAME?.trim() || 'System',
+  lastName: process.env.SUPERADMIN_LAST_NAME?.trim() || 'Owner',
+  email: process.env.SUPERADMIN_EMAIL?.trim().toLowerCase(),
+  password: process.env.SUPERADMIN_PASSWORD,
+  phone: process.env.SUPERADMIN_PHONE?.trim() || '+94000000000',
+  address: process.env.SUPERADMIN_ADDRESS?.trim() || 'Head Office'
+});
+
 const seedUsers = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
@@ -50,19 +59,23 @@ const seedUsers = async () => {
         status: 'active',
         permissions: ['view_account', 'manage_account', 'view_transactions', 'create_transactions', 'view_users', 'manage_users', 'view_reports']
       },
-      {
-        firstName: 'Super',
-        lastName: 'Admin',
-        email: 'superadmin@example.com',
-        password: await bcrypt.hash('superadmin123', 12),
-        phone: '+1234567893',
-        address: '321 Elm St, City, State',
+    ];
+
+    const superAdminConfig = getSuperAdminConfig();
+    if (superAdminConfig.email && superAdminConfig.password) {
+      users.push({
+        firstName: superAdminConfig.firstName,
+        lastName: superAdminConfig.lastName,
+        email: superAdminConfig.email,
+        password: await bcrypt.hash(superAdminConfig.password, 12),
+        phone: superAdminConfig.phone,
+        address: superAdminConfig.address,
         role: 'superadmin',
         isEmailVerified: true,
         status: 'active',
-        permissions: ['*'] // All permissions
-      }
-    ];
+        permissions: ['*']
+      });
+    }
 
     await User.insertMany(users);
     console.log('✅ Test users created successfully');
@@ -70,7 +83,9 @@ const seedUsers = async () => {
     console.log('Customer: customer@example.com / customer123');
     console.log('Employee: employee@example.com / employee123');
     console.log('Admin: admin@example.com / admin123');
-    console.log('Super Admin: superadmin@example.com / superadmin123');
+    if (superAdminConfig.email) {
+      console.log(`Super Admin: ${superAdminConfig.email} / [configured in environment]`);
+    }
 
     await mongoose.disconnect();
     console.log('\nDisconnected from MongoDB');
@@ -82,21 +97,32 @@ const seedUsers = async () => {
 
 const ensureSuperAdmin = async () => {
   try {
-    const existing = await User.findOne({ email: 'superadmin@example.com' });
+    const superAdminConfig = getSuperAdminConfig();
+    const existing = await User.findOne({ role: 'superadmin' }).select('+password');
+
     if (existing) {
-      console.log('Super admin already exists.');
+      existing.status = 'active';
+      existing.isEmailVerified = true;
+      existing.permissions = ['*'];
+      await existing.save();
+      console.log(`Super admin already exists for ${existing.email}.`);
       return;
     }
 
-    console.log('Creating default superadmin user...');
+    if (!superAdminConfig.email || !superAdminConfig.password) {
+      console.warn('SUPERADMIN_EMAIL and SUPERADMIN_PASSWORD are not configured. Skipping superadmin bootstrap.');
+      return;
+    }
+
+    console.log(`Creating initial superadmin user for ${superAdminConfig.email}...`);
 
     const superAdmin = new User({
-      firstName: 'Super',
-      lastName: 'Admin',
-      email: 'superadmin@example.com',
-      password: await bcrypt.hash('superadmin123', 12),
-      phone: '+1234567893',
-      address: '321 Elm St, City, State',
+      firstName: superAdminConfig.firstName,
+      lastName: superAdminConfig.lastName,
+      email: superAdminConfig.email,
+      password: superAdminConfig.password,
+      phone: superAdminConfig.phone,
+      address: superAdminConfig.address,
       role: 'superadmin',
       isEmailVerified: true,
       status: 'active',
@@ -113,6 +139,11 @@ const ensureSuperAdmin = async () => {
 
 // Ensure basic demo users exist in development mode
 const ensureDemoUsers = async () => {
+  if (process.env.ENABLE_DEMO_USERS !== 'true') {
+    console.log('Demo user bootstrap is disabled.');
+    return;
+  }
+
   if (process.env.NODE_ENV === 'production') {
     return;
   }

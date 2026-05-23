@@ -8,8 +8,15 @@ const createUsers = async () => {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/smartbank');
     console.log('Connected to MongoDB');
 
-    const adminHash = await bcrypt.hash('admin123', 12);
-    const employeeHash = await bcrypt.hash('employee123', 12);
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const employeePassword = process.env.EMPLOYEE_PASSWORD;
+
+    if (!adminPassword || !employeePassword) {
+      throw new Error('ADMIN_PASSWORD and EMPLOYEE_PASSWORD must be set before running create-users.js');
+    }
+
+    const adminHash = await bcrypt.hash(adminPassword, 12);
+    const employeeHash = await bcrypt.hash(employeePassword, 12);
 
     // Create Admin
     const admin = await User.findOneAndUpdate(
@@ -54,8 +61,8 @@ const createUsers = async () => {
     console.log('✅ Admin user created/updated:', admin.email);
     console.log('✅ Employee user created/updated:', employee.email);
     console.log('\n📋 Test Credentials:');
-    console.log('Admin: admin@example.com / admin123');
-    console.log('Employee: employee@example.com / employee123');
+    console.log('Admin: admin@example.com / [configured password]');
+    console.log('Employee: employee@example.com / [configured password]');
 
     await mongoose.disconnect();
     process.exit(0);

@@ -19,7 +19,7 @@ import {
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { formatCompactCurrency, formatCurrency } from "../../utils/formatters";
-import axios from "axios";
+import api from "../../services/api";
 import {
   LineChart,
   Line,
@@ -50,6 +50,12 @@ const TransactionsModule = () => {
     dailyVolume: [],
     transactionTypes: [],
     successRate: [],
+    summary: {
+      totalTransactions: 0,
+      totalVolume: 0,
+      successRate: 0,
+      pendingTransactions: 0,
+    },
   });
 
   useEffect(() => {
@@ -59,8 +65,7 @@ const TransactionsModule = () => {
 
   const fetchTransactions = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/transactions", {
+      const response = await api.get("/admin/transactions", {
         params: {
           type: filterType,
           status: filterStatus,
@@ -68,7 +73,6 @@ const TransactionsModule = () => {
           endDate: dateRange.end,
           page: currentPage,
         },
-        headers: { Authorization: `Bearer ${token}` },
       });
       setTransactions(response.data.data);
     } catch (error) {
@@ -143,10 +147,7 @@ const TransactionsModule = () => {
 
   const fetchChartData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get("/api/admin/transactions/charts", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/admin/transactions/charts");
       setChartData(response.data.data);
     } catch (error) {
       setChartData({
@@ -173,6 +174,12 @@ const TransactionsModule = () => {
           { month: "May", success: 95, failed: 5 },
           { month: "Jun", success: 96, failed: 4 },
         ],
+        summary: {
+          totalTransactions: 45678,
+          totalVolume: 12500000,
+          successRate: 96.2,
+          pendingTransactions: 234,
+        },
       });
     }
   };
@@ -253,6 +260,10 @@ const TransactionsModule = () => {
     toast.success("Export started");
   };
 
+  const printTransactions = () => {
+    window.print();
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -272,7 +283,7 @@ const TransactionsModule = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Total Volume</p>
-              <p className="text-2xl font-bold text-slate-800">{formatCompactCurrency(12500000)}</p>
+              <p className="text-2xl font-bold text-slate-800">{formatCompactCurrency(chartData.summary?.totalVolume || 0)}</p>
             </div>
             <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
               <FaMoneyBillWave className="text-emerald-600" />
@@ -283,7 +294,7 @@ const TransactionsModule = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Total Transactions</p>
-              <p className="text-2xl font-bold text-slate-800">45,678</p>
+              <p className="text-2xl font-bold text-slate-800">{Number(chartData.summary?.totalTransactions || 0).toLocaleString()}</p>
             </div>
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <FaExchangeAlt className="text-blue-600" />
@@ -294,7 +305,7 @@ const TransactionsModule = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Success Rate</p>
-              <p className="text-2xl font-bold text-green-600">96.2%</p>
+              <p className="text-2xl font-bold text-green-600">{chartData.summary?.successRate || 0}%</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <FaCheckCircle className="text-green-600" />
@@ -305,7 +316,7 @@ const TransactionsModule = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">234</p>
+              <p className="text-2xl font-bold text-yellow-600">{Number(chartData.summary?.pendingTransactions || 0).toLocaleString()}</p>
             </div>
             <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
               <FaClock className="text-yellow-600" />
@@ -392,7 +403,7 @@ const TransactionsModule = () => {
             <button onClick={exportToCSV} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center">
               <FaDownload className="mr-2" /> Export
             </button>
-            <button className="px-4 py-2 border rounded-lg hover:bg-slate-50 flex items-center">
+            <button onClick={printTransactions} className="px-4 py-2 border rounded-lg hover:bg-slate-50 flex items-center">
               <FaPrint className="mr-2" /> Print
             </button>
           </div>

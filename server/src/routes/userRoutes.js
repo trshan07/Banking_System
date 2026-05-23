@@ -11,6 +11,7 @@ const { uploadSingle } = require('../middleware/upload');
 const updateProfileValidation = [
   body('firstName').optional().notEmpty().withMessage('First name cannot be empty'),
   body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
+  body('email').optional().isEmail().withMessage('Please provide a valid email').normalizeEmail(),
   body('phone').optional().notEmpty().withMessage('Phone cannot be empty'),
   body('address').optional().notEmpty().withMessage('Address cannot be empty'),
   validate
@@ -48,6 +49,17 @@ const createUserValidation = [
   body('role')
     .notEmpty().withMessage('Role is required')
     .isIn(['customer', 'employee', 'admin']).withMessage('Invalid role specified'),
+  validate
+];
+
+const updateUserValidation = [
+  body('firstName').optional().notEmpty().withMessage('First name cannot be empty'),
+  body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
+  body('email').optional().isEmail().withMessage('Please provide a valid email').normalizeEmail(),
+  body('phone').optional().notEmpty().withMessage('Phone number cannot be empty'),
+  body('address').optional().notEmpty().withMessage('Address cannot be empty'),
+  body('role').optional().isIn(['customer', 'employee', 'admin']).withMessage('Invalid role specified'),
+  body('status').optional().isIn(['pending', 'active', 'inactive', 'suspended']).withMessage('Invalid status specified'),
   validate
 ];
 
@@ -92,7 +104,7 @@ router.get('/transactions/:transactionId', authMiddleware, userController.getTra
 // ============================================
 
 // Create new user (role-based permissions)
-router.post('/', authMiddleware, createUserValidation, userController.createUser);
+router.post('/', authMiddleware, checkRole('admin', 'superadmin'), createUserValidation, userController.createUser);
 
 // Get all users (admin only)
 router.get('/', authMiddleware, checkRole('admin', 'superadmin'), userController.getAllUsers);
@@ -101,10 +113,10 @@ router.get('/', authMiddleware, checkRole('admin', 'superadmin'), userController
 router.get('/:userId', authMiddleware, checkRole('admin', 'superadmin'), userController.getUserById);
 
 // Update user by ID (admin only)
-router.put('/:userId', authMiddleware, checkRole('admin', 'superadmin'), userController.updateUser);
+router.put('/:userId', authMiddleware, checkRole('admin', 'superadmin'), updateUserValidation, userController.updateUser);
 
-// Delete user by ID (super admin only)
-router.delete('/:userId', authMiddleware, checkRole('superadmin'), userController.deleteUser);
+// Delete user by ID (admin and super admin)
+router.delete('/:userId', authMiddleware, checkRole('admin', 'superadmin'), userController.deleteUser);
 
 // ============================================
 // User Statistics Routes (admin only)

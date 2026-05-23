@@ -97,7 +97,6 @@ import SystemHealth from "../../components/superadmin/SystemHealth";
 import AuditLogs from "../../components/superadmin/AuditLogs";
 import AdminManagement from "../../components/superadmin/AdminManagement";
 import BranchManagement from "../../components/superadmin/BranchManagement";
-import SystemSettings from "../../components/superadmin/SystemSettings";
 
 const getFallbackChartData = () => ({
   revenueGrowth: [
@@ -140,6 +139,60 @@ const getFallbackStatusSummary = () => ([
 ]);
 
 const getFallbackAdminSummary = () => ({ total: 0, active: 0, pending: 0, inactive: 0, suspended: 0 });
+const getInitialProfile = () => ({
+  name: "",
+  email: "",
+  role: "Super Administrator",
+  department: "System Administration",
+  employeeId: "",
+  joinDate: "",
+  phone: "",
+  address: "",
+  city: "",
+  state: "",
+  country: "",
+  status: "",
+  permissions: [],
+});
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const getErrorMessage = (error, fallbackMessage) =>
+  error?.response?.data?.message || error?.response?.data?.error || fallbackMessage;
+
+const sanitizeBranchPayload = (branchData) => {
+  const payload = { ...branchData };
+
+  Object.keys(payload).forEach((key) => {
+    if (typeof payload[key] === "string") {
+      payload[key] = payload[key].trim();
+    }
+  });
+
+  if (!payload.email) {
+    delete payload.email;
+  }
+  if (!payload.manager) {
+    delete payload.manager;
+  }
+  if (!payload.city) {
+    delete payload.city;
+  }
+  if (!payload.state) {
+    delete payload.state;
+  }
+  if (!payload.country) {
+    delete payload.country;
+  }
+  if (!payload.established) {
+    delete payload.established;
+  }
+
+  return payload;
+};
 
 const SuperAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -176,39 +229,20 @@ const SuperAdminDashboard = () => {
   const [adminSummary, setAdminSummary] = useState(getFallbackAdminSummary());
   const [statusSummary, setStatusSummary] = useState(getFallbackStatusSummary());
   const [adminsLoading, setAdminsLoading] = useState(false);
+  const [branchesLoading, setBranchesLoading] = useState(false);
   const [performanceData, setPerformanceData] = useState([]);
   const [chartData, setChartData] = useState(getFallbackChartData());
+  const [branches, setBranches] = useState([]);
+  const [systemHealthDetails, setSystemHealthDetails] = useState({
+    maintenanceMode: false,
+    databaseConnections: 0,
+  });
 
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
-  // Super Admin Profile
-  const [profile, setProfile] = useState({
-    name: "Super Admin",
-    email: "super.admin@smartbank.com",
-    role: "Super Administrator",
-    department: "Executive Management",
-    employeeId: "SUP-001",
-    joinDate: "2019-01-01",
-    phone: "+1 (555) 000-0001",
-    mobile: "+1 (555) 000-0002",
-    address: "Smart Bank Headquarters",
-    city: "New York",
-    state: "NY",
-    zipCode: "10001",
-    country: "USA",
-    avatar: "https://randomuser.me/api/portraits/men/100.jpg",
-    dateOfBirth: "1980-01-01",
-    gender: "Male",
-    nationality: "American",
-    emergencyContact: {
-      name: "Security Team",
-      relationship: "Work",
-      phone: "+1 (555) 000-0000",
-    },
-    permissions: ["full_access", "manage_admins", "manage_system", "audit_logs"],
-  });
+  const [profile, setProfile] = useState(getInitialProfile());
 
   // System Settings
   const [settings, setSettings] = useState({
@@ -241,13 +275,37 @@ const SuperAdminDashboard = () => {
     },
   });
 
+  const hasOverviewData =
+    stats.totalUsers > 0 ||
+    stats.totalTransactions > 0 ||
+    recentAudits.length > 0 ||
+    recentAdmins.length > 0;
+
   useEffect(() => {
-    fetchDashboardData();
-    fetchSystemHealth();
-    fetchAuditLogs();
-    fetchAdmins();
-    fetchPerformanceData();
-  }, [selectedPeriod, activeTab]);
+    const initializeDashboard = async () => {
+      try {
+        setLoading(true);
+        await Promise.all([
+          fetchDashboardData(),
+          fetchSystemHealth(),
+          fetchAuditLogs(),
+          fetchAdmins(),
+          fetchPerformanceData(selectedPeriod),
+          fetchProfile(),
+          fetchSettings(),
+          fetchBranches(),
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeDashboard();
+  }, []);
+
+  useEffect(() => {
+    fetchPerformanceData(selectedPeriod);
+  }, [selectedPeriod]);
 
   const fetchDashboardData = async () => {
     try {
@@ -260,24 +318,6 @@ const SuperAdminDashboard = () => {
       setStatusSummary(data.statusSummary || getFallbackStatusSummary());
     } catch (error) {
       console.error("Error fetching stats:", error);
-      setStats({
-        totalUsers: 15420,
-        totalSuperAdmins: 1,
-        totalAdmins: 12,
-        totalEmployees: 134,
-        totalCustomers: 15273,
-        totalBranches: 28,
-        totalTransactions: 45678,
-        totalVolume: 12500000,
-        systemUptime: "99.99%",
-        activeSessions: 342,
-        pendingAudits: 5,
-        fraudAlerts: 12,
-        revenue: 2450000,
-        expenses: 1250000,
-        profit: 1200000,
-      });
-      setStatusSummary(getFallbackStatusSummary());
     }
   };
 
@@ -292,22 +332,19 @@ const SuperAdminDashboard = () => {
         ? (health.database.connections / health.database.maxConnections) * 100
         : 72;
       setSystemHealth({
-        cpu: health.cpu?.usage || 45,
-        memory: health.memory?.percentage || 62,
-        storage: health.disk?.percentage || 58,
+        cpu: health.cpu?.usage || 0,
+        memory: health.memory?.percentage || 0,
+        storage: health.disk?.percentage || 0,
         database: databaseLoad,
-        api: 98,
-        uptime: 99.99,
+        api: health.database?.status === "connected" ? 100 : 0,
+        uptime: health.uptime || 0,
+      });
+      setSystemHealthDetails({
+        maintenanceMode: Boolean(health.maintenanceMode),
+        databaseConnections: health.database?.connections || 0,
       });
     } catch (error) {
-      setSystemHealth({
-        cpu: 45,
-        memory: 62,
-        storage: 58,
-        database: 72,
-        api: 98,
-        uptime: 99.99,
-      });
+      console.error("Error fetching system health:", error);
     }
   };
 
@@ -319,13 +356,7 @@ const SuperAdminDashboard = () => {
       });
       setRecentAudits(response.data.data?.logs || []);
     } catch (error) {
-      setRecentAudits([
-        { id: 1, action: "Admin user created", user: "superadmin", target: "john.admin", time: "5 mins ago", status: "success", ip: "192.168.1.1" },
-        { id: 2, action: "System settings updated", user: "superadmin", target: "security config", time: "1 hour ago", status: "success", ip: "192.168.1.1" },
-        { id: 3, action: "User role changed", user: "superadmin", target: "jane.smith", time: "2 hours ago", status: "success", ip: "192.168.1.1" },
-        { id: 4, action: "Failed login attempt", user: "unknown", target: "admin", time: "3 hours ago", status: "failed", ip: "10.0.0.5" },
-        { id: 5, action: "Database backup completed", user: "system", target: "backup", time: "4 hours ago", status: "success", ip: "localhost" },
-      ]);
+      console.error("Error fetching audit logs:", error);
     }
   };
 
@@ -348,10 +379,10 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  const fetchPerformanceData = async () => {
+  const fetchPerformanceData = async (period = selectedPeriod) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`/api/superadmin/performance?period=${selectedPeriod}`, {
+      const response = await axios.get(`/api/superadmin/performance?period=${period}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = response.data.data || {};
@@ -363,71 +394,159 @@ const SuperAdminDashboard = () => {
         branchPerformance: data.branchPerformance || getFallbackChartData().branchPerformance,
       });
     } catch (error) {
-      setChartData(getFallbackChartData());
-      setPerformanceData([
-        { metric: "Response Time", value: 245, target: 300 },
-        { metric: "Success Rate", value: 98.5, target: 99 },
-        { metric: "Availability", value: 99.99, target: 99.9 },
-        { metric: "Error Rate", value: 0.5, target: 1 },
-      ]);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching performance data:", error);
     }
   };
 
   const refreshSuperAdminData = async () => {
-    await Promise.all([fetchDashboardData(), fetchAdmins(), fetchAuditLogs()]);
+    await Promise.all([fetchDashboardData(), fetchAdmins(), fetchAuditLogs(), fetchBranches()]);
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("/api/users/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const user = response.data.data?.user;
+      if (!user) {
+        return;
+      }
+
+      setProfile({
+        name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        email: user.email || "",
+        role: user.role === "superadmin" ? "Super Administrator" : user.role,
+        department: "System Administration",
+        employeeId: user._id || "",
+        joinDate: user.createdAt ? new Date(user.createdAt).toISOString().split("T")[0] : "",
+        phone: user.phone || "",
+        address: user.address || "",
+        city: "",
+        state: "",
+        country: "",
+        status: user.status || "",
+        permissions: user.permissions || [],
+      });
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("/api/superadmin/settings", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const nextSettings = response.data.data?.settings;
+      if (nextSettings) {
+        setSettings({
+          system: nextSettings.system,
+          security: nextSettings.security,
+          features: nextSettings.features,
+          integrations: nextSettings.integrations,
+        });
+        setSystemHealthDetails((current) => ({
+          ...current,
+          maintenanceMode: Boolean(nextSettings.system?.maintenanceMode),
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    }
+  };
+
+  const fetchBranches = async () => {
+    try {
+      setBranchesLoading(true);
+      const response = await axios.get("/api/branches", {
+        headers: getAuthHeaders(),
+      });
+      setBranches(response.data.data?.branches || []);
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+      setBranches([]);
+    } finally {
+      setBranchesLoading(false);
+    }
   };
 
   const handleCreateAdmin = async (adminData) => {
-    const token = localStorage.getItem("token");
-    await axios.post("/api/users", {
-      ...adminData,
-      role: "admin",
-    }, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    toast.success("Admin created successfully");
-    await refreshSuperAdminData();
+    try {
+      await axios.post("/api/users", {
+        ...adminData,
+        role: "admin",
+      }, {
+        headers: getAuthHeaders(),
+      });
+      toast.success("Admin created successfully");
+      await refreshSuperAdminData();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to create admin"));
+      throw error;
+    }
   };
 
   const handleUpdateAdmin = async (adminId, adminData) => {
-    const token = localStorage.getItem("token");
-    await axios.put(`/api/users/${adminId}`, adminData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    toast.success("Admin updated successfully");
-    await refreshSuperAdminData();
+    try {
+      await axios.put(`/api/users/${adminId}`, adminData, {
+        headers: getAuthHeaders(),
+      });
+      toast.success("Admin updated successfully");
+      await refreshSuperAdminData();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to update admin"));
+      throw error;
+    }
   };
 
   const handleToggleAdminStatus = async (admin) => {
-    const token = localStorage.getItem("token");
     const nextStatus = admin.status === "active" ? "inactive" : "active";
 
-    await axios.put(`/api/users/${admin.id}`, { status: nextStatus }, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      await axios.put(`/api/users/${admin.id}`, { status: nextStatus }, {
+        headers: getAuthHeaders(),
+      });
 
-    toast.success(`Admin ${nextStatus === "active" ? "activated" : "deactivated"}`);
-    await refreshSuperAdminData();
+      toast.success(`Admin ${nextStatus === "active" ? "activated" : "deactivated"}`);
+      await refreshSuperAdminData();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to update admin status"));
+      throw error;
+    }
   };
 
   const handleDeleteAdmin = async (adminId) => {
-    const token = localStorage.getItem("token");
-    await axios.delete(`/api/users/${adminId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    toast.success("Admin deactivated successfully");
-    await refreshSuperAdminData();
+    try {
+      await axios.delete(`/api/users/${adminId}`, {
+        headers: getAuthHeaders(),
+      });
+      toast.success("Admin deactivated successfully");
+      await refreshSuperAdminData();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to deactivate admin"));
+      throw error;
+    }
   };
 
   const handleUpdateSettings = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put("/api/superadmin/settings", settings, {
+      const response = await axios.put("/api/superadmin/settings", { settings }, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      const nextSettings = response.data.data?.settings;
+      if (nextSettings) {
+        setSettings({
+          system: nextSettings.system,
+          security: nextSettings.security,
+          features: nextSettings.features,
+          integrations: nextSettings.integrations,
+        });
+      }
       toast.success("System settings updated successfully");
+      await fetchAuditLogs();
     } catch (error) {
       toast.error("Failed to update settings");
     }
@@ -445,7 +564,12 @@ const SuperAdminDashboard = () => {
         ...settings,
         system: { ...settings.system, maintenanceMode: !settings.system.maintenanceMode }
       });
+      setSystemHealthDetails((current) => ({
+        ...current,
+        maintenanceMode: !settings.system.maintenanceMode,
+      }));
       toast.success(`Maintenance mode ${!settings.system.maintenanceMode ? "enabled" : "disabled"}`);
+      await fetchAuditLogs();
     } catch (error) {
       toast.error("Failed to toggle maintenance mode");
     }
@@ -453,7 +577,7 @@ const SuperAdminDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "/login";
+    window.location.href = "/auth/login";
   };
 
   const handleUpdateProfile = async () => {
@@ -463,6 +587,7 @@ const SuperAdminDashboard = () => {
       await axios.put("/api/users/profile", {
         firstName,
         lastName: lastNameParts.join(" ") || "Admin",
+        email: profile.email,
         phone: profile.phone,
         address: profile.address,
       }, {
@@ -470,8 +595,49 @@ const SuperAdminDashboard = () => {
       });
       toast.success("Profile updated successfully");
       setIsEditingProfile(false);
+      await fetchProfile();
+      await fetchAuditLogs();
     } catch (error) {
       toast.error("Failed to update profile");
+    }
+  };
+
+  const handleCreateBranch = async (branchData) => {
+    try {
+      await axios.post("/api/branches", sanitizeBranchPayload(branchData), {
+        headers: getAuthHeaders(),
+      });
+      toast.success("Branch created successfully");
+      await refreshSuperAdminData();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to create branch"));
+      throw error;
+    }
+  };
+
+  const handleUpdateBranch = async (branchId, branchData) => {
+    try {
+      await axios.put(`/api/branches/${branchId}`, sanitizeBranchPayload(branchData), {
+        headers: getAuthHeaders(),
+      });
+      toast.success("Branch updated successfully");
+      await refreshSuperAdminData();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to update branch"));
+      throw error;
+    }
+  };
+
+  const handleDeleteBranch = async (branchId) => {
+    try {
+      await axios.delete(`/api/branches/${branchId}`, {
+        headers: getAuthHeaders(),
+      });
+      toast.success("Branch deleted successfully");
+      await refreshSuperAdminData();
+    } catch (error) {
+      toast.error(getErrorMessage(error, "Failed to delete branch"));
+      throw error;
     }
   };
 
@@ -579,26 +745,36 @@ const SuperAdminDashboard = () => {
       <Toaster position="top-right" />
       
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white sticky top-0 z-10">
-        <div className="px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold">Super Admin Portal</h1>
-              <p className="text-purple-200 mt-1">System-wide administration and monitoring</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              {settings.system.maintenanceMode && (
-                <span className="px-3 py-1 bg-yellow-500 text-black rounded-full text-xs font-semibold flex items-center">
-                  <FaExclamationTriangle className="mr-1" /> Maintenance Mode
-                </span>
-              )}
-              <button className="relative p-2 text-white hover:bg-purple-800 rounded-lg transition-colors">
-                <FaBell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <button onClick={handleLogout} className="p-2 text-white hover:bg-purple-800 rounded-lg transition-colors">
-                <FaSignOutAlt className="w-5 h-5" />
-              </button>
+      <div className="sticky top-0 z-10 border-b border-slate-800 bg-slate-950 text-white shadow-lg">
+        <div className="bg-gradient-to-r from-violet-950 via-slate-950 to-indigo-950">
+          <div className="px-6 py-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="inline-flex items-center rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-violet-200">
+                  Super Admin Console
+                </div>
+                <h1 className="mt-3 text-2xl font-bold text-slate-50 md:text-3xl">Super Admin Portal</h1>
+                <p className="mt-2 max-w-2xl text-sm text-slate-200 md:text-base">
+                  System-wide administration and monitoring with live operational data, user controls, and audit visibility.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 self-start md:self-center">
+                {settings.system.maintenanceMode && (
+                  <span className="inline-flex items-center rounded-full border border-amber-300/50 bg-amber-400 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-sm">
+                    <FaExclamationTriangle className="mr-2" /> Maintenance Mode
+                  </span>
+                )}
+                <button className="relative rounded-xl border border-white/15 bg-white/10 p-2.5 text-slate-50 transition-colors hover:bg-white/20">
+                  <FaBell className="h-5 w-5" />
+                  <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full border border-slate-950 bg-red-500"></span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-xl border border-white/15 bg-white/10 p-2.5 text-slate-50 transition-colors hover:bg-white/20"
+                >
+                  <FaSignOutAlt className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -731,7 +907,7 @@ const SuperAdminDashboard = () => {
             <div className="bg-white rounded-xl shadow-lg">
               <div className="p-6 border-b flex justify-between items-center">
                 <h3 className="text-lg font-semibold">Recent Audit Logs</h3>
-                <button className="text-purple-600 hover:text-purple-700 text-sm">View All</button>
+                <button onClick={() => setActiveTab("audit")} className="text-purple-600 hover:text-purple-700 text-sm font-medium">View All</button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -764,11 +940,28 @@ const SuperAdminDashboard = () => {
                 </table>
               </div>
             </div>
+
+            {!hasOverviewData && (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
+                <h3 className="text-lg font-semibold text-slate-800">No dashboard activity yet</h3>
+                <p className="mt-2 text-sm text-slate-500">
+                  As users, branches, and transactions are created, this overview will populate with live operational data.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
         {/* System Health Tab */}
-        {activeTab === "system" && <SystemHealth systemHealth={systemHealth} performanceData={performanceData} />}
+        {activeTab === "system" && (
+          <SystemHealth
+            systemHealth={systemHealth}
+            performanceData={performanceData}
+            activityData={chartData.userActivity}
+            maintenanceMode={systemHealthDetails.maintenanceMode}
+            databaseConnections={systemHealthDetails.databaseConnections}
+          />
+        )}
         
         {/* Admin Management Tab */}
         {activeTab === "admins" && (
@@ -784,7 +977,15 @@ const SuperAdminDashboard = () => {
         )}
         
         {/* Branch Management Tab */}
-        {activeTab === "branches" && <BranchManagement />}
+        {activeTab === "branches" && (
+          <BranchManagement
+            branches={branches}
+            loading={branchesLoading}
+            onCreateBranch={handleCreateBranch}
+            onUpdateBranch={handleUpdateBranch}
+            onDeleteBranch={handleDeleteBranch}
+          />
+        )}
         
         {/* Audit Logs Tab */}
         {activeTab === "audit" && <AuditLogs auditLogs={recentAudits} />}
@@ -961,11 +1162,13 @@ const SuperAdminDashboard = () => {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-4">
-                  <img src={profile.avatar} alt={profile.name} className="w-20 h-20 rounded-full border-4 border-purple-500" />
+                  <div className="w-20 h-20 rounded-full border-4 border-purple-500 bg-purple-100 text-purple-700 flex items-center justify-center text-2xl font-bold">
+                    {(profile.name || "SA").split(" ").map((part) => part[0]).join("").slice(0, 2)}
+                  </div>
                   <div>
-                    <h2 className="text-2xl font-bold">{profile.name}</h2>
+                    <h2 className="text-2xl font-bold">{profile.name || "Super Admin"}</h2>
                     <p className="text-purple-600 font-semibold">{profile.role}</p>
-                    <p className="text-sm text-slate-500">Employee ID: {profile.employeeId}</p>
+                    <p className="text-sm text-slate-500">User ID: {profile.employeeId || "N/A"}</p>
                   </div>
                 </div>
                 <button onClick={() => setIsEditingProfile(!isEditingProfile)} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center">
@@ -981,15 +1184,22 @@ const SuperAdminDashboard = () => {
                 <div><label className="block text-sm font-medium mb-1">Email</label>{isEditingProfile ? <input type="email" value={profile.email} onChange={(e) => setProfile({...profile, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg" /> : <p className="text-slate-700">{profile.email}</p>}</div>
                 <div><label className="block text-sm font-medium mb-1">Phone</label>{isEditingProfile ? <input type="tel" value={profile.phone} onChange={(e) => setProfile({...profile, phone: e.target.value})} className="w-full px-3 py-2 border rounded-lg" /> : <p className="text-slate-700">{profile.phone}</p>}</div>
                 <div><label className="block text-sm font-medium mb-1">Department</label><p className="text-slate-700">{profile.department}</p></div>
+                <div><label className="block text-sm font-medium mb-1">Address</label>{isEditingProfile ? <textarea value={profile.address} onChange={(e) => setProfile({...profile, address: e.target.value})} className="w-full px-3 py-2 border rounded-lg" rows="3" /> : <p className="text-slate-700">{profile.address || "N/A"}</p>}</div>
+                <div><label className="block text-sm font-medium mb-1">Joined</label><p className="text-slate-700">{profile.joinDate || "N/A"}</p></div>
+                <div><label className="block text-sm font-medium mb-1">Account Status</label><p className="text-slate-700 capitalize">{profile.status || "N/A"}</p></div>
               </div>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center"><FaKey className="mr-2 text-purple-600" /> Permissions</h3>
               <div className="flex flex-wrap gap-2">
-                {profile.permissions.map((perm, idx) => (
-                  <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">{perm}</span>
-                ))}
+                {profile.permissions.length > 0 ? (
+                  profile.permissions.map((perm, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">{perm}</span>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">No explicit permissions are assigned to this account.</p>
+                )}
               </div>
             </div>
 

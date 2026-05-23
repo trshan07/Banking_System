@@ -17,7 +17,7 @@ import {
   FaFilter,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
-import axios from "axios";
+import api from "../../services/api";
 import { formatCompactCurrency, formatCurrency } from "../../utils/formatters";
 import {
   LineChart,
@@ -55,13 +55,10 @@ const ReportsModule = () => {
   const generateReport = async () => {
     setGenerating(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post("/api/admin/reports/generate", {
+      const response = await api.post("/admin/reports/generate", {
         type: reportType,
         startDate: dateRange.start,
         endDate: dateRange.end,
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
       });
       setReportData(response.data.data);
       toast.success("Report generated successfully");
@@ -99,16 +96,63 @@ const ReportsModule = () => {
     }
   };
 
-  const exportPDF = () => {
-    toast.success("PDF export started");
+  const downloadFile = (content, mimeType, extension) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${reportType}_report_${dateRange.start}_${dateRange.end}.${extension}`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const exportExcel = () => {
-    toast.success("Excel export started");
+    if (!reportData) {
+      toast.error("Generate a report first");
+      return;
+    }
+
+    const headers = ["Date", "Transactions", "Volume"];
+    const rows = (reportData.chartData?.dailyData || []).map((item) => [item.date, item.transactions, item.volume]);
+    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    downloadFile(csv, "text/csv", "csv");
+    toast.success("Spreadsheet export started");
+  };
+
+  const exportPDF = () => {
+    if (!reportData) {
+      toast.error("Generate a report first");
+      return;
+    }
+
+    const lines = [
+      `${reportTypes.find((item) => item.id === reportType)?.name || "Report"}`,
+      `Period: ${dateRange.start} to ${dateRange.end}`,
+      "",
+      `Total Transactions: ${reportData.summary.totalTransactions || 0}`,
+      `Total Volume: ${reportData.summary.totalVolume || 0}`,
+      `Active Users: ${reportData.summary.activeUsers || 0}`,
+      `KYC Completed: ${reportData.summary.kycCompleted || 0}`,
+      `Fraud Alerts: ${reportData.summary.fraudAlerts || 0}`,
+      `Resolved Alerts: ${reportData.summary.resolvedAlerts || 0}`,
+      `Revenue: ${reportData.summary.revenue || 0}`,
+    ].join("\n");
+
+    downloadFile(lines, "text/plain", "txt");
+    toast.success("Printable report exported");
   };
 
   const sendEmail = () => {
-    toast.success("Report sent via email");
+    if (!reportData) {
+      toast.error("Generate a report first");
+      return;
+    }
+
+    const subject = encodeURIComponent(`${reportType} report`);
+    const body = encodeURIComponent(
+      `Report period: ${dateRange.start} to ${dateRange.end}\nTotal transactions: ${reportData.summary.totalTransactions || 0}\nTotal volume: ${reportData.summary.totalVolume || 0}`
+    );
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   const printReport = () => {
