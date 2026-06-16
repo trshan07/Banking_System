@@ -83,9 +83,9 @@ const getProfilePayload = (user) => ({
 });
 
 const mapKYCStatus = (status) => {
-  if (status === 'under_review') return 'pending';
-  if (status === 'verified') return 'approved';
-  return status;
+  if (['pending', 'submitted', 'under_review'].includes(status)) return 'pending';
+  if (['approved', 'verified'].includes(status)) return 'approved';
+  return status || 'pending';
 };
 
 const getTimeAgo = (date) => {
@@ -303,28 +303,50 @@ const enrichTransaction = async (transaction) => {
 
 const buildKYCApplicationPayload = (application) => {
   const user = application.userId || {};
-  const docs = [];
+  const docs = Array.isArray(application.documents)
+    ? application.documents.map((doc, index) => {
+        const populatedDoc = doc && typeof doc === 'object' ? doc : null;
+        const label =
+          populatedDoc?.metadata?.label ||
+          populatedDoc?.metadata?.get?.('label') ||
+          populatedDoc?.fileName ||
+          `Document ${index + 1}`;
+        const url =
+          populatedDoc?.cloudinaryUrl ||
+          populatedDoc?.localFilePath ||
+          populatedDoc?.localFileName ||
+          '';
 
-  if (application.identification?.frontImage?.url || application.identification?.frontImage?.filename) {
-    docs.push({
-      type: 'ID Front',
-      url: application.identification.frontImage.url || '',
-      status: application.status === 'approved' ? 'verified' : 'uploaded',
-    });
-  }
-  if (application.identification?.backImage?.url || application.identification?.backImage?.filename) {
-    docs.push({
-      type: 'ID Back',
-      url: application.identification.backImage.url || '',
-      status: application.status === 'approved' ? 'verified' : 'uploaded',
-    });
-  }
-  if (application.addressProof?.documentImage?.url || application.addressProof?.documentImage?.filename) {
-    docs.push({
-      type: 'Address Proof',
-      url: application.addressProof.documentImage.url || '',
-      status: application.status === 'approved' ? 'verified' : 'uploaded',
-    });
+        return {
+          type: label,
+          url,
+          status: application.status === 'approved' ? 'verified' : (populatedDoc?.status || 'uploaded'),
+        };
+      })
+    : [];
+
+  if (docs.length === 0) {
+    if (application.identification?.frontImage?.url || application.identification?.frontImage?.filename) {
+      docs.push({
+        type: 'ID Front',
+        url: application.identification.frontImage.url || '',
+        status: application.status === 'approved' ? 'verified' : 'uploaded',
+      });
+    }
+    if (application.identification?.backImage?.url || application.identification?.backImage?.filename) {
+      docs.push({
+        type: 'ID Back',
+        url: application.identification.backImage.url || '',
+        status: application.status === 'approved' ? 'verified' : 'uploaded',
+      });
+    }
+    if (application.addressProof?.documentImage?.url || application.addressProof?.documentImage?.filename) {
+      docs.push({
+        type: 'Address Proof',
+        url: application.addressProof.documentImage.url || '',
+        status: application.status === 'approved' ? 'verified' : 'uploaded',
+      });
+    }
   }
 
   return {
@@ -390,7 +412,7 @@ exports.getStats = async (req, res) => {
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ status: 'active' }),
-      KYCApplication.countDocuments({ status: { $in: ['pending', 'under_review'] } }),
+      KYCApplication.countDocuments({ status: { $in: ['pending', 'submitted', 'under_review'] } }),
       Transaction.countDocuments(),
       Transaction.aggregate([
         { $match: { status: 'completed' } },
@@ -444,7 +466,7 @@ exports.getChartData = async (req, res) => {
       value: stat.count,
       color: stat._id === 'approved' || stat._id === 'verified'
         ? '#10b981'
-        : stat._id === 'pending' || stat._id === 'under_review'
+        : stat._id === 'pending' || stat._id === 'submitted' || stat._id === 'under_review'
           ? '#f59e0b'
           : '#ef4444',
     }));
@@ -469,7 +491,7 @@ exports.getRecentActivities = async (req, res) => {
     const [recentUsers, rawTransactions, kycItems, fraudItems] = await Promise.all([
       User.find().sort({ createdAt: -1 }).limit(8).select('firstName lastName email createdAt status role').lean(),
       Transaction.find().sort({ createdAt: -1 }).limit(8).lean(),
-      KYCApplication.find({ status: { $in: ['pending', 'approved', 'rejected'] } })
+      KYCApplication.find({ status: { $in: ['pending', 'submitted', 'under_review', 'approved', 'rejected'] } })
         .sort({ updatedAt: -1 })
         .limit(6)
         .populate('userId', 'firstName lastName email')
@@ -543,7 +565,7 @@ exports.getRecentActivities = async (req, res) => {
 exports.getPendingApprovals = async (req, res) => {
   try {
     const [pendingKYC, pendingLoans] = await Promise.all([
-      KYCApplication.find({ status: { $in: ['pending', 'under_review'] } })
+      KYCApplication.find({ status: { $in: ['pending', 'submitted', 'under_review'] } })
         .populate('userId', 'firstName lastName email')
         .sort({ submittedAt: 1, createdAt: 1 })
         .limit(10)
@@ -845,7 +867,7 @@ exports.getKYCApplications = async (req, res) => {
     const filter = {};
 
     if (status && status !== 'all') {
-      filter.status = status === 'pending' ? { $in: ['pending', 'under_review'] } : status;
+      filter.status = status === 'pending' ? { $in: ['pending', 'submitted', 'under_review'] } : status;
     }
 
     const limit = 20;
@@ -871,7 +893,7 @@ exports.getKYCStats = async (_req, res) => {
   try {
     const [total, pending, approved, rejected] = await Promise.all([
       KYCApplication.countDocuments(),
-      KYCApplication.countDocuments({ status: { $in: ['pending', 'under_review'] } }),
+      KYCApplication.countDocuments({ status: { $in: ['pending', 'submitted', 'under_review'] } }),
       KYCApplication.countDocuments({ status: { $in: ['approved', 'verified'] } }),
       KYCApplication.countDocuments({ status: 'rejected' }),
     ]);

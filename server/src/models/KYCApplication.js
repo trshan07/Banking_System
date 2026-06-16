@@ -81,6 +81,12 @@ const kycApplicationSchema = new mongoose.Schema({
       uploadedAt: Date
     }
   },
+
+  // Uploaded supporting documents
+  documents: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Document'
+  }],
   
   // Address Proof
   addressProof: {
@@ -135,7 +141,7 @@ const kycApplicationSchema = new mongoose.Schema({
   // Verification Status
   status: {
     type: String,
-    enum: ['draft', 'pending', 'under_review', 'approved', 'rejected', 'expired'],
+    enum: ['draft', 'submitted', 'pending', 'under_review', 'approved', 'rejected', 'expired'],
     default: 'pending'
   },
   

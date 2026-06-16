@@ -48,21 +48,23 @@ exports.applyForKYC = async (req, res) => {
       idExpiryDate,
       address,
       occupation,
-      sourceOfFunds
+      sourceOfFunds,
+      email,
+      phoneNumber
     } = req.body;
 
     // Check if KYC application already exists
     const existingKYC = await KYCApplication.findOne({ userId: req.user._id });
     
     if (existingKYC) {
-      if (existingKYC.status === 'verified') {
+      if (['approved', 'verified'].includes(existingKYC.status)) {
         return res.status(400).json({
           success: false,
           message: 'KYC already verified'
         });
       }
       
-      if (existingKYC.status === 'submitted' || existingKYC.status === 'under_review') {
+      if (['submitted', 'pending', 'under_review'].includes(existingKYC.status)) {
         return res.status(400).json({
           success: false,
           message: `KYC application already ${existingKYC.status}`
@@ -71,7 +73,7 @@ exports.applyForKYC = async (req, res) => {
     }
 
     // Check if ID number is already used
-    const existingId = await KYCApplication.findOne({ idNumber });
+    const existingId = await KYCApplication.findOne({ 'identification.idNumber': idNumber });
     if (existingId && existingId.userId.toString() !== req.user._id.toString()) {
       return res.status(400).json({
         success: false,
@@ -79,18 +81,33 @@ exports.applyForKYC = async (req, res) => {
       });
     }
 
+    const parsedAddress = typeof address === 'string'
+      ? { street: address }
+      : (address || {});
+
     const kycData = {
-      id: 'kyc_' + Date.now(),
       userId: req.user._id,
-      fullName,
-      dateOfBirth,
-      nationality,
-      idType,
-      idNumber,
-      idExpiryDate,
-      address,
-      occupation,
-      sourceOfFunds,
+      userEmail: email || req.user.email,
+      userFullName: fullName || `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
+      personalInfo: {
+        fullName,
+        dateOfBirth,
+        nationality,
+      },
+      contactInfo: {
+        email: email || req.user.email,
+        phoneNumber: phoneNumber || req.user.phone,
+        address: parsedAddress,
+      },
+      identification: {
+        idType,
+        idNumber,
+        expiryDate: idExpiryDate ? new Date(idExpiryDate) : null,
+      },
+      employmentInfo: {
+        occupation,
+        sourceOfFunds,
+      },
       status: 'draft'
     };
 
@@ -149,7 +166,7 @@ exports.submitKYCDocuments = async (req, res) => {
       });
     }
 
-    if (kycApplication.status === 'verified') {
+    if (['approved', 'verified'].includes(kycApplication.status)) {
       return res.status(400).json({
         success: false,
         message: 'KYC already verified'
@@ -206,7 +223,7 @@ exports.getPendingApplications = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const applications = await KYCApplication.find({ 
-      status: { $in: ['submitted', 'under_review'] } 
+      status: { $in: ['submitted', 'pending', 'under_review'] } 
     })
       .populate('userId', 'firstName lastName email phone')
       .populate('documents')
@@ -215,7 +232,7 @@ exports.getPendingApplications = async (req, res) => {
       .limit(parseInt(limit));
 
     const total = await KYCApplication.countDocuments({ 
-      status: { $in: ['submitted', 'under_review'] } 
+      status: { $in: ['submitted', 'pending', 'under_review'] } 
     });
 
     res.json({
@@ -285,7 +302,7 @@ exports.verifyKYC = async (req, res) => {
       });
     }
 
-    if (application.status !== 'submitted' && application.status !== 'under_review') {
+    if (!['submitted', 'pending', 'under_review'].includes(application.status)) {
       return res.status(400).json({
         success: false,
         message: `Application is already ${application.status}`
@@ -307,17 +324,18 @@ exports.verifyKYC = async (req, res) => {
       }
     }
 
-    application.status = 'verified';
-    application.reviewedBy = req.user._id;
-    application.reviewedAt = new Date();
-    application.riskRating = riskRating;
+    application.status = 'approved';
+    application.verification = {
+      ...(application.verification || {}),
+      reviewedBy: req.user._id,
+      reviewedByName: `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
+      reviewedAt: new Date(),
+      verificationScore: riskRating === 'high' ? 40 : riskRating === 'medium' ? 70 : 90,
+      rejectionReason: '',
+    };
 
     if (notes) {
-      application.notes.push({
-        comment: notes,
-        addedBy: req.user._id,
-        addedAt: new Date()
-      });
+      application.verification.rejectionNotes = notes;
     }
 
     await application.save();
@@ -374,17 +392,14 @@ exports.rejectKYC = async (req, res) => {
     }
 
     application.status = 'rejected';
-    application.reviewedBy = req.user._id;
-    application.reviewedAt = new Date();
-    application.rejectionReason = reason;
-
-    if (notes) {
-      application.notes.push({
-        comment: notes,
-        addedBy: req.user._id,
-        addedAt: new Date()
-      });
-    }
+    application.verification = {
+      ...(application.verification || {}),
+      reviewedBy: req.user._id,
+      reviewedByName: `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
+      reviewedAt: new Date(),
+      rejectionReason: reason,
+      rejectionNotes: notes || '',
+    };
 
     await application.save();
 

@@ -9,7 +9,7 @@ const { validate } = require('../middleware/validation');
 
 // Validation rules
 const documentUploadValidation = [
-  body('documentType').isIn(['id_proof', 'address_proof', 'income_proof', 'loan_document', 'other']).withMessage('Invalid document type'),
+  body('documentType').isIn(['id_proof', 'address_proof', 'income_proof', 'loan_document', 'kyc_document', 'other']).withMessage('Invalid document type'),
   body('loanId').optional().isMongoId().withMessage('Invalid loan ID'),
   body('kycApplicationId').optional().isMongoId().withMessage('Invalid KYC application ID'),
   validate

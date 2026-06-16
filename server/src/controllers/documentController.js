@@ -2,6 +2,7 @@
 const Document = require('../models/Document');
 const Loan = require('../models/Loan');
 const KYCApplication = require('../models/KYCApplication');
+const User = require('../models/User');
 const cloudinaryService = require('../services/cloudinaryService');
 const path = require('path');
 
@@ -90,8 +91,21 @@ exports.uploadDocuments = async (req, res) => {
       });
     }
 
-    const { documentType, loanId, kycApplicationId } = req.body;
+    const { documentType, loanId, kycApplicationId, documentLabels } = req.body;
     const uploadedDocuments = [];
+    const parsedLabels = (() => {
+      if (!documentLabels) return [];
+      if (Array.isArray(documentLabels)) return documentLabels;
+      try {
+        const parsed = JSON.parse(documentLabels);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_error) {
+        return String(documentLabels)
+          .split(',')
+          .map((label) => label.trim())
+          .filter(Boolean);
+      }
+    })();
 
     // Validate loan if provided
     if (loanId) {
@@ -121,6 +135,8 @@ exports.uploadDocuments = async (req, res) => {
     // Process each file
     for (const file of req.files) {
       try {
+        const fileIndex = uploadedDocuments.length;
+        const label = parsedLabels[fileIndex] || file.fieldname || 'KYC Document';
         const localFileName = path.basename(file.path);
         const localFilePath = `/uploads/${localFileName}`;
 
@@ -148,7 +164,7 @@ exports.uploadDocuments = async (req, res) => {
           fileName: file.originalname,
           fileType: file.mimetype.split('/')[1],
           fileSize: file.size,
-          documentType,
+          documentType: documentType || 'kyc_document',
           cloudinaryUrl,
           cloudinaryPublicId,
           localFileName,
@@ -157,6 +173,9 @@ exports.uploadDocuments = async (req, res) => {
           userId: req.user._id,
           loanId: loanId || null,
           kycApplicationId: kycApplicationId || null,
+          metadata: {
+            label,
+          },
           status: 'pending'
         });
 
@@ -171,7 +190,9 @@ exports.uploadDocuments = async (req, res) => {
     // If this is for a KYC application, update its document list
     if (kycApplicationId && uploadedDocuments.length > 0) {
       await KYCApplication.findByIdAndUpdate(kycApplicationId, {
-        $push: { documents: { $each: uploadedDocuments.map(d => d._id) } }
+        $addToSet: { documents: { $each: uploadedDocuments.map(d => d._id) } },
+        status: 'submitted',
+        submittedAt: new Date(),
       });
     }
 
