@@ -6,26 +6,19 @@ export const supportService = {
   },
 
   async getMyTickets() {
-    return api.get('/support/tickets/my-tickets')
+    return api.get('/support/tickets')
   },
 
   async getTicketById(id) {
     return api.get(`/support/tickets/${id}`)
   },
 
-  async addMessage(ticketId, message, attachments) {
-    const formData = new FormData()
-    formData.append('message', message)
-    if (attachments) {
-      attachments.forEach(file => formData.append('attachments', file))
-    }
-    return api.post(`/support/tickets/${ticketId}/messages`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+  async addMessage(ticketId, message) {
+    return api.post(`/support/tickets/${ticketId}/messages`, { message })
   },
 
   async closeTicket(id) {
-    return api.patch(`/support/tickets/${id}/close`)
+    return api.put(`/support/tickets/${id}/status`, { status: 'closed' })
   },
 
   // Agent endpoints
@@ -34,10 +27,10 @@ export const supportService = {
   },
 
   async updateTicketStatus(id, status) {
-    return api.patch(`/support/admin/tickets/${id}/status`, { status })
+    return api.put(`/support/tickets/${id}/status`, { status })
   },
 
   async assignTicket(id, agentId) {
-    return api.patch(`/support/admin/tickets/${id}/assign`, { agentId })
+    return api.put(`/support/tickets/${id}/assign`, { staffId: agentId })
   }
 }

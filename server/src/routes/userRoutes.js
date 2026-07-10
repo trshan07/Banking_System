@@ -109,15 +109,6 @@ router.post('/', authMiddleware, checkRole('admin', 'superadmin'), createUserVal
 // Get all users (admin only)
 router.get('/', authMiddleware, checkRole('admin', 'superadmin'), userController.getAllUsers);
 
-// Get user by ID (admin only)
-router.get('/:userId', authMiddleware, checkRole('admin', 'superadmin'), userController.getUserById);
-
-// Update user by ID (admin only)
-router.put('/:userId', authMiddleware, checkRole('admin', 'superadmin'), updateUserValidation, userController.updateUser);
-
-// Delete user by ID (admin and super admin)
-router.delete('/:userId', authMiddleware, checkRole('admin', 'superadmin'), userController.deleteUser);
-
 // ============================================
 // User Statistics Routes (admin only)
 // ============================================
@@ -127,5 +118,14 @@ router.get('/stats/overview', authMiddleware, checkRole('admin', 'superadmin'), 
 
 // Get user activity log
 router.get('/:userId/activity', authMiddleware, checkRole('admin', 'superadmin'), userController.getUserActivity);
+
+// Get user by ID (admin only)
+router.get('/:userId', authMiddleware, checkRole('admin', 'superadmin'), userController.getUserById);
+
+// Update user by ID (admin only)
+router.put('/:userId', authMiddleware, checkRole('admin', 'superadmin'), updateUserValidation, userController.updateUser);
+
+// Delete user by ID (admin and super admin)
+router.delete('/:userId', authMiddleware, checkRole('admin', 'superadmin'), userController.deleteUser);
 
 module.exports = router;

@@ -86,8 +86,12 @@ const transactionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate reference number before saving
-transactionSchema.pre('save', async function(next) {
+// Generate transaction identifiers before validation so required fields are populated.
+transactionSchema.pre('validate', async function(next) {
+  if (!this.id) {
+    this.id = `txn_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  }
+
   if (!this.reference) {
     this.reference = 'TXN' + Date.now() + Math.floor(Math.random() * 10000);
   }

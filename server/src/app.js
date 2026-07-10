@@ -11,6 +11,7 @@ const { Server } = require('socket.io');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 const { passport, configurePassport } = require('./config/auth');
+const SupportTicket = require('./models/SupportTicket');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -256,6 +257,104 @@ io.on('connection', (socket) => {
   if (socket.userRole) {
     socket.join(`role:${socket.userRole}`);
   }
+
+  socket.on('support:join', async ({ ticketId } = {}, callback) => {
+    try {
+      if (!socket.isAuthenticated || !socket.userId) {
+        throw new Error('Authentication required');
+      }
+
+      const ticket = await SupportTicket.findById(ticketId).select('userId assignedTo');
+      if (!ticket) {
+        throw new Error('Ticket not found');
+      }
+
+      const isOwner = String(ticket.userId) === String(socket.userId);
+      const isAssignedStaff = ticket.assignedTo && String(ticket.assignedTo) === String(socket.userId);
+      const isStaff = ['employee', 'admin', 'superadmin'].includes(socket.userRole);
+
+      if (!isOwner && !isAssignedStaff && !isStaff) {
+        throw new Error('Not authorized to join this ticket');
+      }
+
+      socket.join(`support:${ticket._id}`);
+      if (typeof callback === 'function') {
+        callback({ success: true });
+      }
+    } catch (error) {
+      if (typeof callback === 'function') {
+        callback({ success: false, message: error.message });
+      }
+    }
+  });
+
+  socket.on('support:message', async ({ ticketId, message } = {}, callback) => {
+    try {
+      if (!socket.isAuthenticated || !socket.userId) {
+        throw new Error('Authentication required');
+      }
+
+      const cleanMessage = String(message || '').trim();
+      if (!cleanMessage) {
+        throw new Error('Message is required');
+      }
+
+      const ticket = await SupportTicket.findById(ticketId);
+      if (!ticket) {
+        throw new Error('Ticket not found');
+      }
+
+      const isOwner = String(ticket.userId) === String(socket.userId);
+      const isAssignedStaff = ticket.assignedTo && String(ticket.assignedTo) === String(socket.userId);
+      const isStaff = ['employee', 'admin', 'superadmin'].includes(socket.userRole);
+
+      if (!isOwner && !isAssignedStaff && !isStaff) {
+        throw new Error('Not authorized to send messages for this ticket');
+      }
+
+      if (['resolved', 'closed'].includes(ticket.status)) {
+        throw new Error(`Cannot add message to ${ticket.status} ticket`);
+      }
+
+      ticket.messages.push({
+        sender: socket.userId,
+        message: cleanMessage,
+        isStaff,
+        createdAt: new Date()
+      });
+      ticket.status = isStaff ? 'awaiting_reply' : 'in_progress';
+      await ticket.save();
+      await ticket.populate('messages.sender', 'firstName lastName email role');
+
+      const savedMessage = ticket.messages[ticket.messages.length - 1];
+      io.to(`support:${ticket._id}`).emit('support:message', {
+        ticketId: String(ticket._id),
+        message: savedMessage
+      });
+
+      if (isStaff) {
+        io.to(`user:${ticket.userId}`).emit('notification', {
+          type: 'support',
+          message: `New reply on ticket ${ticket.ticketNumber || ticket.id}`,
+          ticketId: String(ticket._id)
+        });
+      } else {
+        io.to('role:employee').to('role:admin').to('role:superadmin').emit('notification', {
+          type: 'support',
+          message: `New customer message on ticket ${ticket.ticketNumber || ticket.id}`,
+          ticketId: String(ticket._id)
+        });
+      }
+
+      if (typeof callback === 'function') {
+        callback({ success: true, message: savedMessage });
+      }
+    } catch (error) {
+      if (typeof callback === 'function') {
+        callback({ success: false, message: error.message });
+      }
+    }
+  });
   
   socket.on('disconnect', () => {
     console.log('🔌 Socket disconnected:', socket.id);

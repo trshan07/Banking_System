@@ -201,13 +201,17 @@ const leaveRequestSchema = new mongoose.Schema({
   }
 });
 
-// Generate request ID before saving
-leaveRequestSchema.pre('save', async function(next) {
+// Generate request ID before validation so required fields are populated.
+leaveRequestSchema.pre('validate', async function(next) {
   if (this.isNew) {
     const count = await mongoose.model('LeaveRequest').countDocuments();
     const year = new Date().getFullYear();
     this.requestId = `LVE${year}${String(count + 1).padStart(6, '0')}`;
   }
+  next();
+});
+
+leaveRequestSchema.pre('save', async function(next) {
   this.updatedAt = Date.now();
   next();
 });
@@ -227,8 +231,7 @@ leaveRequestSchema.virtual('durationHours').get(function() {
   return this.totalDays * 8; // Assuming 8-hour workday
 });
 
-// Indexes for better query performance
-leaveRequestSchema.index({ requestId: 1 });
+// Indexes for better query performance. requestId already has a unique index from the schema path.
 leaveRequestSchema.index({ employeeId: 1, status: 1 });
 leaveRequestSchema.index({ startDate: -1, endDate: -1 });
 leaveRequestSchema.index({ status: 1, priority: 1 });

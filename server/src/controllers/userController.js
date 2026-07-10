@@ -119,10 +119,10 @@ exports.uploadProfilePicture = async (req, res) => {
     await user.save();
     await createAuditEntry(
       req,
-      'Admin user created',
+      'Profile picture uploaded',
       user.email,
-      `Created ${role} account for ${firstName} ${lastName}.`,
-      { role },
+      'User uploaded a profile picture.',
+      { profileImage: user.profileImage },
       'user',
       user._id
     );
@@ -256,7 +256,7 @@ exports.getTransactionDetails = async (req, res) => {
 // Get all users (admin only)
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password -refreshToken -__v');
+    const users = await User.find().select('-password -refreshToken -__v').sort({ createdAt: -1 });
 
     res.json({
       success: true,

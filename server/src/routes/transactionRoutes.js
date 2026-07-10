@@ -15,12 +15,14 @@ const dateRangeValidation = [
 
 // User routes
 router.get('/', authMiddleware, transactionController.getUserTransactions);
-router.get('/:transactionId', authMiddleware, transactionController.getTransactionDetails);
 router.get('/account/:accountId', authMiddleware, transactionController.getAccountTransactions);
 router.post('/date-range', authMiddleware, dateRangeValidation, transactionController.getTransactionsByDateRange);
 
 // Admin routes
-router.get('/admin/all', authMiddleware, checkRole('admin', 'super_admin'), transactionController.getAllTransactions);
-router.get('/admin/report', authMiddleware, checkRole('admin', 'super_admin'), transactionController.generateReport);
+router.get('/admin/all', authMiddleware, checkRole('admin', 'superadmin'), transactionController.getAllTransactions);
+router.get('/admin/report', authMiddleware, checkRole('admin', 'superadmin'), transactionController.generateReport);
+
+router.get('/:transactionId/receipt', authMiddleware, transactionController.getTransactionReceipt);
+router.get('/:transactionId', authMiddleware, transactionController.getTransactionDetails);
 
 module.exports = router;

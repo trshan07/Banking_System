@@ -17,14 +17,14 @@ const applyLoanValidation = [
 
 // User routes
 router.get('/', authMiddleware, loanController.getUserLoans);
+router.get('/admin/pending', authMiddleware, checkRole('employee', 'admin', 'superadmin'), loanController.getPendingLoans);
 router.get('/:loanId/status', authMiddleware, loanController.getLoanStatus);
 router.get('/:loanId', authMiddleware, loanController.getLoanDetails);
 router.post('/apply', authMiddleware, applyLoanValidation, loanController.applyForLoan);
 
 // Employee/Admin routes
-router.get('/admin/pending', authMiddleware, checkRole('employee', 'admin', 'super_admin'), loanController.getPendingLoans);
-router.put('/:loanId/approve', authMiddleware, checkRole('employee', 'admin', 'super_admin'), loanController.approveLoan);
-router.put('/:loanId/reject', authMiddleware, checkRole('employee', 'admin', 'super_admin'), loanController.rejectLoan);
-router.post('/:loanId/comment', authMiddleware, checkRole('employee', 'admin', 'super_admin'), loanController.addAdminComment);
+router.put('/:loanId/approve', authMiddleware, checkRole('employee', 'admin', 'superadmin'), loanController.approveLoan);
+router.put('/:loanId/reject', authMiddleware, checkRole('employee', 'admin', 'superadmin'), loanController.rejectLoan);
+router.post('/:loanId/comment', authMiddleware, checkRole('employee', 'admin', 'superadmin'), loanController.addAdminComment);
 
 module.exports = router;

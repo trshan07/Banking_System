@@ -8,7 +8,7 @@ const { validate } = require('../middleware/validation');
 
 // Validation rules
 const createTicketValidation = [
-  body('category').isIn(['technical', 'billing', 'general', 'complaint', 'feedback']).withMessage('Invalid category'),
+  body('category').isIn(['technical', 'billing', 'account', 'loan', 'general', 'complaint', 'feedback']).withMessage('Invalid category'),
   body('subject').notEmpty().withMessage('Subject is required'),
   body('message').notEmpty().withMessage('Message is required'),
   validate
@@ -26,8 +26,8 @@ router.post('/tickets', authMiddleware, createTicketValidation, supportControlle
 router.post('/tickets/:ticketId/messages', authMiddleware, addMessageValidation, supportController.addMessage);
 
 // Employee/Admin routes
-router.get('/admin/tickets', authMiddleware, checkRole('employee', 'admin', 'super_admin'), supportController.getAllTickets);
-router.put('/tickets/:ticketId/assign', authMiddleware, checkRole('employee', 'admin', 'super_admin'), supportController.assignTicket);
-router.put('/tickets/:ticketId/status', authMiddleware, checkRole('employee', 'admin', 'super_admin'), supportController.updateTicketStatus);
+router.get('/admin/tickets', authMiddleware, checkRole('employee', 'admin', 'superadmin'), supportController.getAllTickets);
+router.put('/tickets/:ticketId/assign', authMiddleware, checkRole('employee', 'admin', 'superadmin'), supportController.assignTicket);
+router.put('/tickets/:ticketId/status', authMiddleware, checkRole('employee', 'admin', 'superadmin'), supportController.updateTicketStatus);
 
 module.exports = router;

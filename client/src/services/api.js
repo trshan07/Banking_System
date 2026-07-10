@@ -162,6 +162,11 @@ export const bankingAPI = {
 export const transactionAPI = {
   getTransactions: (params = {}) => api.get('/transactions', { params }),
   getAccountTransactions: (accountId, params = {}) => api.get(`/transactions/account/${accountId}`, { params }),
+  getReceipt: (transactionId, format) => api.get(`/transactions/${transactionId}/receipt`, { params: { format } }),
+  downloadReceipt: (transactionId) => api.get(`/transactions/${transactionId}/receipt`, {
+    params: { format: 'txt' },
+    responseType: 'blob',
+  }),
 };
 
 export const loanAPI = {

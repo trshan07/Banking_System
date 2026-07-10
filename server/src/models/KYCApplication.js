@@ -219,12 +219,16 @@ const kycApplicationSchema = new mongoose.Schema({
   }
 });
 
-// Generate application ID before saving
-kycApplicationSchema.pre('save', async function(next) {
+// Generate application ID before validation so required fields are populated.
+kycApplicationSchema.pre('validate', async function(next) {
   if (this.isNew) {
     const count = await mongoose.model('KYCApplication').countDocuments();
     this.applicationId = `KYC${String(count + 1).padStart(8, '0')}`;
   }
+  next();
+});
+
+kycApplicationSchema.pre('save', async function(next) {
   this.updatedAt = Date.now();
   
   // Auto-calculate risk score based on various factors
@@ -245,9 +249,8 @@ kycApplicationSchema.pre('save', async function(next) {
   next();
 });
 
-// Indexes for efficient querying
+// Indexes for efficient querying. userId already has a unique index from the schema path.
 kycApplicationSchema.index({ applicationId: 1, status: 1 });
-kycApplicationSchema.index({ userId: 1 });
 kycApplicationSchema.index({ status: 1, submittedAt: -1 });
 kycApplicationSchema.index({ 'identification.idNumber': 1 });
 kycApplicationSchema.index({ riskLevel: 1, status: 1 });

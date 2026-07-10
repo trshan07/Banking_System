@@ -22,9 +22,9 @@ router.post('/apply', authMiddleware, kycApplicationValidation, kycController.ap
 router.post('/submit-documents', authMiddleware, kycController.submitKYCDocuments);
 
 // Admin routes
-router.get('/applications/pending', authMiddleware, checkRole('employee', 'admin', 'super_admin'), kycController.getPendingApplications);
-router.get('/applications/:applicationId', authMiddleware, checkRole('employee', 'admin', 'super_admin'), kycController.getApplicationDetails);
-router.put('/applications/:applicationId/verify', authMiddleware, checkRole('employee', 'admin', 'super_admin'), kycController.verifyKYC);
-router.put('/applications/:applicationId/reject', authMiddleware, checkRole('employee', 'admin', 'super_admin'), kycController.rejectKYC);
+router.get('/applications/pending', authMiddleware, checkRole('employee', 'admin', 'superadmin'), kycController.getPendingApplications);
+router.get('/applications/:applicationId', authMiddleware, checkRole('employee', 'admin', 'superadmin'), kycController.getApplicationDetails);
+router.put('/applications/:applicationId/verify', authMiddleware, checkRole('employee', 'admin', 'superadmin'), kycController.verifyKYC);
+router.put('/applications/:applicationId/reject', authMiddleware, checkRole('employee', 'admin', 'superadmin'), kycController.rejectKYC);
 
 module.exports = router;

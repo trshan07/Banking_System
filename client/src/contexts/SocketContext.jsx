@@ -18,37 +18,21 @@ export const SocketProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth()
 
   useEffect(() => {
-    // Only try to connect if backend is available
-    // For now, we'll just set a dummy socket to prevent errors
-    const dummySocket = {
-      on: (event, callback) => {
-        console.log(`Socket event ${event} registered (dummy mode)`)
-        return dummySocket
-      },
-      off: (event) => {
-        console.log(`Socket event ${event} unregistered (dummy mode)`)
-        return dummySocket
-      },
-      emit: (event, data) => {
-        console.log(`Socket emit ${event}:`, data, '(dummy mode)')
-        return dummySocket
-      },
-      disconnect: () => {
-        console.log('Socket disconnected (dummy mode)')
-      }
+    if (!isAuthenticated || !user) {
+      setSocket(null)
+      setOnline(false)
+      return undefined
     }
-    
-    setSocket(dummySocket)
-    setOnline(false) // Set to false since no real connection
 
-    // Uncomment this when your backend is ready
-    /*
+    const token = localStorage.getItem('token')
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_ORIGIN || 'http://localhost:5001'
+
     if (isAuthenticated && user) {
-      const socketInstance = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001', {
+      const socketInstance = io(socketUrl, {
         auth: {
-          token: localStorage.getItem('token')
+          token
         },
-        transports: ['websocket'],
+        transports: ['polling', 'websocket'],
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
@@ -75,7 +59,8 @@ export const SocketProvider = ({ children }) => {
         socketInstance.disconnect()
       }
     }
-    */
+
+    return undefined
   }, [isAuthenticated, user])
 
   const emit = (event, data) => {
@@ -92,9 +77,9 @@ export const SocketProvider = ({ children }) => {
     }
   }
 
-  const off = (event) => {
+  const off = (event, callback) => {
     if (socket) {
-      socket.off(event)
+      socket.off(event, callback)
     }
   }
 

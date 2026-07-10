@@ -14,6 +14,7 @@ import {
 const navigationLinks = [
   { label: 'Home', to: '/' },
   { label: 'About', to: '/about' },
+  { label: 'Branches', to: '/branches' },
   { label: 'Contact', to: '/contact' },
   { label: 'Register', to: '/auth/register' },
   { label: 'Login', to: '/auth/login' },

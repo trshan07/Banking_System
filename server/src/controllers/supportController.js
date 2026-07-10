@@ -3,6 +3,15 @@ const SupportTicket = require('../models/SupportTicket');
 const User = require('../models/User');
 const Task = require('../models/Task');
 
+const isStaffRole = (role) => ['employee', 'admin', 'superadmin'].includes(role);
+
+const canAccessTicket = (ticket, user) => {
+  if (!ticket || !user) return false;
+  if (String(ticket.userId?._id || ticket.userId) === String(user._id)) return true;
+  if (ticket.assignedTo && String(ticket.assignedTo?._id || ticket.assignedTo) === String(user._id)) return true;
+  return isStaffRole(user.role);
+};
+
 // @desc    Get user tickets
 // @route   GET /api/support/tickets
 // @access  Private
@@ -48,16 +57,13 @@ exports.getUserTickets = async (req, res) => {
 // @access  Private
 exports.getTicketDetails = async (req, res) => {
   try {
-    const ticket = await SupportTicket.findOne({
-      _id: req.params.ticketId,
-      userId: req.user._id
-    })
+    const ticket = await SupportTicket.findById(req.params.ticketId)
       .populate('userId', 'firstName lastName email')
       .populate('assignedTo', 'firstName lastName email')
       .populate('messages.sender', 'firstName lastName email role')
       .populate('attachments');
 
-    if (!ticket) {
+    if (!ticket || !canAccessTicket(ticket, req.user)) {
       return res.status(404).json({
         success: false,
         message: 'Ticket not found'
@@ -149,12 +155,9 @@ exports.addMessage = async (req, res) => {
       });
     }
 
-    const ticket = await SupportTicket.findOne({
-      _id: ticketId,
-      userId: req.user._id
-    });
+    const ticket = await SupportTicket.findById(ticketId);
 
-    if (!ticket) {
+    if (!ticket || !canAccessTicket(ticket, req.user)) {
       return res.status(404).json({
         success: false,
         message: 'Ticket not found'
@@ -168,20 +171,40 @@ exports.addMessage = async (req, res) => {
       });
     }
 
-    // Add message
     ticket.messages.push({
       sender: req.user._id,
       message,
-      isStaff: false,
+      isStaff: isStaffRole(req.user.role),
       createdAt: new Date()
     });
 
-    // Update status if it was awaiting reply
-    if (ticket.status === 'awaiting_reply') {
-      ticket.status = 'in_progress';
-    }
+    ticket.status = isStaffRole(req.user.role) ? 'awaiting_reply' : 'in_progress';
 
     await ticket.save();
+    await ticket.populate('messages.sender', 'firstName lastName email role');
+
+    const io = req.app.get('io');
+    const savedMessage = ticket.messages[ticket.messages.length - 1];
+    if (io) {
+      io.to(`support:${ticket._id}`).emit('support:message', {
+        ticketId: String(ticket._id),
+        message: savedMessage
+      });
+
+      if (isStaffRole(req.user.role)) {
+        io.to(`user:${ticket.userId}`).emit('notification', {
+          type: 'support',
+          message: `New reply on ticket ${ticket.ticketNumber || ticket.id}`,
+          ticketId: String(ticket._id)
+        });
+      } else {
+        io.to('role:employee').to('role:admin').to('role:superadmin').emit('notification', {
+          type: 'support',
+          message: `New customer message on ticket ${ticket.ticketNumber || ticket.id}`,
+          ticketId: String(ticket._id)
+        });
+      }
+    }
 
     res.json({
       success: true,
@@ -277,7 +300,7 @@ exports.assignTicket = async (req, res) => {
     // Verify staff exists and is employee or admin
     const staff = await User.findOne({
       _id: staffId,
-      role: { $in: ['employee', 'admin', 'super_admin'] }
+      role: { $in: ['employee', 'admin', 'superadmin'] }
     });
 
     if (!staff) {

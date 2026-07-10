@@ -15,6 +15,7 @@ import SuperAdminLayout from '../layouts/SuperAdminLayout'
 import Home from '../pages/Home'
 import About from '../pages/About'
 import Contact from '../pages/Contact'
+import Branches from '../pages/Branches'
 
 // Auth Pages
 import Login from '../pages/auth/Login'
@@ -35,6 +36,7 @@ import TicketDetails from '../pages/support/TicketDetails'
 import Accounts from '../pages/banking/Accounts'
 import TransferFunds from '../pages/banking/TransferFunds'
 import Transactions from '../pages/banking/Transactions'
+import Statement from '../pages/banking/Statement'
 import SavingsTracker from '../pages/savings/SavingsTracker'
 import ReportFraud from '../pages/fraud/ReportFraud'
 import KYCVerification from '../pages/kyc/KYCVerification'
@@ -67,6 +69,7 @@ const AppRoutes = () => {
       <Route path="/" element={<MainLayout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
+        <Route path="branches" element={<Branches />} />
         <Route path="contact" element={<Contact />} />
       </Route>
 
@@ -96,6 +99,7 @@ const AppRoutes = () => {
         <Route path="banking/accounts" element={<Accounts />} />
         <Route path="banking/transfer" element={<TransferFunds />} />
         <Route path="banking/transactions" element={<Transactions />} />
+        <Route path="banking/statement" element={<Statement />} />
         <Route path="savings" element={<SavingsTracker />} />
         <Route path="fraud/report" element={<ReportFraud />} />
         <Route path="kyc" element={<KYCVerification />} />
@@ -136,6 +140,7 @@ const AppRoutes = () => {
         </RoleBasedRoute>
       }>
         <Route index element={<EmployeeDashboard />} />
+        <Route path="tickets" element={<TicketManagement />} />
         <Route path="tasks" element={<TaskManagement />} />
         <Route path="leaves" element={<LeaveRequests />} />
       </Route>

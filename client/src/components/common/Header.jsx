@@ -45,6 +45,7 @@ const Header = () => {
   const navItems = [
     { label: 'Home', to: '/' },
     { label: 'About', to: '/about' },
+    { label: 'Branches', to: '/branches' },
     { label: 'Contact', to: '/contact' },
   ];
 

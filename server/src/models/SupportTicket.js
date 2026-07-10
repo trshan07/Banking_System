@@ -82,8 +82,12 @@ const supportTicketSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate ticket number before saving
-supportTicketSchema.pre('save', async function(next) {
+// Generate ticket number before validation so required fields are populated.
+supportTicketSchema.pre('validate', async function(next) {
+  if (!this.id) {
+    this.id = `tkt_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  }
+
   if (!this.ticketNumber) {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);

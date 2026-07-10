@@ -1,14 +1,20 @@
 const User = require('../models/User');
-const Ticket = require('../models/Ticket');
+const SupportTicket = require('../models/SupportTicket');
 const FraudReport = require('../models/FraudReport');
 const KYCApplication = require('../models/KYCApplication');
+
+const getUserDisplayName = (user = {}) => (
+  user.name || [user.firstName, user.lastName].filter(Boolean).join(' ').trim() || user.email || 'User'
+);
+
+const getPendingKycStatuses = () => ['pending', 'submitted', 'under_review'];
 
 // Get dashboard statistics
 exports.getStats = async (req, res) => {
   try {
     const totalCustomers = await User.countDocuments({ role: 'customer', status: 'active' });
-    const pendingKYC = await KYCApplication.countDocuments({ status: 'pending' });
-    const openTickets = await Ticket.countDocuments({ status: { $in: ['open', 'in-progress'] } });
+    const pendingKYC = await KYCApplication.countDocuments({ status: { $in: getPendingKycStatuses() } });
+    const openTickets = await SupportTicket.countDocuments({ status: { $in: ['open', 'in_progress', 'awaiting_reply'] } });
     const flaggedFrauds = await FraudReport.countDocuments({ status: 'pending' });
     
     // Get recent counts for trends
@@ -20,7 +26,7 @@ exports.getStats = async (req, res) => {
       createdAt: { $gte: lastWeek } 
     });
     
-    const resolvedTicketsLastWeek = await Ticket.countDocuments({ 
+    const resolvedTicketsLastWeek = await SupportTicket.countDocuments({ 
       status: 'resolved', 
       updatedAt: { $gte: lastWeek } 
     });
@@ -54,31 +60,31 @@ exports.getRecentActivities = async (req, res) => {
     const recentKYC = await KYCApplication.find()
       .sort({ createdAt: -1 })
       .limit(5)
-      .populate('userId', 'name email');
+      .populate('userId', 'firstName lastName email');
     
     // Get recent tickets
-    const recentTickets = await Ticket.find()
+    const recentTickets = await SupportTicket.find()
       .sort({ updatedAt: -1 })
       .limit(5)
-      .populate('customerId', 'name email');
+      .populate('userId', 'firstName lastName email');
     
     // Get recent fraud reports
     const recentFraud = await FraudReport.find()
       .sort({ createdAt: -1 })
       .limit(3)
-      .populate('reportedBy', 'name email');
+      .populate('reportedBy', 'firstName lastName email');
     
     const activities = [
       ...recentKYC.map(k => ({ 
         id: k._id,
-        description: `KYC ${k.status} for ${k.userFullName || k.userId?.name || 'Customer'}`, 
+        description: `KYC ${k.status} for ${k.userFullName || getUserDisplayName(k.userId)}`, 
         time: k.updatedAt, 
         type: 'kyc',
         status: k.status
       })),
       ...recentTickets.map(t => ({ 
         id: t._id,
-        description: `Ticket #${t.ticketId}: ${t.status} - ${t.subject}`, 
+        description: `Ticket #${t.ticketNumber || t.id}: ${t.status} - ${t.subject}`, 
         time: t.updatedAt, 
         type: 'support',
         status: t.status
@@ -114,9 +120,9 @@ exports.getEmployeeStats = async (req, res) => {
     const employeeId = req.userId;
     
     // Tickets assigned to this employee
-    const assignedTickets = await Ticket.countDocuments({ 
+    const assignedTickets = await SupportTicket.countDocuments({ 
       assignedTo: employeeId,
-      status: { $in: ['open', 'in-progress'] }
+      status: { $in: ['open', 'in_progress', 'awaiting_reply'] }
     });
     
     // Tickets resolved by this employee this month
@@ -124,9 +130,9 @@ exports.getEmployeeStats = async (req, res) => {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
     
-    const resolvedTickets = await Ticket.countDocuments({
-      'resolution.resolvedBy': employeeId,
-      'resolution.resolvedAt': { $gte: startOfMonth }
+    const resolvedTickets = await SupportTicket.countDocuments({
+      assignedTo: employeeId,
+      resolvedAt: { $gte: startOfMonth }
     });
     
     // Fraud reports investigated
@@ -163,18 +169,14 @@ exports.getCustomers = async (req, res) => {
     
     if (search) {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
-        { accountNumber: { $regex: search, $options: 'i' } }
       ];
     }
     
-    if (kycStatus && kycStatus !== 'all') {
-      query.kycStatus = kycStatus;
-    }
-    
     const customers = await User.find(query)
-      .select('name email kycStatus accountNumber phoneNumber createdAt status')
+      .select('firstName lastName email phone createdAt status')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -185,8 +187,16 @@ exports.getCustomers = async (req, res) => {
     const customersWithKYC = await Promise.all(
       customers.map(async (customer) => {
         const kyc = await KYCApplication.findOne({ userId: customer._id });
+        const derivedKycStatus = kyc?.status || 'not_submitted';
+        if (kycStatus && kycStatus !== 'all' && derivedKycStatus !== kycStatus) {
+          return null;
+        }
+
         return {
           ...customer.toObject(),
+          name: getUserDisplayName(customer),
+          phoneNumber: customer.phone,
+          kycStatus: derivedKycStatus,
           kycApplication: kyc || null
         };
       })
@@ -195,7 +205,7 @@ exports.getCustomers = async (req, res) => {
     res.json({
       success: true,
       data: {
-        customers: customersWithKYC,
+        customers: customersWithKYC.filter(Boolean),
         pagination: {
           total,
           totalPages: Math.ceil(total / limit),
@@ -232,7 +242,7 @@ exports.getCustomerDetails = async (req, res) => {
     const kycApplication = await KYCApplication.findOne({ userId: customerId });
     
     // Get customer's tickets
-    const tickets = await Ticket.find({ customerId }).sort({ createdAt: -1 }).limit(10);
+    const tickets = await SupportTicket.find({ userId: customerId }).sort({ createdAt: -1 }).limit(10);
     
     // Get customer's fraud reports
     const fraudReports = await FraudReport.find({ reportedBy: customerId }).sort({ createdAt: -1 }).limit(5);
@@ -269,7 +279,7 @@ exports.approveKYC = async (req, res) => {
         approvedAt: new Date(),
         verification: {
           reviewedBy: req.userId,
-          reviewedByName: req.user.name,
+          reviewedByName: getUserDisplayName(req.user),
           reviewedAt: new Date(),
           verificationScore: 85,
           reviewerNotes: notes || ''
@@ -284,13 +294,6 @@ exports.approveKYC = async (req, res) => {
         error: 'KYC application not found' 
       });
     }
-    
-    // Update user's KYC status
-    await User.findByIdAndUpdate(customerId, { 
-      kycStatus: 'approved',
-      kycApprovedAt: new Date(),
-      kycApprovedBy: req.userId
-    });
     
     res.json({ 
       success: true,
@@ -326,7 +329,7 @@ exports.rejectKYC = async (req, res) => {
         status: 'rejected',
         verification: {
           reviewedBy: req.userId,
-          reviewedByName: req.user.name,
+          reviewedByName: getUserDisplayName(req.user),
           reviewedAt: new Date(),
           rejectionReason: reason,
           rejectionNotes: notes || ''
@@ -341,14 +344,6 @@ exports.rejectKYC = async (req, res) => {
         error: 'KYC application not found' 
       });
     }
-    
-    // Update user's KYC status
-    await User.findByIdAndUpdate(customerId, { 
-      kycStatus: 'rejected',
-      kycRejectedAt: new Date(),
-      kycRejectedBy: req.userId,
-      kycRejectionReason: reason
-    });
     
     res.json({ 
       success: true,
@@ -383,14 +378,14 @@ exports.getTickets = async (req, res) => {
       query.assignedTo = req.userId;
     }
     
-    const tickets = await Ticket.find(query)
-      .populate('customerId', 'name email phoneNumber')
-      .populate('assignedTo', 'name email')
+    const tickets = await SupportTicket.find(query)
+      .populate('userId', 'firstName lastName email phone')
+      .populate('assignedTo', 'firstName lastName email')
       .sort({ priority: -1, createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
     
-    const total = await Ticket.countDocuments(query);
+    const total = await SupportTicket.countDocuments(query);
     
     res.json({
       success: true,
@@ -418,27 +413,28 @@ exports.updateTicketStatus = async (req, res) => {
   try {
     const { ticketId } = req.params;
     const { status, resolution, assignedTo } = req.body;
+    const normalizedStatus = status === 'in-progress' ? 'in_progress' : status;
     
-    const updateData = { status };
+    const updateData = {};
+
+    if (normalizedStatus) {
+      updateData.status = normalizedStatus;
+    }
     
     if (assignedTo) {
       updateData.assignedTo = assignedTo;
     }
     
-    if (status === 'resolved' || status === 'closed') {
-      updateData.resolution = {
-        message: resolution || 'Ticket resolved',
-        resolvedAt: new Date(),
-        resolvedBy: req.userId
-      };
+    if (normalizedStatus === 'resolved' || normalizedStatus === 'closed') {
       updateData.status = 'resolved';
+      updateData.resolvedAt = new Date();
     }
     
-    const ticket = await Ticket.findOneAndUpdate(
-      { ticketId: ticketId },
+    const ticket = await SupportTicket.findOneAndUpdate(
+      { $or: [{ _id: ticketId }, { id: ticketId }, { ticketNumber: ticketId }] },
       updateData,
       { new: true }
-    ).populate('customerId', 'name email');
+    ).populate('userId', 'firstName lastName email');
     
     if (!ticket) {
       return res.status(404).json({ 
@@ -523,7 +519,7 @@ exports.updateFraudStatus = async (req, res) => {
         investigationNotes: {
           note: notes,
           addedBy: req.userId,
-          addedByName: req.user.name,
+          addedByName: getUserDisplayName(req.user),
           addedAt: new Date()
         }
       };

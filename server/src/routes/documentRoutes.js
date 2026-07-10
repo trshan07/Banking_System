@@ -17,11 +17,12 @@ const documentUploadValidation = [
 
 // User routes
 router.get('/', authMiddleware, documentController.getUserDocuments);
-router.get('/:documentId', authMiddleware, documentController.getDocumentDetails);
 router.post('/upload', authMiddleware, uploadMultiple('documents', 5), documentUploadValidation, documentController.uploadDocuments);
 router.delete('/:documentId', authMiddleware, documentController.deleteDocument);
 
 // Admin routes
-router.get('/user/:userId', authMiddleware, checkRole('admin', 'super_admin'), documentController.getUserDocumentsByAdmin);
+router.get('/user/:userId', authMiddleware, checkRole('admin', 'superadmin'), documentController.getUserDocumentsByAdmin);
+
+router.get('/:documentId', authMiddleware, documentController.getDocumentDetails);
 
 module.exports = router;

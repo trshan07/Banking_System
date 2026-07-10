@@ -66,8 +66,12 @@ const accountSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate account number before saving
-accountSchema.pre('save', async function(next) {
+// Generate account identifiers before validation so required fields are populated.
+accountSchema.pre('validate', async function(next) {
+  if (!this.id) {
+    this.id = `acc_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  }
+
   if (!this.accountNumber) {
     this.accountNumber = 'ACC' + Date.now() + Math.floor(Math.random() * 1000);
   }

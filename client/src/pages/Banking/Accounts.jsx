@@ -188,6 +188,10 @@ const Accounts = () => {
                     History
                   </Link>
                   <button
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      window.location.href = `/dashboard/banking/statement?accountId=${account.id}`
+                    }}
                     className="text-center text-sm text-primary-600 hover:text-primary-700 py-2 hover:bg-gray-50 rounded-lg"
                   >
                     Statement
@@ -226,7 +230,8 @@ const Accounts = () => {
             </div>
           </Link>
 
-          <button
+          <Link
+            to="/dashboard/banking/statement"
             className="bg-purple-50 border border-purple-200 rounded-xl p-4 hover:bg-purple-100 transition-colors text-left"
           >
             <div className="flex items-center justify-between">
@@ -236,7 +241,7 @@ const Accounts = () => {
               </div>
               <FaDownload className="text-purple-600" />
             </div>
-          </button>
+          </Link>
         </div>
       </div>
     </div>

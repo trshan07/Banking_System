@@ -9,8 +9,23 @@ cloudinary.config({
 });
 
 class CloudinaryService {
+  isConfigured() {
+    return Boolean(
+      process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET &&
+      !String(process.env.CLOUDINARY_CLOUD_NAME).startsWith('your-') &&
+      !String(process.env.CLOUDINARY_API_KEY).startsWith('your-') &&
+      !String(process.env.CLOUDINARY_API_SECRET).startsWith('your-')
+    );
+  }
+
   async uploadImage(file, options = {}) {
     try {
+      if (!this.isConfigured()) {
+        throw new Error('Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.');
+      }
+
       const uploadOptions = typeof options === 'string'
         ? { folder: options, resource_type: 'auto' }
         : { resource_type: 'auto', ...options };

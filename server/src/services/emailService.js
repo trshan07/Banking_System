@@ -2,6 +2,20 @@ const nodemailer = require('nodemailer');
 
 class EmailService {
   constructor() {
+    this.isConfigured = Boolean(
+      process.env.SMTP_HOST &&
+      process.env.SMTP_USER &&
+      process.env.SMTP_PASS &&
+      !String(process.env.SMTP_USER).startsWith('your-') &&
+      !String(process.env.SMTP_PASS).startsWith('your-')
+    );
+
+    if (!this.isConfigured) {
+      this.transporter = null;
+      console.warn('Email service is not configured. Emails will be logged instead of sent.');
+      return;
+    }
+
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: process.env.SMTP_PORT || 587,
@@ -24,6 +38,11 @@ class EmailService {
     };
 
     try {
+      if (!this.isConfigured || !this.transporter) {
+        console.log('Mock email:', { to, subject, text: text || '[HTML email]' });
+        return { messageId: `mock-email-${Date.now()}`, mock: true };
+      }
+
       const info = await this.transporter.sendMail(mailOptions);
       console.log('Email sent:', info.messageId);
       return info;
