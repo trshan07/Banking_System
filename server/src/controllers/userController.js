@@ -13,20 +13,24 @@ const getAllowedRolesForUser = (role) => EDITABLE_ROLES[role] || [];
 const normalizeEmail = (email) => (typeof email === 'string' ? email.trim().toLowerCase() : email);
 
 const createAuditEntry = async (req, action, target, details, metadata = {}, entity = 'user', entityId = null) => {
-  await AuditLog.create({
-    userId: req.user?._id || null,
-    userEmail: req.user?.email || 'system',
-    action,
-    entity,
-    entityId: entityId ? String(entityId) : null,
-    target,
-    details,
-    status: 'success',
-    ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
-    userAgent: req.get('User-Agent') || '',
-    metadata,
-    timestamp: new Date(),
-  });
+  try {
+    await AuditLog.create({
+      userId: req.user?._id || null,
+      userEmail: req.user?.email || 'system',
+      action,
+      entity,
+      entityId: entityId ? String(entityId) : null,
+      target,
+      details,
+      status: 'success',
+      ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+      userAgent: req.get('User-Agent') || '',
+      metadata,
+      timestamp: new Date(),
+    });
+  } catch (error) {
+    console.error('Audit log write failed:', error);
+  }
 };
 
 // Get current user profile
@@ -274,7 +278,8 @@ exports.getAllUsers = async (req, res) => {
 // Create new user (role-based permissions)
 exports.createUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, address, role } = req.body;
+    const { firstName, lastName, email, password, phone, address } = req.body;
+    const role = req.body.role || 'customer';
     const currentUser = req.user;
 
     // Role hierarchy validation
@@ -354,6 +359,21 @@ exports.createUser = async (req, res) => {
 
   } catch (error) {
     console.error('Create user error:', error);
+
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already registered'
+      });
+    }
+
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: Object.values(error.errors).map((item) => item.message).join(', ') || 'Validation failed'
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to create user'

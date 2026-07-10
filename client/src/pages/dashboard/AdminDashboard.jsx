@@ -50,6 +50,7 @@ import TransactionsModule from "../../components/admin/TransactionsModule";
 import KYCModule from "../../components/admin/KYCModule";
 import FraudModule from "../../components/admin/FraudModule";
 import ReportsModule from "../../components/admin/ReportsModule";
+import { useAuth } from "../../contexts/AuthContext";
 
 const initialProfile = {
   name: "",
@@ -114,7 +115,17 @@ const emptyUserForm = {
   status: "active",
 };
 
+const getApiErrorMessage = (error, fallback) => {
+  const errors = error.response?.data?.errors;
+  if (errors && typeof errors === "object") {
+    return Object.values(errors).join(", ");
+  }
+
+  return error.response?.data?.message || fallback;
+};
+
 const AdminDashboard = () => {
+  const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
@@ -272,11 +283,19 @@ const AdminDashboard = () => {
 
   const openCreateUserModal = () => {
     setUserModalMode("create");
-    setUserForm(emptyUserForm);
+    setUserForm({
+      ...emptyUserForm,
+      role: currentUser?.role === "superadmin" ? "admin" : "customer",
+    });
     setShowUserModal(true);
   };
 
   const openEditUserModal = (user) => {
+    if (currentUser?.role !== "superadmin" && ["admin", "superadmin"].includes(user.role)) {
+      toast.error("Only super admins can modify admin accounts");
+      return;
+    }
+
     const [firstName = "", ...lastNameParts] = (user.name || "").split(" ");
     setUserModalMode("edit");
     setUserForm({
@@ -294,10 +313,27 @@ const AdminDashboard = () => {
   };
 
   const handleSaveUser = async () => {
+    const requiredFields = ["firstName", "lastName", "email", "phone", "address"];
+    if (userModalMode === "create") {
+      requiredFields.push("password");
+    }
+
+    const missingField = requiredFields.find((field) => !String(userForm[field] || "").trim());
+    if (missingField) {
+      toast.error("Please fill all required user details");
+      return;
+    }
+
+    if (userModalMode === "create" && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(userForm.password)) {
+      toast.error("Password must be 8+ characters with uppercase, lowercase, and a number");
+      return;
+    }
+
     setSavingUser(true);
     try {
       if (userModalMode === "create") {
-        await api.post("/users", userForm);
+        const { status, id, ...createPayload } = userForm;
+        await api.post("/users", createPayload);
         toast.success("User created successfully");
       } else {
         await api.put(`/users/${userForm.id}`, {
@@ -316,13 +352,18 @@ const AdminDashboard = () => {
       fetchUsers();
       fetchDashboardData();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to save user");
+      toast.error(getApiErrorMessage(error, "Failed to save user"));
     } finally {
       setSavingUser(false);
     }
   };
 
   const handleDeactivateUser = async (user) => {
+    if (currentUser?.role !== "superadmin" && ["admin", "superadmin"].includes(user.role)) {
+      toast.error("Only super admins can deactivate admin accounts");
+      return;
+    }
+
     if (!window.confirm(`Deactivate ${user.name}?`)) {
       return;
     }
@@ -353,6 +394,10 @@ const AdminDashboard = () => {
       String(user.role).toLowerCase().includes(term)
     );
   });
+
+  const canManageUser = (user) => (
+    currentUser?.role === "superadmin" || !["admin", "superadmin"].includes(user.role)
+  );
 
   const StatCard = ({ title, value, icon: Icon, color, trend, trendValue }) => (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200 hover:shadow-xl transition-all">
@@ -601,8 +646,20 @@ const AdminDashboard = () => {
                         <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(user.status)}`}>{user.status}</span></td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-3">
-                            <button onClick={() => openEditUserModal(user)} className="text-blue-600"><FaEdit /></button>
-                            <button onClick={() => handleDeactivateUser(user)} className="text-red-600"><FaTrash /></button>
+                            <button
+                              onClick={() => openEditUserModal(user)}
+                              disabled={!canManageUser(user)}
+                              className="text-blue-600 disabled:text-slate-300 disabled:cursor-not-allowed"
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
+                              onClick={() => handleDeactivateUser(user)}
+                              disabled={!canManageUser(user)}
+                              className="text-red-600 disabled:text-slate-300 disabled:cursor-not-allowed"
+                            >
+                              <FaTrash />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -724,13 +781,13 @@ const AdminDashboard = () => {
               <button onClick={() => setShowUserModal(false)} className="p-2 hover:bg-slate-100 rounded-lg"><FaTimesCircle /></button>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
-              <div><label className="block text-sm mb-1">First Name</label><input value={userForm.firstName} onChange={(e) => setUserForm({ ...userForm, firstName: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
-              <div><label className="block text-sm mb-1">Last Name</label><input value={userForm.lastName} onChange={(e) => setUserForm({ ...userForm, lastName: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
-              <div><label className="block text-sm mb-1">Email</label><input type="email" value={userForm.email} onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
-              <div><label className="block text-sm mb-1">Phone</label><input value={userForm.phone} onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
-              <div className="md:col-span-2"><label className="block text-sm mb-1">Address</label><input value={userForm.address} onChange={(e) => setUserForm({ ...userForm, address: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
-              {userModalMode === "create" && <div><label className="block text-sm mb-1">Password</label><input type="password" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>}
-              <div><label className="block text-sm mb-1">Role</label><select value={userForm.role} onChange={(e) => setUserForm({ ...userForm, role: e.target.value })} className="w-full px-3 py-2 border rounded-lg"><option value="customer">Customer</option><option value="employee">Employee</option><option value="admin">Admin</option></select></div>
+              <div><label className="block text-sm mb-1">First Name</label><input required value={userForm.firstName} onChange={(e) => setUserForm({ ...userForm, firstName: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+              <div><label className="block text-sm mb-1">Last Name</label><input required value={userForm.lastName} onChange={(e) => setUserForm({ ...userForm, lastName: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+              <div><label className="block text-sm mb-1">Email</label><input required type="email" value={userForm.email} onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+              <div><label className="block text-sm mb-1">Phone</label><input required value={userForm.phone} onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+              <div className="md:col-span-2"><label className="block text-sm mb-1">Address</label><input required value={userForm.address} onChange={(e) => setUserForm({ ...userForm, address: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>
+              {userModalMode === "create" && <div><label className="block text-sm mb-1">Password</label><input required type="password" minLength={8} placeholder="Password123" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} className="w-full px-3 py-2 border rounded-lg" /></div>}
+              <div><label className="block text-sm mb-1">Role</label><select value={userForm.role} onChange={(e) => setUserForm({ ...userForm, role: e.target.value })} className="w-full px-3 py-2 border rounded-lg"><option value="customer">Customer</option><option value="employee">Employee</option>{currentUser?.role === "superadmin" && <option value="admin">Admin</option>}</select></div>
               {userModalMode === "edit" && <div><label className="block text-sm mb-1">Status</label><select value={userForm.status} onChange={(e) => setUserForm({ ...userForm, status: e.target.value })} className="w-full px-3 py-2 border rounded-lg"><option value="active">Active</option><option value="pending">Pending</option><option value="inactive">Inactive</option><option value="suspended">Suspended</option></select></div>}
             </div>
             <div className="flex justify-end gap-3 mt-6">

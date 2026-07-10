@@ -240,9 +240,9 @@ kycApplicationSchema.pre('save', async function(next) {
     if (this.personalInfo.countryOfResidence !== this.taxInfo.countryOfTaxResidence) riskScore += 15;
     
     this.riskScore = riskScore;
-    if (riskScore >= 50) this.riskLevel = 'high';
+    if (riskScore >= 70) this.riskLevel = 'very_high';
+    else if (riskScore >= 50) this.riskLevel = 'high';
     else if (riskScore >= 30) this.riskLevel = 'medium';
-    else if (riskScore >= 70) this.riskLevel = 'very_high';
     else this.riskLevel = 'low';
   }
   

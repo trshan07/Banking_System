@@ -7,6 +7,7 @@ const KYCApplication = require('../models/KYCApplication');
 const Loan = require('../models/Loan');
 const Branch = require('../models/Branch');
 const Account = require('../models/Account');
+const Document = require('../models/Document');
 const { formatCurrency } = require('../utils/formatCurrency');
 
 const DEFAULT_ADMIN_SETTINGS = {
@@ -627,6 +628,17 @@ exports.processPendingApproval = async (req, res) => {
         rejectionReason: action === 'reject' ? (reason || 'Rejected by admin') : '',
       };
       await application.save();
+      await Document.updateMany(
+        { $or: [{ kycApplicationId: application._id }, { _id: { $in: application.documents || [] } }] },
+        {
+          $set: {
+            status: action === 'approve' ? 'verified' : 'rejected',
+            verifiedBy: req.user._id,
+            verifiedAt: new Date(),
+            rejectionReason: action === 'reject' ? (reason || 'Rejected by admin') : '',
+          },
+        }
+      );
 
       return res.json({
         success: true,
@@ -875,6 +887,7 @@ exports.getKYCApplications = async (req, res) => {
 
     const applications = await KYCApplication.find(filter)
       .populate('userId', 'firstName lastName email phone')
+      .populate('documents', 'fileName documentType cloudinaryUrl localFilePath localFileName status metadata')
       .sort({ submittedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit)

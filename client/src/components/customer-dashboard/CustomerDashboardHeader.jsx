@@ -8,6 +8,7 @@ const CustomerDashboardHeader = ({
   searchValue,
   onSearchChange,
   onRefresh,
+  onOpenNotifications,
   notificationCount = 0,
   lastSyncedAt,
 }) => {
@@ -30,7 +31,7 @@ const CustomerDashboardHeader = ({
 
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              Welcome back, {firstName}! 👋
+              Welcome back, {firstName}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
               Your banking overview, latest transactions, savings, loans, and support updates are all in one place.
@@ -74,12 +75,15 @@ const CustomerDashboardHeader = ({
             <div className="flex items-center gap-3">
               <button
                 type="button"
+                onClick={onOpenNotifications}
                 className="relative flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
                 aria-label="Notifications"
               >
                 <FaBell />
                 {notificationCount > 0 ? (
-                  <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-red-500" />
+                  <span className="absolute right-1.5 top-1.5 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </span>
                 ) : null}
               </button>
 

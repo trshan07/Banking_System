@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDashboardData } from '../../hooks/useDashboardData'
@@ -16,6 +16,19 @@ import QuickActions from '../../components/dashboard/QuickActionsNew'
 import RecentTransactions from '../../components/dashboard/RecentTransactions'
 import AccountSummary from '../../components/dashboard/AccountSummary'
 import SavingsGoals from '../../components/dashboard/SavingsGoals'
+
+const searchDashboardItems = (items, fields, term) => {
+  const query = term.trim().toLowerCase()
+  if (!query) return items
+
+  return items.filter((item) =>
+    fields.some((field) =>
+      String(item?.[field] ?? '')
+        .toLowerCase()
+        .includes(query)
+    )
+  )
+}
 
 const CustomerDashboard = () => {
   const { user } = useAuth()
@@ -35,9 +48,39 @@ const CustomerDashboard = () => {
   } = useDashboardData()
 
   const kpiCards = buildCustomerKpis({ accounts, transactions, savingsGoals, loans, alerts, overview })
-  const trendData = buildTrendData(transactions)
-  const loanBreakdown = buildLoanStatusBreakdown(loans)
+  const filteredAccounts = useMemo(
+    () => searchDashboardItems(accounts, ['name', 'number', 'accountNumber', 'type', 'accountType', 'status'], searchTerm),
+    [accounts, searchTerm]
+  )
+  const filteredTransactions = useMemo(
+    () => searchDashboardItems(transactions, ['description', 'category', 'type', 'status', 'account', 'reference'], searchTerm),
+    [transactions, searchTerm]
+  )
+  const filteredSavingsGoals = useMemo(
+    () => searchDashboardItems(savingsGoals, ['name', 'goalName', 'category', 'status'], searchTerm),
+    [savingsGoals, searchTerm]
+  )
+  const filteredLoans = useMemo(
+    () => searchDashboardItems(loans, ['type', 'loanType', 'status', 'tenure'], searchTerm),
+    [loans, searchTerm]
+  )
+  const filteredAlerts = useMemo(
+    () => searchDashboardItems(alerts, ['title', 'message', 'type', 'severity'], searchTerm),
+    [alerts, searchTerm]
+  )
+  const isSearching = searchTerm.trim().length > 0
+  const visibleResultCount =
+    filteredAccounts.length +
+    filteredTransactions.length +
+    filteredSavingsGoals.length +
+    filteredLoans.length +
+    filteredAlerts.length
+  const trendData = buildTrendData(isSearching ? filteredTransactions : transactions)
+  const loanBreakdown = buildLoanStatusBreakdown(isSearching ? filteredLoans : loans)
   const lastSyncedAt = getCustomerLastSyncedAt({ transactions, alerts })
+  const scrollToAlerts = () => {
+    document.getElementById('dashboard-alerts')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   if (loading) {
     return (
@@ -69,16 +112,37 @@ const CustomerDashboard = () => {
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
         onRefresh={refreshData}
+        onOpenNotifications={scrollToAlerts}
         notificationCount={alerts.length}
         lastSyncedAt={lastSyncedAt}
       />
+
+      {isSearching ? (
+        <div className="flex flex-col gap-3 rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">
+              Showing {visibleResultCount} dashboard result{visibleResultCount === 1 ? '' : 's'} for "{searchTerm}"
+            </p>
+            <p className="mt-1 text-sm text-slate-500">
+              Accounts, transactions, loans, savings, and alerts are filtered below.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSearchTerm('')}
+            className="inline-flex justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+          >
+            Clear search
+          </button>
+        </div>
+      ) : null}
 
       <CustomerKpiGrid cards={kpiCards} />
 
       <CustomerAnalyticsPanel
         trendData={trendData}
         loanBreakdown={loanBreakdown}
-        alerts={alerts}
+        alerts={isSearching ? filteredAlerts : alerts}
         onDismiss={dismissAlert}
       />
 
@@ -94,16 +158,16 @@ const CustomerDashboard = () => {
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="xl:col-span-7">
-          <RecentTransactions transactions={transactions} loading={loading} />
+          <RecentTransactions transactions={isSearching ? filteredTransactions : transactions} loading={loading} />
         </div>
         <div className="xl:col-span-5">
-          <AccountSummary accounts={accounts} loading={loading} />
+          <AccountSummary accounts={isSearching ? filteredAccounts : accounts} loading={loading} />
         </div>
       </section>
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="xl:col-span-6">
-          <SavingsGoals goals={savingsGoals} loading={loading} />
+          <SavingsGoals goals={isSearching ? filteredSavingsGoals : savingsGoals} loading={loading} />
         </div>
         <div className="xl:col-span-6">
           <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">

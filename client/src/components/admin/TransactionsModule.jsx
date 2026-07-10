@@ -74,72 +74,11 @@ const TransactionsModule = () => {
           page: currentPage,
         },
       });
-      setTransactions(response.data.data);
+      setTransactions(response.data.data || []);
     } catch (error) {
       console.error("Error fetching transactions:", error);
-      // Demo data
-      setTransactions([
-        {
-          id: "TXN-2024-001",
-          user: "John Doe",
-          userEmail: "john@example.com",
-          amount: 5000,
-          type: "deposit",
-          status: "completed",
-          date: "2024-01-15T10:30:00",
-          paymentMethod: "Bank Transfer",
-          reference: "REF-001",
-          description: "Salary deposit",
-        },
-        {
-          id: "TXN-2024-002",
-          user: "Jane Smith",
-          userEmail: "jane@example.com",
-          amount: 2500,
-          type: "withdrawal",
-          status: "pending",
-          date: "2024-01-15T09:15:00",
-          paymentMethod: "ATM",
-          reference: "REF-002",
-          description: "Cash withdrawal",
-        },
-        {
-          id: "TXN-2024-003",
-          user: "Bob Johnson",
-          userEmail: "bob@example.com",
-          amount: 10000,
-          type: "transfer",
-          status: "completed",
-          date: "2024-01-14T14:45:00",
-          paymentMethod: "Online Transfer",
-          reference: "REF-003",
-          description: "Account transfer",
-        },
-        {
-          id: "TXN-2024-004",
-          user: "Alice Brown",
-          userEmail: "alice@example.com",
-          amount: 750,
-          type: "payment",
-          status: "failed",
-          date: "2024-01-14T11:20:00",
-          paymentMethod: "Credit Card",
-          reference: "REF-004",
-          description: "Bill payment",
-        },
-        {
-          id: "TXN-2024-005",
-          user: "Charlie Wilson",
-          userEmail: "charlie@example.com",
-          amount: 15000,
-          type: "deposit",
-          status: "completed",
-          date: "2024-01-13T16:00:00",
-          paymentMethod: "Check",
-          reference: "REF-005",
-          description: "Investment deposit",
-        },
-      ]);
+      setTransactions([]);
+      toast.error(error.response?.data?.message || "Failed to fetch transactions");
     } finally {
       setLoading(false);
     }
@@ -150,35 +89,16 @@ const TransactionsModule = () => {
       const response = await api.get("/admin/transactions/charts");
       setChartData(response.data.data);
     } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to fetch transaction charts");
       setChartData({
-        dailyVolume: [
-          { day: "Mon", volume: 450000, count: 1250 },
-          { day: "Tue", volume: 520000, count: 1420 },
-          { day: "Wed", volume: 480000, count: 1380 },
-          { day: "Thu", volume: 610000, count: 1650 },
-          { day: "Fri", volume: 580000, count: 1580 },
-          { day: "Sat", volume: 390000, count: 980 },
-          { day: "Sun", volume: 280000, count: 750 },
-        ],
-        transactionTypes: [
-          { name: "Deposits", value: 45, color: "#10b981" },
-          { name: "Withdrawals", value: 25, color: "#ef4444" },
-          { name: "Transfers", value: 20, color: "#3b82f6" },
-          { name: "Payments", value: 10, color: "#f59e0b" },
-        ],
-        successRate: [
-          { month: "Jan", success: 95, failed: 5 },
-          { month: "Feb", success: 96, failed: 4 },
-          { month: "Mar", success: 94, failed: 6 },
-          { month: "Apr", success: 97, failed: 3 },
-          { month: "May", success: 95, failed: 5 },
-          { month: "Jun", success: 96, failed: 4 },
-        ],
+        dailyVolume: [],
+        transactionTypes: [],
+        successRate: [],
         summary: {
-          totalTransactions: 45678,
-          totalVolume: 12500000,
-          successRate: 96.2,
-          pendingTransactions: 234,
+          totalTransactions: 0,
+          totalVolume: 0,
+          successRate: 0,
+          pendingTransactions: 0,
         },
       });
     }
@@ -427,7 +347,7 @@ const TransactionsModule = () => {
             </thead>
             <tbody className="divide-y divide-slate-200">
               {transactions
-                .filter(t => t.user.toLowerCase().includes(searchTerm.toLowerCase()) || t.id.toLowerCase().includes(searchTerm.toLowerCase()))
+                .filter(t => String(t.user || "").toLowerCase().includes(searchTerm.toLowerCase()) || String(t.id || "").toLowerCase().includes(searchTerm.toLowerCase()))
                 .map((transaction) => (
                   <tr key={transaction.id} className="hover:bg-slate-50">
                     <td className="px-6 py-4 font-mono text-sm">{transaction.id}</td>

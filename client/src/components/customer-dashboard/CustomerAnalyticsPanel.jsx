@@ -165,7 +165,7 @@ const CustomerAnalyticsPanel = ({ trendData = [], loanBreakdown = [], alerts = [
         </div>
       </div>
 
-      <div className="xl:col-span-12">
+      <div id="dashboard-alerts" className="scroll-mt-36 xl:col-span-12">
         <ActiveAlerts alerts={alerts} onDismiss={onDismiss} />
       </div>
     </div>

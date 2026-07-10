@@ -2,6 +2,8 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import {
+  FaBars,
+  FaChevronRight,
   FaHome,
   FaMoneyBillWave,
   FaHeadset,
@@ -17,6 +19,9 @@ import {
 
 const Sidebar = () => {
   const { user } = useAuth();
+  const userRoleLabel = user?.role
+    ? user.role.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
+    : "Customer";
 
   const customerLinks = [
     { to: "/dashboard", icon: FaHome, label: "Dashboard" },
@@ -25,7 +30,7 @@ const Sidebar = () => {
       icon: FaMoneyBillWave,
       label: "Apply for Loan",
     },
-    { to: "/dashboard/loans", icon: FaTasks, label: "Loan Status" },
+    { to: "/dashboard/loans/status", icon: FaTasks, label: "Loan Status" },
     {
       to: "/dashboard/banking/accounts",
       icon: FaUniversity,
@@ -77,65 +82,59 @@ const Sidebar = () => {
   const links = getLinks();
 
   return (
-    <>
-      <div className="border-b border-gray-200 bg-white md:hidden">
-        <nav className="overflow-x-auto px-4 py-3">
-          <ul className="flex min-w-max gap-2">
-            {links.map((link) => (
-              <li key={link.to}>
-                <NavLink
-                  to={link.to}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`
-                  }
-                  end={
-                    link.to === '/dashboard' ||
-                    link.to === '/super-admin' ||
-                    link.to === '/employee'
-                  }
-                >
-                  <link.icon className="text-sm" />
-                  <span>{link.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
+    <aside className="sticky top-16 z-30 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+      <div className="mx-auto max-w-[1440px] px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="flex items-center justify-between gap-4 lg:w-52 lg:shrink-0">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                {userRoleLabel} Menu
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold text-slate-900">
+                Banking workspace
+              </p>
+            </div>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 lg:hidden">
+              <FaBars />
+            </span>
+          </div>
 
-      <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r border-gray-200 bg-white md:block">
-        <nav className="p-4">
-          <ul className="space-y-1">
-            {links.map((link) => (
-              <li key={link.to}>
-                <NavLink
-                  to={link.to}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-3 rounded-lg px-4 py-3 transition-colors ${
-                      isActive
-                        ? 'bg-primary-50 text-primary-600'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`
-                  }
-                  end={
-                    link.to === '/dashboard' ||
-                    link.to === '/super-admin' ||
-                    link.to === '/employee'
-                  }
-                >
-                  <link.icon className="text-lg" />
-                  <span className="text-sm font-medium">{link.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </aside>
-    </>
+          <nav className="min-w-0 flex-1 overflow-x-auto" aria-label="Dashboard navigation">
+            <ul className="flex min-w-max gap-2 pb-1 lg:pb-0">
+              {links.map((link) => (
+                <li key={link.to}>
+                  <NavLink
+                    to={link.to}
+                    className={({ isActive }) =>
+                      `group flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors ${
+                        isActive
+                          ? 'border-[#173d61] bg-[#173d61] text-white shadow-sm'
+                          : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white hover:text-[#173d61]'
+                      }`
+                    }
+                    end={
+                      link.to === '/dashboard' ||
+                      link.to === '/super-admin' ||
+                      link.to === '/employee'
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <link.icon className="shrink-0 text-sm" />
+                        <span className="whitespace-nowrap">{link.label}</span>
+                        <FaChevronRight
+                          className={`text-[10px] transition ${isActive ? 'opacity-90' : 'opacity-0 group-hover:opacity-60'}`}
+                        />
+                      </>
+                    )}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </aside>
   );
 };
 

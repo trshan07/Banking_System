@@ -60,75 +60,11 @@ const FraudModule = () => {
       const response = await api.get("/admin/fraud/alerts", {
         params: { priority: filterPriority, status: filterStatus },
       });
-      setAlerts(response.data.data);
+      setAlerts(response.data.data || []);
     } catch (error) {
       console.error("Error fetching fraud alerts:", error);
-      setAlerts([
-        {
-          id: "FRD-2024-001",
-          type: "Unauthorized Transaction",
-          priority: "high",
-          status: "pending",
-          user: "John Doe",
-          userId: "USR-001",
-          amount: 15000,
-          date: "2024-01-15T14:30:00",
-          location: "New York, NY",
-          device: "Unknown Device",
-          ipAddress: "192.168.1.1",
-          description: "Large withdrawal from unusual location",
-          actions: ["Account Frozen", "Customer Notified"],
-          riskScore: 95,
-        },
-        {
-          id: "FRD-2024-002",
-          type: "Suspicious Login",
-          priority: "medium",
-          status: "investigating",
-          user: "Jane Smith",
-          userId: "USR-002",
-          amount: 0,
-          date: "2024-01-15T09:15:00",
-          location: "Los Angeles, CA",
-          device: "New Device",
-          ipAddress: "192.168.1.2",
-          description: "Multiple failed login attempts",
-          actions: ["2FA Enabled"],
-          riskScore: 65,
-        },
-        {
-          id: "FRD-2024-003",
-          type: "Identity Theft",
-          priority: "high",
-          status: "pending",
-          user: "Bob Johnson",
-          userId: "USR-003",
-          amount: 25000,
-          date: "2024-01-14T11:45:00",
-          location: "Chicago, IL",
-          device: "Unknown",
-          ipAddress: "192.168.1.3",
-          description: "New account opened with stolen identity",
-          actions: ["Account Locked", "Identity Verification Required"],
-          riskScore: 98,
-        },
-        {
-          id: "FRD-2024-004",
-          type: "Phishing Attempt",
-          priority: "high",
-          status: "resolved",
-          user: "Alice Brown",
-          userId: "USR-004",
-          amount: 5000,
-          date: "2024-01-13T16:20:00",
-          location: "Miami, FL",
-          device: "Mobile",
-          ipAddress: "192.168.1.4",
-          description: "User clicked on phishing link",
-          actions: ["Password Reset", "Security Questions Updated"],
-          riskScore: 85,
-        },
-      ]);
+      setAlerts([]);
+      toast.error(error.response?.data?.message || "Failed to fetch fraud alerts");
     } finally {
       setLoading(false);
     }
@@ -139,21 +75,18 @@ const FraudModule = () => {
       const response = await api.get("/admin/fraud/stats");
       setStats(response.data.data);
     } catch (error) {
-      setStats({ total: 45, high: 12, medium: 18, low: 15, resolved: 20 });
+      setStats({ total: 0, high: 0, medium: 0, low: 0, resolved: 0 });
+      toast.error(error.response?.data?.message || "Failed to fetch fraud stats");
     }
   };
 
   const fetchTrendData = async () => {
     try {
       const response = await api.get("/admin/fraud/trends");
-      setTrendData(response.data.data);
+      setTrendData(response.data.data || []);
     } catch (error) {
-      setTrendData([
-        { week: "Week 1", alerts: 12, resolved: 8 },
-        { week: "Week 2", alerts: 15, resolved: 10 },
-        { week: "Week 3", alerts: 10, resolved: 7 },
-        { week: "Week 4", alerts: 8, resolved: 6 },
-      ]);
+      setTrendData([]);
+      toast.error(error.response?.data?.message || "Failed to fetch fraud trends");
     }
   };
 
@@ -243,7 +176,7 @@ const FraudModule = () => {
         </div>
         <div className="bg-white rounded-xl shadow-lg p-4">
           <div className="flex items-center justify-between">
-            <div><p className="text-sm text-slate-500">Resolution Rate</p><p className="text-2xl font-bold">{((stats.resolved / stats.total) * 100).toFixed(1)}%</p></div>
+            <div><p className="text-sm text-slate-500">Resolution Rate</p><p className="text-2xl font-bold">{stats.total ? ((stats.resolved / stats.total) * 100).toFixed(1) : "0.0"}%</p></div>
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><FaChartLine className="text-blue-600" /></div>
           </div>
         </div>
@@ -320,7 +253,7 @@ const FraudModule = () => {
             </thead>
             <tbody className="divide-y divide-slate-200">
               {alerts
-                .filter(alert => alert.user.toLowerCase().includes(searchTerm.toLowerCase()) || alert.id.toLowerCase().includes(searchTerm.toLowerCase()))
+                .filter(alert => String(alert.user || "").toLowerCase().includes(searchTerm.toLowerCase()) || String(alert.id || "").toLowerCase().includes(searchTerm.toLowerCase()))
                 .map((alert) => (
                   <tr key={alert.id} className="hover:bg-slate-50">
                     <td className="px-6 py-4 font-mono text-sm">{alert.id}</td>
@@ -367,7 +300,7 @@ const FraudModule = () => {
                   <div><p className="text-sm text-slate-500">IP Address</p><p className="font-medium">{selectedAlert.ipAddress}</p></div>
                   <div><p className="text-sm text-slate-500">Device</p><p className="font-medium">{selectedAlert.device}</p></div>
                   <div className="col-span-2"><p className="text-sm text-slate-500">Description</p><p className="font-medium">{selectedAlert.description}</p></div>
-                  <div className="col-span-2"><p className="text-sm text-slate-500">Actions Taken</p><ul className="list-disc list-inside">{selectedAlert.actions.map((action, idx) => <li key={idx}>{action}</li>)}</ul></div>
+                  <div className="col-span-2"><p className="text-sm text-slate-500">Actions Taken</p><ul className="list-disc list-inside">{(selectedAlert.actions || []).map((action, idx) => <li key={idx}>{action}</li>)}</ul></div>
                 </div>
               </div>
               {selectedAlert.status !== "resolved" && (

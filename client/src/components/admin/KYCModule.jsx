@@ -46,75 +46,11 @@ const KYCModule = () => {
       const response = await api.get("/admin/kyc/applications", {
         params: { status: filterStatus, page: currentPage },
       });
-      setApplications(response.data.data);
+      setApplications(response.data.data || []);
     } catch (error) {
       console.error("Error fetching KYC applications:", error);
-      setApplications([
-        {
-          id: "KYC-2024-001",
-          userId: "USR-001",
-          name: "John Doe",
-          email: "john@example.com",
-          phone: "+1 (555) 123-4567",
-          status: "pending",
-          submittedDate: "2024-01-15",
-          documentType: "Passport",
-          documentNumber: "P12345678",
-          riskLevel: "low",
-          address: "123 Main St, New York, NY 10001",
-          dateOfBirth: "1985-06-15",
-          nationality: "American",
-          occupation: "Software Engineer",
-          documents: [
-            { type: "ID Front", url: "#", status: "uploaded" },
-            { type: "ID Back", url: "#", status: "uploaded" },
-            { type: "Address Proof", url: "#", status: "uploaded" },
-          ],
-        },
-        {
-          id: "KYC-2024-002",
-          userId: "USR-002",
-          name: "Jane Smith",
-          email: "jane@example.com",
-          phone: "+1 (555) 987-6543",
-          status: "pending",
-          submittedDate: "2024-01-14",
-          documentType: "Driver License",
-          documentNumber: "DL98765432",
-          riskLevel: "medium",
-          address: "456 Oak Ave, Los Angeles, CA 90210",
-          dateOfBirth: "1990-03-22",
-          nationality: "American",
-          occupation: "Marketing Manager",
-          documents: [
-            { type: "ID Front", url: "#", status: "uploaded" },
-            { type: "ID Back", url: "#", status: "uploaded" },
-            { type: "Address Proof", url: "#", status: "missing" },
-          ],
-        },
-        {
-          id: "KYC-2024-003",
-          userId: "USR-003",
-          name: "Bob Johnson",
-          email: "bob@example.com",
-          phone: "+1 (555) 456-7890",
-          status: "approved",
-          submittedDate: "2024-01-10",
-          approvedDate: "2024-01-12",
-          documentType: "National ID",
-          documentNumber: "NID123456",
-          riskLevel: "low",
-          address: "789 Pine Rd, Chicago, IL 60601",
-          dateOfBirth: "1978-11-30",
-          nationality: "American",
-          occupation: "Business Owner",
-          documents: [
-            { type: "ID Front", url: "#", status: "verified" },
-            { type: "ID Back", url: "#", status: "verified" },
-            { type: "Address Proof", url: "#", status: "verified" },
-          ],
-        },
-      ]);
+      setApplications([]);
+      toast.error(error.response?.data?.message || "Failed to fetch KYC applications");
     } finally {
       setLoading(false);
     }
@@ -125,7 +61,8 @@ const KYCModule = () => {
       const response = await api.get("/admin/kyc/stats");
       setStats(response.data.data);
     } catch (error) {
-      setStats({ total: 156, pending: 34, approved: 112, rejected: 10 });
+      setStats({ total: 0, pending: 0, approved: 0, rejected: 0 });
+      toast.error(error.response?.data?.message || "Failed to fetch KYC stats");
     }
   };
 
@@ -266,7 +203,7 @@ const KYCModule = () => {
       {/* Applications Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {applications
-          .filter(app => app.name.toLowerCase().includes(searchTerm.toLowerCase()) || app.email.toLowerCase().includes(searchTerm.toLowerCase()))
+          .filter(app => String(app.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || String(app.email || "").toLowerCase().includes(searchTerm.toLowerCase()) || String(app.id || "").toLowerCase().includes(searchTerm.toLowerCase()))
           .map((application) => (
             <div key={application.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
               <div className="flex justify-between items-start mb-4">
@@ -299,7 +236,7 @@ const KYCModule = () => {
               <div className="mb-4">
                 <p className="text-sm font-medium mb-2">Documents:</p>
                 <div className="space-y-1">
-                  {application.documents.map((doc, idx) => (
+                  {(application.documents || []).map((doc, idx) => (
                     <div key={idx} className="flex items-center justify-between text-sm">
                       <span>{doc.type}</span>
                       <span className={doc.status === "verified" ? "text-green-600" : doc.status === "uploaded" ? "text-blue-600" : "text-red-600"}>
@@ -376,7 +313,7 @@ const KYCModule = () => {
                       <div><p className="text-sm text-slate-500">Document Number</p><p className="font-medium">{selectedApplication.documentNumber}</p></div>
                     </div>
                     <div className="space-y-2">
-                      {selectedApplication.documents.map((doc, idx) => (
+                      {(selectedApplication.documents || []).map((doc, idx) => (
                         <div key={idx} className="flex items-center justify-between p-2 bg-white rounded">
                           <span>{doc.type}</span>
                           <div className="flex items-center space-x-2">

@@ -64,33 +64,8 @@ const ReportsModule = () => {
       toast.success("Report generated successfully");
     } catch (error) {
       console.error("Error generating report:", error);
-      // Demo data
-      setReportData({
-        summary: {
-          totalTransactions: 45678,
-          totalVolume: 12500000,
-          activeUsers: 12890,
-          newUsers: 2340,
-          kycCompleted: 11250,
-          fraudAlerts: 45,
-          resolvedAlerts: 38,
-          revenue: 2450000,
-          expenses: 1250000,
-        },
-        chartData: {
-          dailyData: [
-            { date: "2024-01-01", transactions: 1250, volume: 450000 },
-            { date: "2024-01-02", transactions: 1420, volume: 520000 },
-            { date: "2024-01-03", transactions: 1380, volume: 480000 },
-          ],
-          categoryData: [
-            { name: "Deposits", value: 45 },
-            { name: "Withdrawals", value: 25 },
-            { name: "Transfers", value: 20 },
-            { name: "Payments", value: 10 },
-          ],
-        },
-      });
+      setReportData(null);
+      toast.error(error.response?.data?.message || "Failed to generate report");
     } finally {
       setGenerating(false);
     }

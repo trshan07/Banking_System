@@ -3,6 +3,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { FaPlus, FaEdit, FaTrash, FaUserPlus, FaUsers, FaUserTie, FaUser } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
+const getApiErrorMessage = (data, fallback) => {
+  if (data?.errors && typeof data.errors === 'object') {
+    return Object.values(data.errors).join(', ');
+  }
+
+  return data?.message || fallback;
+};
+
 const UserManagement = () => {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
@@ -54,6 +62,12 @@ const UserManagement = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.password)) {
+      toast.error('Password must be 8+ characters with uppercase, lowercase, and a number');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -82,7 +96,7 @@ const UserManagement = () => {
         });
         fetchUsers();
       } else {
-        toast.error(data.message || `Failed to create ${formData.role}`);
+        toast.error(getApiErrorMessage(data, `Failed to create ${formData.role}`));
       }
     } catch (error) {
       console.error('Create user error:', error);
@@ -381,6 +395,8 @@ const UserManagement = () => {
                     <input
                       type="password"
                       required
+                      minLength={8}
+                      placeholder="Password123"
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
