@@ -110,13 +110,12 @@ const branchSchema = new mongoose.Schema({
   timestamps: true
 });
 
-branchSchema.pre('save', function(next) {
+branchSchema.pre('save', function() {
   if (!this.id) {
     this.id = `BR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   }
 
   this.isActive = this.status === 'active';
-  next();
 });
 
 branchSchema.index({ code: 1, status: 1 });

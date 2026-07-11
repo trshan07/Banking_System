@@ -131,7 +131,9 @@ api.interceptors.response.use(
           toast.error('Too many requests. Please try again later.');
           break;
         case 500:
-          toast.error('Server error. Please try again later.');
+          if (!originalRequest?.skipGlobalErrorToast) {
+            toast.error('Server error. Please try again later.');
+          }
           break;
         default:
           break;
@@ -156,7 +158,9 @@ export const dashboardAPI = {
 
 export const bankingAPI = {
   getAccounts: () => api.get('/accounts'),
-  transferFunds: (data) => api.post('/accounts/transfer', data),
+  // TransferFunds displays the API's specific error, so suppress the generic
+  // interceptor toast for this request.
+  transferFunds: (data) => api.post('/accounts/transfer', data, { skipGlobalErrorToast: true }),
 };
 
 export const transactionAPI = {

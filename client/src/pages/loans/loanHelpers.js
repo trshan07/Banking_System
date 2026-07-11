@@ -22,13 +22,36 @@ export const buildStatusHistory = (loan) => [
     : []),
 ]
 
+const getApiOrigin = () => {
+  const apiUrl = import.meta.env.VITE_API_URL || '/api'
+
+  try {
+    return new URL(apiUrl, window.location.origin).origin
+  } catch {
+    return window.location.origin
+  }
+}
+
+export const resolveDocumentUrl = (url = '') => {
+  const value = String(url).trim()
+  if (!value) return ''
+
+  // Cloud storage already supplies an absolute URL. Local uploads are served
+  // by Express, not by the React application's router.
+  if (/^https?:\/\//i.test(value) || value.startsWith('blob:') || value.startsWith('data:')) {
+    return value
+  }
+
+  return new URL(value.startsWith('/') ? value : `/${value}`, getApiOrigin()).toString()
+}
+
 export const normalizeLoanDocuments = (documents = []) =>
   Array.isArray(documents)
     ? documents.map((doc, index) => ({
         id: doc?._id || doc?.id || `document-${index}`,
         name: doc?.fileName || doc?.originalName || doc?.documentType || `Document ${index + 1}`,
         type: doc?.documentType || 'loan_document',
-        url: doc?.cloudinaryUrl || '',
+        url: resolveDocumentUrl(doc?.cloudinaryUrl || doc?.localFilePath || ''),
       }))
     : []
 

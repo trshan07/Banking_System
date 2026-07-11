@@ -490,7 +490,7 @@ export const AuthProvider = ({ children }) => {
   const changePassword = async (currentPassword, newPassword) => {
     try {
       setLoading(true);
-      const response = await api.post('/auth/change-password', {
+      const response = await api.post('/users/change-password', {
         currentPassword,
         newPassword
       });
@@ -542,8 +542,9 @@ export const AuthProvider = ({ children }) => {
   // Check role
   const hasRole = useCallback((roles) => {
     if (!user) return false;
-    if (typeof roles === 'string') return user.role === roles;
-    return roles.includes(user.role);
+    const currentRole = user.role === 'super_admin' ? 'superadmin' : user.role;
+    if (typeof roles === 'string') return currentRole === roles;
+    return roles.includes(currentRole);
   }, [user]);
 
   // Check permission
@@ -557,7 +558,7 @@ export const AuthProvider = ({ children }) => {
   const getDashboardRoute = useCallback(() => {
     if (!user) return '/auth/login';
     
-    switch (user.role) {
+    switch (user.role === 'super_admin' ? 'superadmin' : user.role) {
       case 'superadmin':
         return '/super-admin';
       case 'admin':

@@ -4,13 +4,13 @@ import { useAuth } from '../contexts/AuthContext'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading, getDashboardRoute } = useAuth()
 
   if (loading) {
     return <LoadingSpinner fullScreen />
   }
 
-  return !isAuthenticated ? children : <Navigate to="/dashboard" replace />
+  return !isAuthenticated ? children : <Navigate to={getDashboardRoute()} replace />
 }
 
 export default PublicRoute

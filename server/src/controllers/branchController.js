@@ -76,20 +76,24 @@ const normalizeBranchPayload = (payload = {}) => {
 };
 
 const createAuditEntry = async (req, action, branch, details, metadata = {}) => {
-  await AuditLog.create({
-    userId: req.user?._id || null,
-    userEmail: req.user?.email || 'system',
-    action,
-    entity: 'branch',
-    entityId: branch?._id ? String(branch._id) : null,
-    target: branch?.name || branch?.code || 'branch',
-    details,
-    status: 'success',
-    ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
-    userAgent: req.get('User-Agent') || '',
-    metadata,
-    timestamp: new Date(),
-  });
+  try {
+    await AuditLog.create({
+      userId: req.user?._id || null,
+      userEmail: req.user?.email || 'system',
+      action,
+      entity: 'branch',
+      entityId: branch?._id ? String(branch._id) : null,
+      target: branch?.name || branch?.code || 'branch',
+      details,
+      status: 'success',
+      ipAddress: req.ip || req.connection?.remoteAddress || 'unknown',
+      userAgent: req.get('User-Agent') || '',
+      metadata,
+      timestamp: new Date(),
+    });
+  } catch (error) {
+    console.error('Branch audit logging error:', error);
+  }
 };
 
 const formatBranch = (branch) => ({

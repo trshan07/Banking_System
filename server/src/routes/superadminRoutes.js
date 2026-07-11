@@ -3,6 +3,9 @@ const router = express.Router();
 const { authMiddleware, checkRole } = require('../middleware/auth');
 const {
   getAdmins,
+  createAdmin,
+  updateAdmin,
+  deleteAdmin,
   getAuditLogs,
   getPerformance,
   getSettings,
@@ -30,6 +33,9 @@ router.get('/performance', getPerformance);
 
 // Get admin management data
 router.get('/admins', getAdmins);
+router.post('/admins', createAdmin);
+router.put('/admins/:adminId', updateAdmin);
+router.delete('/admins/:adminId', deleteAdmin);
 
 // Get current settings
 router.get('/settings', getSettings);

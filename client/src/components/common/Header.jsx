@@ -19,6 +19,7 @@ const Header = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { notifications, unreadCount, markAllAsRead } = useNotification();
   const navigate = useNavigate();
+  const displayName = user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'User';
 
   const handleLogout = async () => {
     await logout();
@@ -134,28 +135,28 @@ const Header = () => {
                     className="flex items-center gap-2 rounded-lg border border-slate-200 px-2.5 py-1.5 transition hover:border-slate-300 hover:bg-slate-50"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f2742]/10 text-sm font-semibold text-[#0f2742]">
-                      {user?.name?.charAt(0) || 'U'}
+                      {displayName.charAt(0).toUpperCase()}
                     </div>
                     <span className="text-sm font-medium text-slate-700">
-                      {user?.name?.split(' ')[0]}
+                      {displayName.split(' ')[0]}
                     </span>
                   </button>
 
                   {isProfileOpen && (
                     <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-2 shadow-lg">
                       <div className="border-b border-slate-200 px-4 py-2">
-                        <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
+                        <p className="text-sm font-semibold text-slate-900">{displayName}</p>
                         <p className="text-xs text-slate-500">{user?.email}</p>
                       </div>
                       <Link
-                        to="/profile"
+                        to="/dashboard/profile"
                         className="block px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                         onClick={() => setIsProfileOpen(false)}
                       >
                         <FaUser className="mr-2 inline" /> Profile
                       </Link>
                       <Link
-                        to="/settings"
+                        to="/dashboard/settings"
                         className="block px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                         onClick={() => setIsProfileOpen(false)}
                       >

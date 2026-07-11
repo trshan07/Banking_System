@@ -8,6 +8,7 @@ const getSuperAdminConfig = () => ({
   firstName: process.env.SUPERADMIN_FIRST_NAME?.trim() || 'System',
   lastName: process.env.SUPERADMIN_LAST_NAME?.trim() || 'Owner',
   email: process.env.SUPERADMIN_EMAIL?.trim().toLowerCase(),
+  username: process.env.SUPERADMIN_USERNAME?.trim().toLowerCase() || 'superadmin',
   password: process.env.SUPERADMIN_PASSWORD,
   phone: process.env.SUPERADMIN_PHONE?.trim() || '+94000000000',
   address: process.env.SUPERADMIN_ADDRESS?.trim() || 'Head Office'
@@ -67,6 +68,7 @@ const seedUsers = async () => {
         firstName: superAdminConfig.firstName,
         lastName: superAdminConfig.lastName,
         email: superAdminConfig.email,
+        username: superAdminConfig.username,
         password: await bcrypt.hash(superAdminConfig.password, 12),
         phone: superAdminConfig.phone,
         address: superAdminConfig.address,
@@ -101,6 +103,7 @@ const ensureSuperAdmin = async () => {
     const existing = await User.findOne({ role: 'superadmin' }).select('+password');
 
     if (existing) {
+      if (!existing.username) existing.username = superAdminConfig.username;
       existing.status = 'active';
       existing.isEmailVerified = true;
       existing.permissions = ['*'];
@@ -120,6 +123,7 @@ const ensureSuperAdmin = async () => {
       firstName: superAdminConfig.firstName,
       lastName: superAdminConfig.lastName,
       email: superAdminConfig.email,
+      username: superAdminConfig.username,
       password: superAdminConfig.password,
       phone: superAdminConfig.phone,
       address: superAdminConfig.address,

@@ -67,6 +67,7 @@ const formatUser = (user) => ({
   lastName: user.lastName,
   name: `${user.firstName} ${user.lastName}`.trim(),
   email: user.email,
+  username: user.username || '',
   phone: user.phone,
   address: user.address,
   role: user.role,
@@ -119,7 +120,7 @@ const getRoleStatusSummary = async () => {
 
 const getAdminSummaries = async () => {
   const admins = await User.find({ role: 'admin' })
-    .select('firstName lastName email phone address role status createdAt updatedAt')
+    .select('firstName lastName email username phone address role status createdAt updatedAt')
     .sort({ createdAt: -1 })
     .lean();
 
@@ -455,6 +456,75 @@ exports.getAdmins = async (req, res) => {
       success: false,
       error: error.message,
     });
+  }
+};
+
+const ADMIN_PERMISSIONS = [
+  'view_users', 'manage_users', 'view_accounts', 'manage_accounts',
+  'view_transactions', 'manage_transactions', 'view_loans', 'manage_loans',
+  'view_reports', 'manage_tickets', 'manage_kyc', 'manage_fraud'
+];
+
+exports.createAdmin = async (req, res) => {
+  try {
+    const { firstName, lastName, email, username, password, phone, address, status = 'active' } = req.body;
+    if (!firstName || !lastName || !email || !username || !password || !phone || !address) {
+      return res.status(400).json({ success: false, message: 'All admin fields are required' });
+    }
+    if (password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      return res.status(400).json({ success: false, message: 'Password must be 8+ characters with uppercase, lowercase and a number' });
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedUsername = username.trim().toLowerCase();
+    const duplicate = await User.findOne({ $or: [{ email: normalizedEmail }, { username: normalizedUsername }] });
+    if (duplicate) return res.status(409).json({ success: false, message: 'Email or username already exists' });
+
+    const admin = await User.create({ firstName, lastName, email: normalizedEmail, username: normalizedUsername,
+      password, phone, address, role: 'admin', status, isEmailVerified: true, permissions: ADMIN_PERMISSIONS });
+    await createAuditEntry({ req, action: 'create_admin', entity: 'user', entityId: admin._id,
+      target: admin.email, details: `Created administrator ${admin.email}` });
+    return res.status(201).json({ success: true, message: 'Administrator created', data: { admin: formatUser(admin) } });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to create administrator', error: error.message });
+  }
+};
+
+exports.updateAdmin = async (req, res) => {
+  try {
+    const admin = await User.findOne({ _id: req.params.adminId, role: 'admin' }).select('+password');
+    if (!admin) return res.status(404).json({ success: false, message: 'Administrator not found' });
+    const allowed = ['firstName', 'lastName', 'phone', 'address', 'status'];
+    allowed.forEach((field) => { if (req.body[field] !== undefined) admin[field] = req.body[field]; });
+    if (req.body.email) admin.email = req.body.email.trim().toLowerCase();
+    if (req.body.username) admin.username = req.body.username.trim().toLowerCase();
+    if (req.body.password) {
+      if (req.body.password.length < 8 || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(req.body.password)) {
+        return res.status(400).json({ success: false, message: 'Password must be 8+ characters with uppercase, lowercase and a number' });
+      }
+      admin.password = req.body.password;
+      admin.tokenVersion += 1;
+    }
+    admin.role = 'admin';
+    admin.permissions = ADMIN_PERMISSIONS;
+    await admin.save();
+    await createAuditEntry({ req, action: 'update_admin', entity: 'user', entityId: admin._id,
+      target: admin.email, details: `Updated administrator ${admin.email}` });
+    return res.json({ success: true, message: 'Administrator updated', data: { admin: formatUser(admin) } });
+  } catch (error) {
+    const status = error.code === 11000 ? 409 : 500;
+    return res.status(status).json({ success: false, message: error.code === 11000 ? 'Email or username already exists' : 'Failed to update administrator' });
+  }
+};
+
+exports.deleteAdmin = async (req, res) => {
+  try {
+    const admin = await User.findOneAndDelete({ _id: req.params.adminId, role: 'admin' });
+    if (!admin) return res.status(404).json({ success: false, message: 'Administrator not found' });
+    await createAuditEntry({ req, action: 'delete_admin', entity: 'user', entityId: admin._id,
+      target: admin.email, details: `Deleted administrator ${admin.email}` });
+    return res.json({ success: true, message: 'Administrator deleted' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to delete administrator' });
   }
 };
 

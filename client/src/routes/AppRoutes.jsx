@@ -41,6 +41,7 @@ import SavingsTracker from '../pages/savings/SavingsTracker'
 import ReportFraud from '../pages/fraud/ReportFraud'
 import KYCVerification from '../pages/kyc/KYCVerification'
 import KYCStatus from '../pages/kyc/KYCStatus'
+import UserSettings from '../pages/account/UserSettings'
 
 // Admin Pages
 import AdminDashboard from '../pages/dashboard/AdminDashboard'
@@ -104,6 +105,8 @@ const AppRoutes = () => {
         <Route path="fraud/report" element={<ReportFraud />} />
         <Route path="kyc" element={<KYCVerification />} />
         <Route path="kyc/status" element={<KYCStatus />} />
+        <Route path="profile" element={<UserSettings />} />
+        <Route path="settings" element={<UserSettings />} />
       </Route>
 
       {/* Admin Routes */}

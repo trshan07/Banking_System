@@ -174,11 +174,15 @@ exports.createAccount = async (req, res) => {
 // @route   POST /api/accounts/transfer
 // @access  Private
 exports.transferMoney = async (req, res) => {
+  let debitedAccountId = null;
+  let creditedAccountId = null;
+  let transferAmount = 0;
+
   try {
     const {
       fromAccountId,
       toAccountId,
-      amount,
+      amount: requestedAmount,
       description = '',
       transferType = 'own',       // 'own' | 'internal' | 'external'
       beneficiaryName,
@@ -186,8 +190,10 @@ exports.transferMoney = async (req, res) => {
       beneficiaryBank
     } = req.body;
 
-    // Validate amount
-    if (!amount || amount <= 0) {
+    transferAmount = Number(requestedAmount);
+
+    // Do not rely on JavaScript coercion for money values.
+    if (!Number.isFinite(transferAmount) || transferAmount <= 0) {
       return res.status(400).json({
         success: false,
         message: 'Amount must be greater than 0'
@@ -209,7 +215,7 @@ exports.transferMoney = async (req, res) => {
     }
 
     // Check sufficient balance
-    if (fromAccount.balance < amount) {
+    if (fromAccount.balance < transferAmount) {
       return res.status(400).json({
         success: false,
         message: 'Insufficient balance'
@@ -223,12 +229,13 @@ exports.transferMoney = async (req, res) => {
     const todayTransactions = await Transaction.find({
       fromAccountId: fromAccount._id,
       createdAt: { $gte: todayStart },
+      type: 'transfer',
       status: 'completed'
     });
 
     const todayTotal = todayTransactions.reduce((sum, t) => sum + t.amount, 0);
 
-    if (todayTotal + amount > (fromAccount.dailyTransactionLimit || 10000)) {
+    if (todayTotal + transferAmount > (fromAccount.dailyTransactionLimit || 10000)) {
       return res.status(400).json({
         success: false,
         message: `Daily transaction limit of LKR ${Number(fromAccount.dailyTransactionLimit || 10000).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} exceeded`
@@ -240,7 +247,7 @@ exports.transferMoney = async (req, res) => {
     let transactionData = {
       id: 'txn_' + ts,
       fromAccountId: fromAccount._id,
-      amount,
+      amount: transferAmount,
       type: 'transfer',
       status: 'completed',
       description,
@@ -263,6 +270,7 @@ exports.transferMoney = async (req, res) => {
 
       toAccount = await Account.findOne({
         _id: toAccountId,
+        ...(transferType === 'own' ? { userId: req.user._id } : {}),
         status: 'active'
       });
 
@@ -281,14 +289,10 @@ exports.transferMoney = async (req, res) => {
         });
       }
 
-      // Credit destination account
-      toAccount.balance += amount;
-      await toAccount.save();
-
       transactionData.toAccountId = toAccount._id;
       transactionData.balanceAfter = {
-        fromAccount: fromAccount.balance - amount,
-        toAccount: toAccount.balance
+        fromAccount: fromAccount.balance - transferAmount,
+        toAccount: toAccount.balance + transferAmount
       };
 
     } else if (transferType === 'external') {
@@ -308,7 +312,7 @@ exports.transferMoney = async (req, res) => {
       transactionData.metadata.set('beneficiaryBank', beneficiaryBank);
       transactionData.metadata.set('transferType', 'external');
       transactionData.balanceAfter = {
-        fromAccount: fromAccount.balance - amount,
+        fromAccount: fromAccount.balance - transferAmount,
         toAccount: 0
       };
 
@@ -319,20 +323,36 @@ exports.transferMoney = async (req, res) => {
       });
     }
 
-    // Debit source account
-    fromAccount.balance -= amount;
-    await fromAccount.save();
+    // Debit conditionally so two simultaneous requests cannot overdraw the account.
+    const debitResult = await Account.updateOne(
+      { _id: fromAccount._id, status: 'active', balance: { $gte: transferAmount } },
+      { $inc: { balance: -transferAmount } }
+    );
 
-    // Create transaction record
-    const transaction = await Transaction.collection.insertOne({
+    if (debitResult.modifiedCount !== 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient balance or source account is no longer active'
+      });
+    }
+    debitedAccountId = fromAccount._id;
+
+    if (toAccount) {
+      const creditResult = await Account.updateOne(
+        { _id: toAccount._id, status: 'active' },
+        { $inc: { balance: transferAmount } }
+      );
+      if (creditResult.modifiedCount !== 1) {
+        throw new Error('Destination account became unavailable');
+      }
+      creditedAccountId = toAccount._id;
+    }
+
+    // Use the model so schema validation and identifier hooks always run.
+    const savedTransaction = await Transaction.create({
       ...transactionData,
       metadata: Object.fromEntries(transactionData.metadata),
-      createdAt: new Date(),
-      updatedAt: new Date()
     });
-
-    // Fetch the saved transaction for the response
-    const savedTransaction = await Transaction.findById(transaction.insertedId);
 
     res.json({
       success: true,
@@ -341,12 +361,32 @@ exports.transferMoney = async (req, res) => {
         : 'Transfer completed successfully',
       data: {
         transaction: savedTransaction,
-        fromAccountBalance: fromAccount.balance,
-        toAccountBalance: toAccount?.balance || null
+        fromAccountBalance: fromAccount.balance - transferAmount,
+        toAccountBalance: toAccount ? toAccount.balance + transferAmount : null
       }
     });
   } catch (error) {
     console.error('Transfer money error:', error);
+
+    // Standalone MongoDB does not support multi-document transactions. Restore
+    // balances if a later operation fails after either balance was changed.
+    try {
+      if (creditedAccountId) {
+        await Account.updateOne(
+          { _id: creditedAccountId },
+          { $inc: { balance: -transferAmount } }
+        );
+      }
+      if (debitedAccountId) {
+        await Account.updateOne(
+          { _id: debitedAccountId },
+          { $inc: { balance: transferAmount } }
+        );
+      }
+    } catch (rollbackError) {
+      console.error('Transfer rollback error:', rollbackError);
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to complete transfer'

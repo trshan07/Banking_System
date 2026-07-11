@@ -38,7 +38,7 @@ const Login = () => {
   });
 
   const getDashboardRoute = (role) => {
-    switch (role) {
+    switch (String(role || "").toLowerCase().replace("_", "")) {
       case "superadmin":
         return "/super-admin";
       case "admin":
@@ -126,9 +126,7 @@ const Login = () => {
         toast.success("Welcome back! Redirecting...");
         const dashboardRoute = getDashboardRoute(response.user?.role);
 
-        setTimeout(() => {
-          navigate(dashboardRoute, { replace: true });
-        }, 1500);
+        navigate(dashboardRoute, { replace: true });
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -220,22 +218,18 @@ const Login = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email or Username</label>
             <div className="relative">
               <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
-                type="email"
+                type="text"
                 {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address",
-                  },
+                  required: "Email or username is required",
                 })}
                 className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.email ? "border-red-500 bg-red-50" : "border-gray-300"
                 }`}
-                placeholder="john@example.com"
+                placeholder="john@example.com or superadmin"
                 disabled={loading}
               />
             </div>

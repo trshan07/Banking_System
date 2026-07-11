@@ -151,12 +151,15 @@ class AuthController {
   // Login user
   async login(req, res) {
   try {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
+    const identifier = String(username || email || '').trim().toLowerCase();
     
-    console.log('Login attempt for email:', email);
+    console.log('Login attempt for:', identifier);
 
     // Find user
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({
+      $or: [{ email: identifier }, { username: identifier }]
+    }).select('+password');
     
     if (!user) {
       console.log('User not found:', email);
