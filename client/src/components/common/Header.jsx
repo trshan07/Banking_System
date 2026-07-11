@@ -16,7 +16,7 @@ const Header = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, getDashboardRoute } = useAuth();
   const { notifications, unreadCount, markAllAsRead } = useNotification();
   const navigate = useNavigate();
   const displayName = user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'User';
@@ -28,21 +28,6 @@ const Header = () => {
     navigate('/');
   };
 
-  const getDashboardLink = () => {
-    if (!user) return '/dashboard';
-
-    switch (user.role) {
-      case 'super_admin':
-        return '/super-admin';
-      case 'admin':
-        return '/admin';
-      case 'employee':
-        return '/employee';
-      default:
-        return '/dashboard';
-    }
-  };
-
   const navItems = [
     { label: 'Home', to: '/' },
     { label: 'About', to: '/about' },
@@ -51,7 +36,7 @@ const Header = () => {
   ];
 
   if (isAuthenticated) {
-    navItems.push({ label: 'Dashboard', to: getDashboardLink() });
+    navItems.push({ label: 'Dashboard', to: getDashboardRoute() });
   }
 
   const navClass = ({ isActive }) =>

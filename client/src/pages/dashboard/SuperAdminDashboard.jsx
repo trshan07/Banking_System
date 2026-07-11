@@ -741,7 +741,7 @@ const SuperAdminDashboard = () => {
   const profitMargin = stats.revenue > 0 ? `${((stats.profit / stats.revenue) * 100).toFixed(1)}%` : "0.0%";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent">
       <Toaster position="top-right" />
       
       {/* Header */}

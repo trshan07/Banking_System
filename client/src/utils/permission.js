@@ -1,8 +1,11 @@
 import { ROLES } from './constants'
 
+export const normalizeRole = (role) => role === 'super_admin' ? ROLES.SUPER_ADMIN : role
+
 export const hasPermission = (user, permission) => {
   if (!user) return false
-  if (user.role === ROLES.SUPER_ADMIN) return true
+  const role = normalizeRole(user.role)
+  if (role === ROLES.SUPER_ADMIN) return true
   
   const permissions = {
     [ROLES.ADMIN]: [
@@ -28,7 +31,7 @@ export const hasPermission = (user, permission) => {
     ]
   }
 
-  return permissions[user.role]?.includes(permission) || false
+  return permissions[role]?.includes(permission) || false
 }
 
 export const canAccess = (user, resource, action) => {
@@ -37,7 +40,7 @@ export const canAccess = (user, resource, action) => {
 }
 
 export const getDashboardRoute = (role) => {
-  switch (role) {
+  switch (normalizeRole(role)) {
     case ROLES.SUPER_ADMIN:
       return '/super-admin'
     case ROLES.ADMIN:

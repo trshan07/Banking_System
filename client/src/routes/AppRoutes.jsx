@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import PrivateRoute from './PrivateRoute'
 import PublicRoute from './PublicRoute'
 import RoleBasedRoute from './RoleBasedRoute'
+import { useAuth } from '../contexts/AuthContext'
 
 // Layouts
 import MainLayout from '../layouts/MainLayout'
@@ -63,6 +64,15 @@ import EmployeeDashboard from '../pages/employee/EmployeeDashboard'
 import TaskManagement from '../pages/employee/TaskManagement'
 import LeaveRequests from '../pages/employee/LeaveRequests'
 
+const DashboardIndex = () => {
+  const { getDashboardRoute } = useAuth()
+  const dashboardRoute = getDashboardRoute()
+
+  return dashboardRoute === '/dashboard'
+    ? <CustomerDashboard />
+    : <Navigate to={dashboardRoute} replace />
+}
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -88,7 +98,7 @@ const AppRoutes = () => {
           <DashboardLayout />
         </PrivateRoute>
       }>
-        <Route index element={<CustomerDashboard />} />
+        <Route index element={<DashboardIndex />} />
         <Route path="loans" element={<LoansDashboard />} />
         <Route path="loans/apply" element={<LoanApplication />} />
         <Route path="loans/calculator" element={<LoanCalculator />} />

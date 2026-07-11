@@ -1,39 +1,17 @@
 import React from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { getDashboardRoute as getDashboardRouteForRole } from '../../utils/permission'
 
 const RoleSwitcher = () => {
-  const { user, switchRole, availableRoles, logout } = useAuth()
+  const { user, switchRole, availableRoles, logout, getDashboardRoute } = useAuth()
   const navigate = useNavigate()
 
   if (!user) return null
 
   const handleRoleSwitch = (role) => {
     switchRole(role)
-    // Navigate to appropriate dashboard
-    switch(role) {
-      case 'super_admin':
-        navigate('/super-admin')
-        break
-      case 'admin':
-        navigate('/admin')
-        break
-      case 'employee':
-        navigate('/employee')
-        break
-      default:
-        navigate('/dashboard')
-    }
-  }
-
-  const getDashboardUrl = () => {
-    if (!user) return '/'
-    switch(user.role) {
-      case 'super_admin': return '/super-admin'
-      case 'admin': return '/admin'
-      case 'employee': return '/employee'
-      default: return '/dashboard'
-    }
+    navigate(getDashboardRouteForRole(role))
   }
 
   return (
@@ -65,7 +43,7 @@ const RoleSwitcher = () => {
 
       <div className="mt-3 pt-2 border-t border-gray-200 space-y-2">
         <a
-          href={getDashboardUrl()}
+          href={getDashboardRoute()}
           className="block w-full text-center bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
         >
           Go to {user.role} Dashboard

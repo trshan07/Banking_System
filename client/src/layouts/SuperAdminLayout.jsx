@@ -4,7 +4,7 @@ import Header from '../components/common/Header'
 
 const SuperAdminLayout = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-violet-100 to-indigo-200 bg-fixed">
       <Header />
       <div className="flex">
         

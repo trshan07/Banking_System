@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 
 const RoleBasedRoute = ({ children, allowedRoles }) => {
-  const { user, loading, hasRole } = useAuth()
+  const { user, loading, hasRole, getDashboardRoute } = useAuth()
 
   if (loading) {
     return <LoadingSpinner fullScreen />
@@ -15,7 +15,7 @@ const RoleBasedRoute = ({ children, allowedRoles }) => {
   }
 
   if (!hasRole(allowedRoles)) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to={getDashboardRoute()} replace />
   }
 
   return children
