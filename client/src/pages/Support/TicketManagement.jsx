@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { CheckCircle, Clock, Filter, Inbox, RefreshCw, UserCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../contexts/AuthContext'
@@ -15,7 +15,7 @@ const TicketManagement = () => {
     'Content-Type': 'application/json',
   })
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
@@ -38,11 +38,11 @@ const TicketManagement = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters.status, filters.priority])
 
   useEffect(() => {
     fetchTickets()
-  }, [filters.status, filters.priority])
+  }, [fetchTickets])
 
   const updateTicketStatus = async (ticketId, status) => {
     try {

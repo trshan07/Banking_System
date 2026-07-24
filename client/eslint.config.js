@@ -31,4 +31,11 @@ export default defineConfig([
       'react-refresh/only-export-components': 'off',
     },
   },
+  {
+    files: ['**/*.jsx'],
+    rules: {
+      // Core no-unused-vars does not reliably count JSX identifier usage.
+      'no-unused-vars': 'off',
+    },
+  },
 ])

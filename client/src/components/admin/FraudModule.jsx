@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FaShieldAlt,
   FaSearch,
@@ -49,13 +49,7 @@ const FraudModule = () => {
   });
   const [trendData, setTrendData] = useState([]);
 
-  useEffect(() => {
-    fetchAlerts();
-    fetchStats();
-    fetchTrendData();
-  }, [filterPriority, filterStatus]);
-
-  const fetchAlerts = async () => {
+  const fetchAlerts = useCallback(async () => {
     try {
       const response = await api.get("/admin/fraud/alerts", {
         params: { priority: filterPriority, status: filterStatus },
@@ -68,7 +62,7 @@ const FraudModule = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterPriority, filterStatus]);
 
   const fetchStats = async () => {
     try {
@@ -79,6 +73,12 @@ const FraudModule = () => {
       toast.error(error.response?.data?.message || "Failed to fetch fraud stats");
     }
   };
+
+  useEffect(() => {
+    fetchAlerts();
+    fetchStats();
+    fetchTrendData();
+  }, [fetchAlerts]);
 
   const fetchTrendData = async () => {
     try {

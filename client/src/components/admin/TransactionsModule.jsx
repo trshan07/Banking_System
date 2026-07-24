@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FaSearch,
   FaFilter,
@@ -44,8 +44,8 @@ const TransactionsModule = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [dateRange, setDateRange] = useState({ start: "", end: "" });
-  const [currentPage, setCurrentPage] = useState(1);
+  const [dateRange] = useState({ start: "", end: "" });
+  const [currentPage] = useState(1);
   const [chartData, setChartData] = useState({
     dailyVolume: [],
     transactionTypes: [],
@@ -58,12 +58,7 @@ const TransactionsModule = () => {
     },
   });
 
-  useEffect(() => {
-    fetchTransactions();
-    fetchChartData();
-  }, [filterType, filterStatus, dateRange, currentPage]);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       const response = await api.get("/admin/transactions", {
         params: {
@@ -82,7 +77,7 @@ const TransactionsModule = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterType, filterStatus, dateRange, currentPage]);
 
   const fetchChartData = async () => {
     try {
@@ -103,6 +98,11 @@ const TransactionsModule = () => {
       });
     }
   };
+
+  useEffect(() => {
+    fetchTransactions();
+    fetchChartData();
+  }, [fetchTransactions]);
 
   const getStatusColor = (status) => {
     switch (status) {

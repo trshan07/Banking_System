@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Calendar, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
 
@@ -7,11 +7,7 @@ const LeaveRequestList = ({ userRole }) => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   
-  useEffect(() => {
-    fetchLeaveRequests();
-  }, [filter]);
-  
-  const fetchLeaveRequests = async () => {
+  const fetchLeaveRequests = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const url = userRole === 'employee' 
@@ -29,7 +25,11 @@ const LeaveRequestList = ({ userRole }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, userRole]);
+
+  useEffect(() => {
+    fetchLeaveRequests();
+  }, [fetchLeaveRequests]);
   
   const handleApprove = async (id, level = 'firstLevel') => {
     try {

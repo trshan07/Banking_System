@@ -6,11 +6,12 @@ const auditLogger = (req, res, next) => {
 
   res.end = function(chunk, encoding) {
     const responseTime = Date.now() - startTime;
+    const safeUrl = String(req.originalUrl || req.url).split('?')[0];
 
     const logData = {
       timestamp: new Date().toISOString(),
       method: req.method,
-      url: req.originalUrl || req.url,
+      url: safeUrl,
       ip: req.ip || req.connection.remoteAddress,
       userAgent: req.get('User-Agent'),
       userId: req.user ? req.user._id : 'unauthenticated',
@@ -24,24 +25,24 @@ const auditLogger = (req, res, next) => {
     }
 
     const shouldPersist =
-      req.originalUrl?.startsWith('/api/') &&
-      !req.originalUrl?.includes('/auth/refresh-token');
+      safeUrl.startsWith('/api/') &&
+      !safeUrl.includes('/auth/refresh-token');
 
     if (shouldPersist) {
       AuditLog.create({
         userId: req.user?._id || null,
         userEmail: req.user?.email || 'unauthenticated',
-        action: `${req.method} ${req.originalUrl || req.url}`,
+        action: `${req.method} ${safeUrl}`,
         entity: 'request',
         entityId: req.user?._id?.toString?.() || null,
-        target: req.originalUrl || req.url,
+        target: safeUrl,
         details: `Request completed with status ${res.statusCode} in ${responseTime}ms`,
         status: res.statusCode >= 500 ? 'failed' : res.statusCode >= 400 ? 'warning' : 'success',
         ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
         userAgent: req.get('User-Agent') || '',
         metadata: {
           method: req.method,
-          url: req.originalUrl || req.url,
+          url: safeUrl,
           statusCode: res.statusCode,
           responseTime,
         },

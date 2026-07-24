@@ -11,8 +11,11 @@ class EmailService {
     );
 
     if (!this.isConfigured) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Email service must be configured in production');
+      }
       this.transporter = null;
-      console.warn('Email service is not configured. Emails will be logged instead of sent.');
+      console.warn('Email service is not configured. Development messages will be simulated.');
       return;
     }
 
@@ -39,7 +42,7 @@ class EmailService {
 
     try {
       if (!this.isConfigured || !this.transporter) {
-        console.log('Mock email:', { to, subject, text: text || '[HTML email]' });
+        console.log('Mock email:', { to, subject });
         return { messageId: `mock-email-${Date.now()}`, mock: true };
       }
 

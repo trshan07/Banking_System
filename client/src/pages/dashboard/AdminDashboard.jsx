@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   FaUsers,
   FaUserCheck,
@@ -144,7 +144,6 @@ const AdminDashboard = () => {
     approvalRate: 0,
   });
   const [recentActivities, setRecentActivities] = useState([]);
-  const [recentUsers, setRecentUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [pendingApprovals, setPendingApprovals] = useState([]);
   const [chartData, setChartData] = useState({
@@ -167,16 +166,7 @@ const AdminDashboard = () => {
     fetchSettings();
   }, []);
 
-  useEffect(() => {
-    if (activeTab === "dashboard") {
-      fetchDashboardData();
-    }
-    if (activeTab === "users") {
-      fetchUsers();
-    }
-  }, [activeTab, selectedPeriod]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const [statsResponse, chartsResponse, activitiesResponse, approvalsResponse] = await Promise.all([
@@ -189,14 +179,22 @@ const AdminDashboard = () => {
       setStats(statsResponse.data.data);
       setChartData(chartsResponse.data.data);
       setRecentActivities(activitiesResponse.data.data || []);
-      setRecentUsers(activitiesResponse.data.users || []);
       setPendingApprovals(approvalsResponse.data.data || []);
     } catch (error) {
       toast.error("Failed to load admin dashboard data");
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedPeriod]);
+
+  useEffect(() => {
+    if (activeTab === "dashboard") {
+      fetchDashboardData();
+    }
+    if (activeTab === "users") {
+      fetchUsers();
+    }
+  }, [activeTab, fetchDashboardData]);
 
   const fetchProfile = async () => {
     try {

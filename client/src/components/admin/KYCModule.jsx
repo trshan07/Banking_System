@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FaSearch,
   FaFilter,
@@ -28,7 +28,7 @@ const KYCModule = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage] = useState(1);
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -36,12 +36,7 @@ const KYCModule = () => {
     rejected: 0,
   });
 
-  useEffect(() => {
-    fetchApplications();
-    fetchStats();
-  }, [filterStatus, currentPage]);
-
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     try {
       const response = await api.get("/admin/kyc/applications", {
         params: { status: filterStatus, page: currentPage },
@@ -54,7 +49,7 @@ const KYCModule = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, currentPage]);
 
   const fetchStats = async () => {
     try {
@@ -65,6 +60,11 @@ const KYCModule = () => {
       toast.error(error.response?.data?.message || "Failed to fetch KYC stats");
     }
   };
+
+  useEffect(() => {
+    fetchApplications();
+    fetchStats();
+  }, [fetchApplications]);
 
   const handleApprove = async (id) => {
     try {

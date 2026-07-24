@@ -103,12 +103,7 @@ const ensureSuperAdmin = async () => {
     const existing = await User.findOne({ role: 'superadmin' }).select('+password');
 
     if (existing) {
-      if (!existing.username) existing.username = superAdminConfig.username;
-      existing.status = 'active';
-      existing.isEmailVerified = true;
-      existing.permissions = ['*'];
-      await existing.save();
-      console.log(`Super admin already exists for ${existing.email}.`);
+      console.log('Super admin already exists.');
       return;
     }
 

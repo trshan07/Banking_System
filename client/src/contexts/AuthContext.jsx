@@ -38,8 +38,6 @@ export const AuthProvider = ({ children }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Use ref to track pending requests
-  const pendingRequests = useRef(new Map());
   const refreshPromise = useRef(null);
 
   // Load user on mount
@@ -62,6 +60,9 @@ export const AuthProvider = ({ children }) => {
     };
 
     loadUser();
+  // Session bootstrap intentionally runs once; refresh is handled by the API
+  // interceptor after this initial cookie validation.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Validate token
@@ -212,6 +213,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Refresh token with proper promise handling
+  // This function intentionally closes over the latest provider state.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const refreshToken = async () => {
     // If already refreshing, return the existing promise
     if (refreshPromise.current) {
@@ -266,6 +269,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout user with proper cleanup
+  // Logout must observe the latest in-flight logout flag.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const logout = async () => {
     // Prevent multiple logout calls
     if (isLoggingOut) {

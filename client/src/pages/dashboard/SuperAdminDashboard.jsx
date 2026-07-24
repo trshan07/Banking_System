@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   FaUsers,
   FaUserCheck,
@@ -275,6 +275,25 @@ const SuperAdminDashboard = () => {
     },
   });
 
+  const fetchPerformanceData = useCallback(async (period) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`/api/superadmin/performance?period=${period}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = response.data.data || {};
+      setPerformanceData(data.performance || []);
+      setChartData({
+        revenueGrowth: data.revenueGrowth || getFallbackChartData().revenueGrowth,
+        userActivity: data.userActivity || getFallbackChartData().userActivity,
+        systemMetrics: data.systemMetrics || getFallbackChartData().systemMetrics,
+        branchPerformance: data.branchPerformance || getFallbackChartData().branchPerformance,
+      });
+    } catch (error) {
+      console.error("Error fetching performance data:", error);
+    }
+  }, []);
+
   const hasOverviewData =
     stats.totalUsers > 0 ||
     stats.totalTransactions > 0 ||
@@ -301,11 +320,11 @@ const SuperAdminDashboard = () => {
     };
 
     initializeDashboard();
-  }, []);
+  }, [fetchPerformanceData, selectedPeriod]);
 
   useEffect(() => {
     fetchPerformanceData(selectedPeriod);
-  }, [selectedPeriod]);
+  }, [fetchPerformanceData, selectedPeriod]);
 
   const fetchDashboardData = async () => {
     try {
@@ -376,25 +395,6 @@ const SuperAdminDashboard = () => {
       setAdminSummary(getFallbackAdminSummary());
     } finally {
       setAdminsLoading(false);
-    }
-  };
-
-  const fetchPerformanceData = async (period = selectedPeriod) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`/api/superadmin/performance?period=${period}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = response.data.data || {};
-      setPerformanceData(data.performance || []);
-      setChartData({
-        revenueGrowth: data.revenueGrowth || getFallbackChartData().revenueGrowth,
-        userActivity: data.userActivity || getFallbackChartData().userActivity,
-        systemMetrics: data.systemMetrics || getFallbackChartData().systemMetrics,
-        branchPerformance: data.branchPerformance || getFallbackChartData().branchPerformance,
-      });
-    } catch (error) {
-      console.error("Error fetching performance data:", error);
     }
   };
 

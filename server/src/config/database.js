@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   try {
     // Remove the deprecated options - they're no longer needed
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      autoIndex: process.env.NODE_ENV !== 'production'
+    });
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     console.log(`📊 Database Name: ${conn.connection.name}`);
