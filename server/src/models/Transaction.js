@@ -40,6 +40,16 @@ const transactionSchema = new mongoose.Schema({
     type: String,
     unique: true
   },
+  idempotencyKey: {
+    type: String,
+    trim: true,
+    sparse: true
+  },
+  initiatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    index: true
+  },
   category: {
     type: String,
     enum: [
@@ -102,5 +112,12 @@ transactionSchema.pre('validate', async function(next) {
 transactionSchema.index({ fromAccountId: 1, toAccountId: 1 });
 transactionSchema.index({ createdAt: -1 });
 transactionSchema.index({ status: 1 });
+transactionSchema.index(
+  { initiatedBy: 1, idempotencyKey: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { idempotencyKey: { $type: 'string' } }
+  }
+);
 
 module.exports = mongoose.model('Transaction', transactionSchema);

@@ -33,7 +33,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -42,38 +42,21 @@ export const AuthProvider = ({ children }) => {
   const pendingRequests = useRef(new Map());
   const refreshPromise = useRef(null);
 
-  // Set auth header
-  useEffect(() => {
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-      delete api.defaults.headers.common['Authorization'];
-    }
-  }, [token]);
-
   // Load user on mount
   useEffect(() => {
     const loadUser = async () => {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-
-      if (storedToken && storedUser) {
-        try {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-          setIsAuthenticated(true);
-          
-          // Validate token with backend
-          await validateToken();
-        } catch (error) {
-          console.error('Failed to load user:', error);
-          // Don't logout on validation error, just clear state
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setToken(null);
-          setUser(null);
-          setIsAuthenticated(false);
-        }
+      // Remove tokens persisted by older releases; credentials now live only
+      // in HttpOnly cookies.
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      try {
+        await validateToken();
+      } catch (error) {
+        console.error('Failed to load user:', error);
+        localStorage.removeItem('user');
+        setToken(null);
+        setUser(null);
+        setIsAuthenticated(false);
       }
       setLoading(false);
     };
@@ -159,16 +142,10 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/auth/login', { email, password });
       
       if (response.data.success) {
-        const { user: userData, token: authToken, refreshToken: newRefreshToken } = response.data.data;
-        
-        // Store tokens
-        localStorage.setItem('token', authToken);
-        if (newRefreshToken) {
-          localStorage.setItem('refreshToken', newRefreshToken);
-        }
+        const { user: userData } = response.data.data;
         localStorage.setItem('user', JSON.stringify(userData));
         
-        setToken(authToken);
+        setToken('cookie-session');
         setUser(userData);
         setIsAuthenticated(true);
         
@@ -198,23 +175,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const completeOAuthLogin = async (authToken, newRefreshToken) => {
+  const completeOAuthLogin = async () => {
     try {
       setLoading(true);
 
-      localStorage.setItem('token', authToken);
-      if (newRefreshToken) {
-        localStorage.setItem('refreshToken', newRefreshToken);
-      }
-
-      setToken(authToken);
-      api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
-
-      const response = await api.get('/auth/validate', {
-        headers: {
-          Authorization: `Bearer ${authToken}`
-        }
-      });
+      const response = await api.get('/auth/validate');
 
       if (!response.data.success) {
         throw new Error('OAuth login validation failed');
@@ -223,6 +188,7 @@ export const AuthProvider = ({ children }) => {
       const userData = response.data.data?.user || response.data.user;
 
       localStorage.setItem('user', JSON.stringify(userData));
+      setToken('cookie-session');
       setUser(userData);
       setIsAuthenticated(true);
 
@@ -232,14 +198,11 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('OAuth login error:', error);
 
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
 
       setToken(null);
       setUser(null);
       setIsAuthenticated(false);
-      delete api.defaults.headers.common['Authorization'];
 
       toast.error(error.response?.data?.message || 'Google login failed. Please try again.');
       throw error;
@@ -259,18 +222,9 @@ export const AuthProvider = ({ children }) => {
     refreshPromise.current = (async () => {
       try {
         setIsRefreshing(true);
-        const storedRefreshToken = localStorage.getItem('refreshToken');
-        
-        if (!storedRefreshToken) {
-          console.log('No refresh token found');
-          throw new Error('No refresh token available');
-        }
-
         console.log('Attempting to refresh token...');
         
-        const response = await api.post('/auth/refresh-token', {
-          refreshToken: storedRefreshToken
-        }, {
+        const response = await api.post('/auth/refresh-token', {}, {
           timeout: 10000,
           headers: {
             'Content-Type': 'application/json'
@@ -278,19 +232,10 @@ export const AuthProvider = ({ children }) => {
         });
 
         if (response.data.success) {
-          const { token: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
-          
-          // Update tokens
-          localStorage.setItem('token', newAccessToken);
-          if (newRefreshToken) {
-            localStorage.setItem('refreshToken', newRefreshToken);
-          }
-          
-          setToken(newAccessToken);
-          api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+          setToken('cookie-session');
           
           console.log('Token refreshed successfully');
-          return { success: true, token: newAccessToken };
+          return { success: true };
         } else {
           throw new Error('Refresh failed');
         }
@@ -298,14 +243,11 @@ export const AuthProvider = ({ children }) => {
         console.error('Token refresh failed:', error);
         
         // Clear all auth data
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         
         setToken(null);
         setUser(null);
         setIsAuthenticated(false);
-        delete api.defaults.headers.common['Authorization'];
         
         // Only redirect if not already on login page
         if (!window.location.pathname.includes('/auth/login')) {
@@ -335,38 +277,26 @@ export const AuthProvider = ({ children }) => {
       setIsLoggingOut(true);
       console.log('Logging out...');
       
-      const currentToken = localStorage.getItem('token');
-      const currentRefreshToken = localStorage.getItem('refreshToken');
-      
-      if (currentToken) {
-        try {
+      try {
           // Set a timeout to prevent hanging
           const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Logout timeout')), 5000);
           });
           
-          const logoutPromise = api.post('/auth/logout', {
-            refreshToken: currentRefreshToken
-          }, {
-            headers: {
-              'Authorization': `Bearer ${currentToken}`
-            },
+          const logoutPromise = api.post('/auth/logout', {}, {
             timeout: 5000
           });
           
           await Promise.race([logoutPromise, timeoutPromise]);
           console.log('✅ Server logout successful');
-        } catch (error) {
+      } catch (error) {
           // Don't throw on logout errors - just log them
           console.error('Server logout error (non-critical):', error.message);
-        }
       }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       // Always clear local data, even if server call fails
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       
       setToken(null);
@@ -374,7 +304,6 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       
       // Clear axios default header
-      delete api.defaults.headers.common['Authorization'];
       
       setIsLoggingOut(false);
       
@@ -637,10 +566,6 @@ export const AuthProvider = ({ children }) => {
           
           try {
             await refreshToken();
-            
-            // Update the authorization header with new token
-            const newToken = localStorage.getItem('token');
-            originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
             
             // Retry the original request
             return api(originalRequest);

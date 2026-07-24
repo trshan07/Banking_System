@@ -4,7 +4,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const { passport, isGoogleAuthConfigured } = require('../config/auth');
 const authController = require('../controllers/authController');
-const { authMiddleware, protect } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 const { 
   authRateLimiter, 
@@ -29,7 +29,7 @@ const registerValidation = [
   
   body('password')
     .notEmpty().withMessage('Password is required')
-    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .isLength({ min: 12, max: 128 }).withMessage('Password must be between 12 and 128 characters')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
   
   body('phone')
@@ -66,7 +66,7 @@ const resetPasswordValidation = [
     .notEmpty().withMessage('Token is required'),
   body('newPassword')
     .notEmpty().withMessage('New password is required')
-    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .isLength({ min: 12, max: 128 }).withMessage('Password must be between 12 and 128 characters')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
   validate
 ];
@@ -76,7 +76,7 @@ const changePasswordValidation = [
     .notEmpty().withMessage('Current password is required'),
   body('newPassword')
     .notEmpty().withMessage('New password is required')
-    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .isLength({ min: 12, max: 128 }).withMessage('Password must be between 12 and 128 characters')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
   validate
 ];
@@ -121,11 +121,9 @@ router.get('/google/callback', (req, res, next) => {
     try {
       const session = await authController.createAuthSession(user);
       authController.setRefreshTokenCookie(res, session.refreshToken);
+      authController.setAccessTokenCookie(res, session.token);
 
-      return authController.redirectToOAuthResult(res, {
-        token: session.token,
-        refreshToken: session.refreshToken
-      });
+      return authController.redirectToOAuthResult(res, { authenticated: 'true' });
     } catch (sessionError) {
       console.error('Google callback session error:', sessionError);
       return redirectOAuthError(res, 'Google sign-in failed. Please try again.');

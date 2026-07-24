@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const SupportTicket = require('../models/SupportTicket');
@@ -47,14 +46,6 @@ const DEFAULT_ADMIN_SETTINGS = {
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-const toObjectId = (value) => {
-  if (!mongoose.Types.ObjectId.isValid(value)) {
-    return null;
-  }
-
-  return new mongoose.Types.ObjectId(value);
-};
 
 const mergeSettings = (settings = {}) => ({
   notifications: { ...DEFAULT_ADMIN_SETTINGS.notifications, ...(settings.notifications || {}) },
@@ -541,7 +532,7 @@ exports.getRecentActivities = async (req, res) => {
     const activities = [...userActivities, ...kycActivities, ...fraudActivities, ...transactionActivities]
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 10)
-      .map(({ timestamp, ...activity }) => activity);
+      .map(({ timestamp: _timestamp, ...activity }) => activity);
 
     const users = recentUsers.map((user) => ({
       id: String(user._id),
@@ -919,14 +910,12 @@ exports.getKYCStats = async (_req, res) => {
 
 exports.approveKYC = async (req, res) => {
   req.params.type = 'kyc';
-  req.params.id = req.params.id;
   req.body.action = 'approve';
   return exports.processPendingApproval(req, res);
 };
 
 exports.rejectKYC = async (req, res) => {
   req.params.type = 'kyc';
-  req.params.id = req.params.id;
   req.body.action = 'reject';
   return exports.processPendingApproval(req, res);
 };

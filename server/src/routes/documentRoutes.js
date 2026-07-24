@@ -23,6 +23,7 @@ router.delete('/:documentId', authMiddleware, documentController.deleteDocument)
 // Admin routes
 router.get('/user/:userId', authMiddleware, checkRole('admin', 'superadmin'), documentController.getUserDocumentsByAdmin);
 
+router.get('/:documentId/download', authMiddleware, documentController.downloadDocument);
 router.get('/:documentId', authMiddleware, documentController.getDocumentDetails);
 
 module.exports = router;

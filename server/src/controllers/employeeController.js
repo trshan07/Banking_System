@@ -412,7 +412,7 @@ exports.getTickets = async (req, res) => {
 exports.updateTicketStatus = async (req, res) => {
   try {
     const { ticketId } = req.params;
-    const { status, resolution, assignedTo } = req.body;
+    const { status, assignedTo } = req.body;
     const normalizedStatus = status === 'in-progress' ? 'in_progress' : status;
     
     const updateData = {};

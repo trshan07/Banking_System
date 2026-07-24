@@ -582,8 +582,6 @@ exports.getUserStats = async (req, res) => {
 // Get user activity (placeholder)
 exports.getUserActivity = async (req, res) => {
   try {
-    const { userId } = req.params;
-    
     res.json({
       success: true,
       data: {

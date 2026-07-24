@@ -11,10 +11,13 @@ const authMiddleware = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
+    if (token === 'null' || token === 'undefined' || token === '') {
+      token = null;
+    }
 
     // Check cookie as fallback
-    if (!token && req.cookies?.accessToken) {
-      token = req.cookies.accessToken;
+    if (!token && (req.cookies?.['__Host-accessToken'] || req.cookies?.accessToken)) {
+      token = req.cookies['__Host-accessToken'] || req.cookies.accessToken;
     }
 
     if (!token) {
@@ -155,20 +158,22 @@ const optionalAuth = async (req, res, next) => {
 
     if (token) {
       try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET, {
+          issuer: 'smartbank',
+          audience: 'smartbank-users'
+        });
         const user = await User.findById(decoded.id).select('-password -refreshToken -__v');
         if (user && user.status === 'active') {
           req.user = user;
           req.userId = user._id;
         }
-      } catch (error) {
+      } catch (_error) {
         // Token invalid, but that's ok for optional auth
-        console.log('Optional auth token invalid:', error.message);
       }
     }
     
     next();
-  } catch (error) {
+  } catch (_error) {
     next();
   }
 };

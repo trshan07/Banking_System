@@ -9,7 +9,10 @@ const { validate } = require('../middleware/validation');
 // Validation rules
 const createAccountValidation = [
   body('accountType').isIn(['checking', 'savings', 'business']).withMessage('Invalid account type'),
-  body('initialDeposit').optional().isNumeric().withMessage('Initial deposit must be a number'),
+  body('initialDeposit')
+    .optional()
+    .custom((value) => Number(value) === 0)
+    .withMessage('New accounts must start with a zero balance'),
   validate
 ];
 
@@ -22,6 +25,7 @@ const transferValidation = [
   body('beneficiaryAccountNumber').optional().isString().trim(),
   body('beneficiaryBank').optional().isString().trim(),
   body('description').optional().isString(),
+  body('description').optional().isLength({ max: 250 }).withMessage('Description is too long'),
   validate
 ];
 
@@ -33,7 +37,14 @@ router.post('/transfer', authMiddleware, transferValidation, accountController.t
 
 // Admin routes
 router.get('/admin/all', authMiddleware, checkRole('admin', 'superadmin'), accountController.getAllAccounts);
-router.put('/:accountId/status', authMiddleware, checkRole('admin', 'superadmin'), accountController.updateAccountStatus);
+router.put(
+  '/:accountId/status',
+  authMiddleware,
+  checkRole('admin', 'superadmin'),
+  body('status').isIn(['active', 'inactive', 'frozen', 'closed']).withMessage('Invalid account status'),
+  validate,
+  accountController.updateAccountStatus
+);
 
 router.get('/:accountId/transactions', authMiddleware, accountController.getAccountTransactions);
 router.get('/:accountId', authMiddleware, accountController.getAccountDetails);

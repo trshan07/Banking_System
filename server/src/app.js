@@ -10,6 +10,8 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
+const { validateEnvironment } = require('./config/environment');
+validateEnvironment();
 const { passport, configurePassport } = require('./config/auth');
 const SupportTicket = require('./models/SupportTicket');
 
@@ -32,14 +34,21 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
-const { authMiddleware } = require('./middleware/auth');
 const auditLogger = require('./middleware/auditLogger');
 const { generalLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 const httpServer = createServer(app);
 
+mongoose.set('sanitizeFilter', true);
+mongoose.set('strictQuery', true);
 configurePassport();
+
+const trustProxy = Number(process.env.TRUST_PROXY_HOPS || 0);
+if (trustProxy > 0) {
+  app.set('trust proxy', trustProxy);
+}
+app.disable('x-powered-by');
 
 // ============================================
 // CORS Configuration - FIXED FOR EXPRESS 5
@@ -113,12 +122,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Logging middleware for debugging
-app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.url}`);
-  next();
-});
-
 // ============================================
 // Security & Utility Middleware
 // ============================================
@@ -129,7 +132,8 @@ app.use(passport.initialize());
 
 // Security headers
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: 'same-site' },
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
 }));
 
 // Body parsing
@@ -139,12 +143,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Compression
 app.use(compression());
 
-// Logging
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
-}
+// Query strings may contain OAuth codes or reset tokens, so never log them.
+morgan.token('safe-url', (req) => String(req.originalUrl || req.url).split('?')[0]);
+const logFormat = process.env.NODE_ENV === 'development'
+  ? ':method :safe-url :status :response-time ms'
+  : ':remote-addr - :method :safe-url :status :res[content-length] :response-time ms';
+app.use(morgan(logFormat));
 
 // Apply rate limiting to all routes
 app.use(generalLimiter);
@@ -156,8 +160,7 @@ app.use(auditLogger);
 // Static Files
 // ============================================
 
-// Serve uploaded files
-app.use('/uploads', express.static('uploads'));
+// Customer documents are intentionally not exposed as static files.
 
 // ============================================
 // API Routes
@@ -165,15 +168,11 @@ app.use('/uploads', express.static('uploads'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    success: true, 
-    message: 'Server is running',
-    timestamp: new Date(),
-    environment: process.env.NODE_ENV || 'development',
-    cors: {
-      allowedOrigins,
-      currentOrigin: req.headers.origin || 'No origin'
-    }
+  const databaseReady = mongoose.connection.readyState === 1;
+  res.status(databaseReady ? 200 : 503).json({
+    success: databaseReady,
+    status: databaseReady ? 'ready' : 'not_ready',
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -221,7 +220,17 @@ const io = new Server(httpServer, {
 
 // Socket.IO middleware for authentication
 io.use((socket, next) => {
-  const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
+  const cookies = Object.fromEntries(
+    String(socket.handshake.headers.cookie || '')
+      .split(';')
+      .map((part) => part.trim().split('='))
+      .filter(([key, value]) => key && value)
+      .map(([key, value]) => [key, decodeURIComponent(value)])
+  );
+  const token = socket.handshake.auth.token
+    || socket.handshake.headers.authorization?.split(' ')[1]
+    || cookies['__Host-accessToken']
+    || cookies.accessToken;
   
   if (!token) {
     // Don't reject, just mark as unauthenticated

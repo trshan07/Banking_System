@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const userController = require('../controllers/userController');
-const { authMiddleware, checkRole, checkPermission } = require('../middleware/auth');
+const { authMiddleware, checkRole } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 const { uploadSingle } = require('../middleware/upload');
 

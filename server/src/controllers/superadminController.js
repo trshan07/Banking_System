@@ -523,7 +523,7 @@ exports.deleteAdmin = async (req, res) => {
     await createAuditEntry({ req, action: 'delete_admin', entity: 'user', entityId: admin._id,
       target: admin.email, details: `Deleted administrator ${admin.email}` });
     return res.json({ success: true, message: 'Administrator deleted' });
-  } catch (error) {
+  } catch (_error) {
     return res.status(500).json({ success: false, message: 'Failed to delete administrator' });
   }
 };

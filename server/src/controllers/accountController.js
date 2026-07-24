@@ -1,7 +1,16 @@
 // src/controllers/accountController.js
 const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
-const User = require('../models/User');
+const mongoose = require('mongoose');
+const crypto = require('crypto');
+
+const normalizeMoney = (value) => {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const normalized = Math.round((amount + Number.EPSILON) * 100) / 100;
+  if (Math.abs(normalized - amount) > Number.EPSILON * 100) return null;
+  return Number.isSafeInteger(Math.round(normalized * 100)) ? normalized : null;
+};
 
 // @desc    Get user accounts
 // @route   GET /api/accounts
@@ -109,6 +118,13 @@ exports.createAccount = async (req, res) => {
   try {
     const { accountType, initialDeposit = 0, currency = 'LKR' } = req.body;
 
+    if (Number(initialDeposit) !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'New accounts must start with a zero balance. Deposits require a verified funding operation.'
+      });
+    }
+
     // Check if user already has an account of this type
     const existingAccount = await Account.findOne({
       userId: req.user._id,
@@ -123,38 +139,19 @@ exports.createAccount = async (req, res) => {
     }
 
     // Generate unique account number
-    const accountNumber = 'ACC' + Date.now() + Math.floor(Math.random() * 1000);
+    const accountNumber = `ACC${crypto.randomBytes(9).toString('hex').toUpperCase()}`;
 
     const account = new Account({
-      id: 'acc_' + Date.now(),
+      id: `acc_${crypto.randomUUID()}`,
       accountNumber,
       accountType,
-      balance: initialDeposit,
+      balance: 0,
       currency,
       userId: req.user._id,
       status: 'active'
     });
 
     await account.save();
-
-    // If initial deposit > 0, create transaction record
-    if (initialDeposit > 0) {
-      const transaction = new Transaction({
-        id: 'txn_' + Date.now(),
-        fromAccountId: account._id,
-        toAccountId: account._id,
-        amount: initialDeposit,
-        type: 'deposit',
-        status: 'completed',
-        description: 'Initial deposit',
-        reference: 'DEP' + Date.now(),
-        balanceAfter: {
-          fromAccount: initialDeposit,
-          toAccount: initialDeposit
-        }
-      });
-      await transaction.save();
-    }
 
     res.status(201).json({
       success: true,
@@ -174,10 +171,7 @@ exports.createAccount = async (req, res) => {
 // @route   POST /api/accounts/transfer
 // @access  Private
 exports.transferMoney = async (req, res) => {
-  let debitedAccountId = null;
-  let creditedAccountId = null;
-  let transferAmount = 0;
-
+  const session = await mongoose.startSession();
   try {
     const {
       fromAccountId,
@@ -185,212 +179,191 @@ exports.transferMoney = async (req, res) => {
       amount: requestedAmount,
       description = '',
       transferType = 'own',       // 'own' | 'internal' | 'external'
-      beneficiaryName,
-      beneficiaryAccountNumber,
-      beneficiaryBank
     } = req.body;
 
-    transferAmount = Number(requestedAmount);
+    const transferAmount = normalizeMoney(requestedAmount);
 
-    // Do not rely on JavaScript coercion for money values.
-    if (!Number.isFinite(transferAmount) || transferAmount <= 0) {
+    if (transferAmount === null) {
       return res.status(400).json({
         success: false,
-        message: 'Amount must be greater than 0'
+        message: 'Amount must be a positive value with no more than two decimal places'
       });
     }
 
-    // Get source account (must belong to logged-in user)
-    const fromAccount = await Account.findOne({
-      _id: fromAccountId,
-      userId: req.user._id,
-      status: 'active'
-    });
-
-    if (!fromAccount) {
-      return res.status(404).json({
+    if (transferType === 'external') {
+      return res.status(501).json({
         success: false,
-        message: 'Source account not found or inactive'
+        message: 'External transfers are disabled until a regulated payment provider is configured'
       });
     }
 
-    // Check sufficient balance
-    if (fromAccount.balance < transferAmount) {
+    if (!['own', 'internal'].includes(transferType)) {
       return res.status(400).json({
         success: false,
-        message: 'Insufficient balance'
+        message: 'Invalid transfer type'
       });
     }
 
-    // Check daily limit
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-
-    const todayTransactions = await Transaction.find({
-      fromAccountId: fromAccount._id,
-      createdAt: { $gte: todayStart },
-      type: 'transfer',
-      status: 'completed'
-    });
-
-    const todayTotal = todayTransactions.reduce((sum, t) => sum + t.amount, 0);
-
-    if (todayTotal + transferAmount > (fromAccount.dailyTransactionLimit || 10000)) {
+    if (!toAccountId) {
       return res.status(400).json({
         success: false,
-        message: `Daily transaction limit of LKR ${Number(fromAccount.dailyTransactionLimit || 10000).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} exceeded`
+        message: 'Destination account is required'
       });
     }
 
-    const ts = Date.now();
-    let toAccount = null;
-    let transactionData = {
-      id: 'txn_' + ts,
-      fromAccountId: fromAccount._id,
-      amount: transferAmount,
-      type: 'transfer',
-      status: 'completed',
-      description,
-      reference: 'TFR' + ts + Math.floor(Math.random() * 1000),
-      category: 'transfer',
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent'),
-      metadata: new Map()
-    };
+    const suppliedKey = String(req.get('Idempotency-Key') || '').trim();
+    if (process.env.NODE_ENV === 'production' && !suppliedKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'Idempotency-Key header is required'
+      });
+    }
+    if (suppliedKey.length > 128) {
+      return res.status(400).json({ success: false, message: 'Idempotency-Key is too long' });
+    }
+    const idempotencyKey = suppliedKey || crypto.randomUUID();
+    const transferMinor = Math.round(transferAmount * 100);
+    let savedTransaction;
+    let fromBalance;
+    let toBalance;
 
-    // Handle based on transfer type
-    if (transferType === 'own' || transferType === 'internal') {
-      // Internal transfer: destination must be a valid Smart Bank account
-      if (!toAccountId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Destination account is required for internal transfers'
-        });
+    await session.withTransaction(async () => {
+      const existing = await Transaction.findOne({
+        initiatedBy: req.user._id,
+        idempotencyKey
+      }).session(session);
+      if (existing) {
+        savedTransaction = existing;
+        return;
       }
 
-      toAccount = await Account.findOne({
+      const fromAccount = await Account.findOne({
+        _id: fromAccountId,
+        userId: req.user._id,
+        status: 'active'
+      }).session(session);
+      const toAccount = await Account.findOne({
         _id: toAccountId,
         ...(transferType === 'own' ? { userId: req.user._id } : {}),
         status: 'active'
-      });
+      }).session(session);
 
-      if (!toAccount) {
-        return res.status(404).json({
-          success: false,
-          message: 'Destination account not found or inactive'
-        });
+      if (!fromAccount || !toAccount) {
+        const error = new Error('Source or destination account was not found or is inactive');
+        error.statusCode = 404;
+        throw error;
+      }
+      if (String(fromAccount._id) === String(toAccount._id)) {
+        const error = new Error('Cannot transfer to the same account');
+        error.statusCode = 400;
+        throw error;
+      }
+      if (fromAccount.currency !== toAccount.currency) {
+        const error = new Error('Cross-currency transfers are not supported');
+        error.statusCode = 400;
+        throw error;
       }
 
-      // Prevent self-transfer to same account
-      if (fromAccount._id.toString() === toAccount._id.toString()) {
-        return res.status(400).json({
-          success: false,
-          message: 'Cannot transfer to the same account'
-        });
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const totals = await Transaction.aggregate([
+        {
+          $match: {
+            fromAccountId: fromAccount._id,
+            createdAt: { $gte: todayStart },
+            type: 'transfer',
+            status: 'completed'
+          }
+        },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]).session(session);
+      const todayTotal = totals[0]?.total || 0;
+      if (todayTotal + transferAmount > (fromAccount.dailyTransactionLimit || 10000)) {
+        const error = new Error('Daily transaction limit exceeded');
+        error.statusCode = 400;
+        throw error;
       }
 
-      transactionData.toAccountId = toAccount._id;
-      transactionData.balanceAfter = {
-        fromAccount: fromAccount.balance - transferAmount,
-        toAccount: toAccount.balance + transferAmount
-      };
-
-    } else if (transferType === 'external') {
-      // External transfer: requires beneficiary details
-      if (!beneficiaryName || !beneficiaryAccountNumber || !beneficiaryBank) {
-        return res.status(400).json({
-          success: false,
-          message: 'Beneficiary name, account number, and bank are required for external transfers'
-        });
-      }
-
-      // For external transfers, use source account as toAccountId (self-reference for record keeping)
-      transactionData.toAccountId = fromAccount._id;
-      transactionData.description = description || `External transfer to ${beneficiaryName}`;
-      transactionData.metadata.set('beneficiaryName', beneficiaryName);
-      transactionData.metadata.set('beneficiaryAccountNumber', beneficiaryAccountNumber);
-      transactionData.metadata.set('beneficiaryBank', beneficiaryBank);
-      transactionData.metadata.set('transferType', 'external');
-      transactionData.balanceAfter = {
-        fromAccount: fromAccount.balance - transferAmount,
-        toAccount: 0
-      };
-
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid transfer type. Use: own, internal, or external'
-      });
-    }
-
-    // Debit conditionally so two simultaneous requests cannot overdraw the account.
-    const debitResult = await Account.updateOne(
-      { _id: fromAccount._id, status: 'active', balance: { $gte: transferAmount } },
-      { $inc: { balance: -transferAmount } }
-    );
-
-    if (debitResult.modifiedCount !== 1) {
-      return res.status(400).json({
-        success: false,
-        message: 'Insufficient balance or source account is no longer active'
-      });
-    }
-    debitedAccountId = fromAccount._id;
-
-    if (toAccount) {
-      const creditResult = await Account.updateOne(
-        { _id: toAccount._id, status: 'active' },
-        { $inc: { balance: transferAmount } }
+      const debit = await Account.findOneAndUpdate(
+        { _id: fromAccount._id, status: 'active', balance: { $gte: transferAmount } },
+        [{
+          $set: {
+            balance: {
+              $divide: [
+                { $subtract: [{ $round: [{ $multiply: ['$balance', 100] }, 0] }, transferMinor] },
+                100
+              ]
+            }
+          }
+        }],
+        { new: true, session, runValidators: true }
       );
-      if (creditResult.modifiedCount !== 1) {
-        throw new Error('Destination account became unavailable');
+      if (!debit) {
+        const error = new Error('Insufficient balance');
+        error.statusCode = 400;
+        throw error;
       }
-      creditedAccountId = toAccount._id;
-    }
+      const credit = await Account.findOneAndUpdate(
+        { _id: toAccount._id, status: 'active' },
+        [{
+          $set: {
+            balance: {
+              $divide: [
+                { $add: [{ $round: [{ $multiply: ['$balance', 100] }, 0] }, transferMinor] },
+                100
+              ]
+            }
+          }
+        }],
+        { new: true, session, runValidators: true }
+      );
+      if (!credit) {
+        const error = new Error('Destination account became unavailable');
+        error.statusCode = 409;
+        throw error;
+      }
 
-    // Use the model so schema validation and identifier hooks always run.
-    const savedTransaction = await Transaction.create({
-      ...transactionData,
-      metadata: Object.fromEntries(transactionData.metadata),
+      [savedTransaction] = await Transaction.create([{
+        id: `txn_${crypto.randomUUID()}`,
+        fromAccountId: debit._id,
+        toAccountId: credit._id,
+        initiatedBy: req.user._id,
+        idempotencyKey,
+        amount: transferAmount,
+        type: 'transfer',
+        status: 'completed',
+        description: String(description || '').trim(),
+        reference: `TFR${crypto.randomBytes(12).toString('hex').toUpperCase()}`,
+        category: 'transfer',
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+        metadata: { transferType },
+        balanceAfter: {
+          fromAccount: debit.balance,
+          toAccount: credit.balance
+        }
+      }], { session });
+      fromBalance = debit.balance;
+      toBalance = credit.balance;
     });
 
     res.json({
       success: true,
-      message: transferType === 'external'
-        ? `Transfer to ${beneficiaryName} at ${beneficiaryBank} completed successfully`
-        : 'Transfer completed successfully',
+      message: 'Transfer completed successfully',
       data: {
         transaction: savedTransaction,
-        fromAccountBalance: fromAccount.balance - transferAmount,
-        toAccountBalance: toAccount ? toAccount.balance + transferAmount : null
+        fromAccountBalance: fromBalance ?? savedTransaction.balanceAfter?.fromAccount,
+        toAccountBalance: toBalance ?? savedTransaction.balanceAfter?.toAccount
       }
     });
   } catch (error) {
     console.error('Transfer money error:', error);
-
-    // Standalone MongoDB does not support multi-document transactions. Restore
-    // balances if a later operation fails after either balance was changed.
-    try {
-      if (creditedAccountId) {
-        await Account.updateOne(
-          { _id: creditedAccountId },
-          { $inc: { balance: -transferAmount } }
-        );
-      }
-      if (debitedAccountId) {
-        await Account.updateOne(
-          { _id: debitedAccountId },
-          { $inc: { balance: transferAmount } }
-        );
-      }
-    } catch (rollbackError) {
-      console.error('Transfer rollback error:', rollbackError);
-    }
-
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
-      message: 'Failed to complete transfer'
+      message: error.statusCode ? error.message : 'Failed to complete transfer'
     });
+  } finally {
+    await session.endSession();
   }
 };
 

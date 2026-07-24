@@ -27,8 +27,8 @@ class CloudinaryService {
       }
 
       const uploadOptions = typeof options === 'string'
-        ? { folder: options, resource_type: 'auto' }
-        : { resource_type: 'auto', ...options };
+        ? { folder: options, resource_type: 'auto', type: 'authenticated' }
+        : { resource_type: 'auto', type: 'authenticated', ...options };
 
       const result = await cloudinary.uploader.upload(file, {
         ...uploadOptions
@@ -62,7 +62,10 @@ class CloudinaryService {
 
   async deleteImage(publicId) {
     try {
-      const result = await cloudinary.uploader.destroy(publicId);
+      const result = await cloudinary.uploader.destroy(publicId, {
+        resource_type: 'image',
+        type: 'authenticated'
+      });
       return { success: result.result === 'ok' };
     } catch (error) {
       console.error('Cloudinary delete error:', error);
@@ -75,6 +78,16 @@ class CloudinaryService {
       secure: true,
       quality: 'auto',
       fetch_format: 'auto',
+      ...options
+    });
+  }
+
+  getAuthenticatedUrl(publicId, options = {}) {
+    return cloudinary.url(publicId, {
+      secure: true,
+      sign_url: true,
+      type: 'authenticated',
+      expires_at: Math.floor(Date.now() / 1000) + 300,
       ...options
     });
   }

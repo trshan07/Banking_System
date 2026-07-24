@@ -72,11 +72,10 @@ const Login = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const token = params.get("token");
-    const refreshToken = params.get("refreshToken");
+    const authenticated = params.get("authenticated");
     const error = params.get("error");
 
-    if (!token && !error) {
+    if (!authenticated && !error) {
       return;
     }
 
@@ -92,7 +91,7 @@ const Login = () => {
     const finalizeOAuthLogin = async () => {
       try {
         setLoading(true);
-        const response = await completeOAuthLogin(token, refreshToken);
+        const response = await completeOAuthLogin();
 
         if (!isMounted) {
           return;

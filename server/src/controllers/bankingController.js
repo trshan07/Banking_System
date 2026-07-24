@@ -1,7 +1,7 @@
 // backend/src/controllers/bankingController.js
 const Account = require('../models/Account');
 const Transaction = require('../models/Transaction');
-const User = require('../models/User');
+const mongoose = require('mongoose');
 const Alert = require('../models/Alert');
 
 // @desc    Get all user accounts

@@ -21,9 +21,7 @@ const refreshAccessToken = async () => {
 
   refreshPromise = axios.post(
     `${API_URL}/auth/refresh-token`,
-    {
-      refreshToken: localStorage.getItem('refreshToken') || undefined,
-    },
+    {},
     {
       withCredentials: true,
       headers: {
@@ -33,26 +31,11 @@ const refreshAccessToken = async () => {
     }
   )
     .then((response) => {
-      const newToken = response?.data?.data?.token;
-      const newRefreshToken = response?.data?.data?.refreshToken;
-
-      if (!newToken) {
-        throw new Error('Token refresh did not return an access token');
-      }
-
-      localStorage.setItem('token', newToken);
-      if (newRefreshToken) {
-        localStorage.setItem('refreshToken', newRefreshToken);
-      }
-
-      api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
-      return newToken;
+      if (!response?.data?.success) throw new Error('Session refresh failed');
+      return true;
     })
     .catch((error) => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
-      delete api.defaults.headers.common.Authorization;
       throw error;
     })
     .finally(() => {
@@ -63,19 +46,6 @@ const refreshAccessToken = async () => {
 };
 
 // Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 // Response interceptor
 api.interceptors.response.use(
   (response) => response,
@@ -94,9 +64,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const newToken = await refreshAccessToken();
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        await refreshAccessToken();
         return api(originalRequest);
       } catch (refreshError) {
         toast.error('Session expired. Please log in again.');
@@ -160,7 +128,10 @@ export const bankingAPI = {
   getAccounts: () => api.get('/accounts'),
   // TransferFunds displays the API's specific error, so suppress the generic
   // interceptor toast for this request.
-  transferFunds: (data) => api.post('/accounts/transfer', data, { skipGlobalErrorToast: true }),
+  transferFunds: (data) => api.post('/accounts/transfer', data, {
+    skipGlobalErrorToast: true,
+    headers: { 'Idempotency-Key': crypto.randomUUID() }
+  }),
 };
 
 export const transactionAPI = {

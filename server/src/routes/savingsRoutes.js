@@ -6,6 +6,16 @@ const savingsController = require('../controllers/savingsController');
 const { authMiddleware } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 
+const requireSafeSavingsLedger = (req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(503).json({
+      success: false,
+      message: 'Savings balance mutations are temporarily disabled pending ledger migration'
+    });
+  }
+  return next();
+};
+
 // Validation rules
 const createGoalValidation = [
   body('goalName').trim().notEmpty().withMessage('Goal name is required'),
@@ -37,13 +47,13 @@ const updateProgressValidation = [
 router.get('/goals', authMiddleware, savingsController.getUserGoals);
 router.get('/goals/:goalId', authMiddleware, savingsController.getGoalDetails);
 router.post('/goals', authMiddleware, createGoalValidation, savingsController.createGoal);
-router.put('/goals/:goalId/progress', authMiddleware, updateProgressValidation, savingsController.updateProgress);
+router.put('/goals/:goalId/progress', authMiddleware, requireSafeSavingsLedger, updateProgressValidation, savingsController.updateProgress);
 router.delete('/goals/:goalId', authMiddleware, savingsController.deleteGoal);
 
 // Savings account routes
 router.get('/accounts', authMiddleware, savingsController.getSavingsAccounts);
 router.get('/accounts/:accountId', authMiddleware, savingsController.getSavingsAccountDetails);
-router.post('/accounts/:accountId/deposit', authMiddleware, savingsController.depositToSavings);
-router.post('/accounts/:accountId/withdraw', authMiddleware, savingsController.withdrawFromSavings);
+router.post('/accounts/:accountId/deposit', authMiddleware, requireSafeSavingsLedger, savingsController.depositToSavings);
+router.post('/accounts/:accountId/withdraw', authMiddleware, requireSafeSavingsLedger, savingsController.withdrawFromSavings);
 
 module.exports = router;

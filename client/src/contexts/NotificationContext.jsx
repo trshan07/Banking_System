@@ -2,7 +2,6 @@ import React, { createContext, useState, useContext, useCallback } from 'react'
 
 const NotificationContext = createContext()
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useNotification = () => {
   const context = useContext(NotificationContext)
   if (!context) {

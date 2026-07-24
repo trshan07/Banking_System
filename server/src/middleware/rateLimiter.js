@@ -1,27 +1,9 @@
 // backend/src/middleware/rateLimiter.js
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 
 // Helper function to get client IP (works with IPv4 and IPv6)
 const getClientIp = (req) => {
-  // Check for proxy headers first
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) {
-    const ips = forwarded.split(',');
-    return ips[0].trim();
-  }
-  
-  // Check for cloudflare header
-  if (req.headers['cf-connecting-ip']) {
-    return req.headers['cf-connecting-ip'];
-  }
-  
-  // Check for real IP
-  if (req.headers['x-real-ip']) {
-    return req.headers['x-real-ip'];
-  }
-  
-  // Fallback to socket remote address
-  return req.socket.remoteAddress || req.ip || 'unknown';
+  return req.ip || req.socket.remoteAddress || 'unknown';
 };
 
 // Custom key generator that handles IPv6 properly
@@ -41,7 +23,7 @@ const keyGenerator = (req) => {
   
   // For IPv6 addresses, we can use the full address or prefix
   // This avoids the ERR_ERL_KEY_GEN_IPV6 error
-  return ip;
+  return ipKeyGenerator(ip);
 };
 
 // General rate limiter - more lenient

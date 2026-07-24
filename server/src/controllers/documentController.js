@@ -5,6 +5,7 @@ const KYCApplication = require('../models/KYCApplication');
 const User = require('../models/User');
 const cloudinaryService = require('../services/cloudinaryService');
 const path = require('path');
+const fs = require('fs');
 
 // @desc    Get user documents
 // @route   GET /api/documents
@@ -242,9 +243,17 @@ exports.deleteDocument = async (req, res) => {
       });
     }
 
-    // Delete from Cloudinary
-    if (document.cloudinaryPublicId) {
+    if (['cloudinary', 'both'].includes(document.storageProvider) && document.cloudinaryPublicId) {
       await cloudinaryService.deleteImage(document.cloudinaryPublicId);
+    }
+    if (document.localFileName) {
+      const uploadRoot = path.resolve(__dirname, '..', '..', 'uploads');
+      const localPath = path.resolve(uploadRoot, path.basename(document.localFileName));
+      if (localPath.startsWith(`${uploadRoot}${path.sep}`)) {
+        await fs.promises.unlink(localPath).catch((error) => {
+          if (error.code !== 'ENOENT') throw error;
+        });
+      }
     }
 
     await document.deleteOne();
@@ -374,5 +383,38 @@ exports.verifyDocument = async (req, res) => {
       success: false,
       message: 'Failed to verify document'
     });
+  }
+};
+
+exports.downloadDocument = async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.documentId);
+    if (!document) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    const isOwner = String(document.userId) === String(req.user._id);
+    const isStaff = ['employee', 'admin', 'superadmin'].includes(req.user.role);
+    if (!isOwner && !isStaff) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    if (document.localFileName) {
+      const uploadRoot = path.resolve(__dirname, '..', '..', 'uploads');
+      const localPath = path.resolve(uploadRoot, path.basename(document.localFileName));
+      if (localPath.startsWith(`${uploadRoot}${path.sep}`) && fs.existsSync(localPath)) {
+        res.setHeader('Cache-Control', 'private, no-store');
+        return res.download(localPath, document.fileName);
+      }
+    }
+
+    if (document.cloudinaryPublicId && cloudinaryService.isConfigured()) {
+      return res.redirect(302, cloudinaryService.getAuthenticatedUrl(document.cloudinaryPublicId));
+    }
+
+    return res.status(404).json({ success: false, message: 'Document file is unavailable' });
+  } catch (error) {
+    console.error('Download document error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to download document' });
   }
 };

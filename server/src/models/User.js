@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   username: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
   googleId: { type: String, unique: true, sparse: true },
-  password: { type: String, required: true, select: false },
+  password: { type: String, required: true, minlength: 12, select: false },
   phone: { type: String, required: true, trim: true },
   address: { type: String, required: true, trim: true },
   city: { type: String, default: '', trim: true },
@@ -74,6 +74,8 @@ const userSchema = new mongoose.Schema({
   refreshTokenExpires: { type: Date, default: null },
   emailVerificationToken: { type: String, select: false },
   emailVerificationExpires: { type: Date, default: null },
+  passwordResetToken: { type: String, select: false },
+  passwordResetExpires: { type: Date, default: null },
   tokenVersion: { type: Number, default: 0 }
 }, {
   timestamps: true,

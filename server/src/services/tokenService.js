@@ -15,7 +15,8 @@ class TokenService {
       id: user._id,
       email: user.email,
       role: user.role,
-      permissions: user.permissions
+      permissions: user.permissions,
+      tokenVersion: user.tokenVersion || 0
     };
 
     return jwt.sign(payload, this.accessTokenSecret, {
@@ -46,7 +47,7 @@ class TokenService {
         issuer: 'smartbank',
         audience: 'smartbank-users'
       });
-    } catch (error) {
+    } catch (_error) {
       throw new Error('Invalid access token');
     }
   }
@@ -58,7 +59,7 @@ class TokenService {
         issuer: 'smartbank',
         audience: 'smartbank-users'
       });
-    } catch (error) {
+    } catch (_error) {
       throw new Error('Invalid refresh token');
     }
   }

@@ -78,4 +78,6 @@ accountSchema.pre('validate', async function(next) {
   next();
 });
 
+accountSchema.index({ userId: 1, accountType: 1 }, { unique: true });
+
 module.exports = mongoose.model('Account', accountSchema);

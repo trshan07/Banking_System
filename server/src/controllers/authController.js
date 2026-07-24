@@ -2,12 +2,12 @@
 const User = require('../models/User');
 const tokenService = require('../services/tokenService');
 const emailService = require('../services/emailService');
-const { validationResult } = require('express-validator');
 
 class AuthController {
   constructor() {
     this.getFrontendUrl = this.getFrontendUrl.bind(this);
     this.createAuthSession = this.createAuthSession.bind(this);
+    this.setAccessTokenCookie = this.setAccessTokenCookie.bind(this);
     this.setRefreshTokenCookie = this.setRefreshTokenCookie.bind(this);
     this.redirectToOAuthResult = this.redirectToOAuthResult.bind(this);
     this.register = this.register.bind(this);
@@ -51,11 +51,24 @@ class AuthController {
   }
 
   setRefreshTokenCookie(res, refreshToken) {
-    res.cookie('refreshToken', refreshToken, {
+    const cookieName = process.env.NODE_ENV === 'production' ? '__Host-refreshToken' : 'refreshToken';
+    res.cookie(cookieName, refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+  }
+
+  setAccessTokenCookie(res, accessToken) {
+    const cookieName = process.env.NODE_ENV === 'production' ? '__Host-accessToken' : 'accessToken';
+    res.cookie(cookieName, accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 15 * 60 * 1000
     });
   }
 
@@ -106,8 +119,8 @@ class AuthController {
         phone,
         address,
         role: 'customer',
-        status: 'active',
-        isEmailVerified: true,
+        status: 'pending',
+        isEmailVerified: false,
         permissions,
         preferences: {
           notifications: { email: true, sms: false, push: true },
@@ -126,15 +139,15 @@ class AuthController {
         console.error('Failed to send verification email:', err);
       });
 
-      const { user: userResponse, token: accessToken, refreshToken } = await this.createAuthSession(user);
+      const userResponse = user.toObject();
+      delete userResponse.password;
+      delete userResponse.emailVerificationToken;
 
       res.status(201).json({
         success: true,
         message: 'Registration successful. Please check your email to verify your account.',
         data: {
-          user: userResponse,
-          token: accessToken,
-          refreshToken: refreshToken
+          user: userResponse
         }
       });
 
@@ -154,7 +167,6 @@ class AuthController {
     const { email, username, password } = req.body;
     const identifier = String(username || email || '').trim().toLowerCase();
     
-    console.log('Login attempt for:', identifier);
 
     // Find user
     const user = await User.findOne({
@@ -162,7 +174,6 @@ class AuthController {
     }).select('+password');
     
     if (!user) {
-      console.log('User not found:', email);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -172,7 +183,6 @@ class AuthController {
     // Check if account is locked
     if (user.isLocked) {
       const lockTimeRemaining = Math.ceil((user.lockUntil - Date.now()) / 60000);
-      console.log('Account locked:', email);
       return res.status(423).json({
         success: false,
         message: `Account is locked. Please try again in ${lockTimeRemaining} minutes.`
@@ -192,7 +202,6 @@ class AuthController {
     
     if (!isValidPassword) {
       await user.incrementLoginAttempts();
-      console.log('Invalid password for:', email);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -210,16 +219,15 @@ class AuthController {
 
     // Set refresh token in HTTP-only cookie
     this.setRefreshTokenCookie(res, refreshToken);
+    this.setAccessTokenCookie(res, accessToken);
 
-    console.log('Login successful for:', email);
 
     res.json({
       success: true,
       message: 'Login successful',
       data: {
         user: userResponse,
-        token: accessToken,
-        refreshToken: refreshToken
+        authenticated: true
       }
     });
 
@@ -240,9 +248,8 @@ class AuthController {
       let refreshToken = null;
       
       // 1. Check cookie
-      if (req.cookies && req.cookies.refreshToken) {
-        refreshToken = req.cookies.refreshToken;
-        console.log('📦 Refresh token from cookie');
+      if (req.cookies && (req.cookies['__Host-refreshToken'] || req.cookies.refreshToken)) {
+        refreshToken = req.cookies['__Host-refreshToken'] || req.cookies.refreshToken;
       }
       
       // 2. Check Authorization header
@@ -250,25 +257,21 @@ class AuthController {
         const authHeader = req.headers.authorization;
         if (authHeader.startsWith('Bearer ')) {
           refreshToken = authHeader.substring(7);
-          console.log('📦 Refresh token from Authorization header');
         }
       }
       
       // 3. Check request body
       if (!refreshToken && req.body && req.body.refreshToken) {
         refreshToken = req.body.refreshToken;
-        console.log('📦 Refresh token from request body');
       }
       
       if (!refreshToken) {
-        console.log('❌ No refresh token provided');
         return res.status(401).json({
           success: false,
           message: 'Refresh token required'
         });
       }
 
-      console.log('✅ Refresh token received, length:', refreshToken.length);
 
       // Verify refresh token
       const decoded = tokenService.verifyRefreshToken(refreshToken);
@@ -277,7 +280,6 @@ class AuthController {
       const user = await User.findById(decoded.id).select('+refreshToken +refreshTokenExpires');
       
       if (!user) {
-        console.log('❌ User not found for refresh token');
         return res.status(401).json({
           success: false,
           message: 'User not found'
@@ -286,17 +288,22 @@ class AuthController {
 
       // Check if user has a stored refresh token
       if (!user.refreshToken) {
-        console.log('❌ No stored refresh token for user');
         return res.status(401).json({
           success: false,
           message: 'Invalid refresh token'
         });
       }
 
+      if ((decoded.tokenVersion || 0) !== (user.tokenVersion || 0)) {
+        return res.status(401).json({
+          success: false,
+          message: 'Refresh token has been invalidated'
+        });
+      }
+
       // Verify stored refresh token matches
       const hashedToken = tokenService.hashToken(refreshToken);
       if (user.refreshToken !== hashedToken) {
-        console.log('❌ Refresh token mismatch');
         return res.status(401).json({
           success: false,
           message: 'Invalid refresh token'
@@ -305,7 +312,6 @@ class AuthController {
 
       // Check if refresh token has expired
       if (user.refreshTokenExpires && user.refreshTokenExpires < Date.now()) {
-        console.log('❌ Refresh token expired');
         return res.status(401).json({
           success: false,
           message: 'Refresh token expired'
@@ -322,21 +328,15 @@ class AuthController {
       await user.save();
 
       // Set new refresh token in cookie
-      res.cookie('refreshToken', newRefreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      });
+      this.setRefreshTokenCookie(res, newRefreshToken);
+      this.setAccessTokenCookie(res, newAccessToken);
 
-      console.log('✅ Tokens refreshed successfully for user:', user.email);
 
       res.json({
         success: true,
         message: 'Token refreshed successfully',
         data: {
-          token: newAccessToken,  // Changed from accessToken to token for consistency
-          refreshToken: newRefreshToken
+          authenticated: true
         }
       });
 
@@ -353,7 +353,7 @@ class AuthController {
   async logout(req, res) {
     try {
       // Get refresh token from cookie or body
-      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+      const refreshToken = req.cookies['__Host-refreshToken'] || req.cookies.refreshToken || req.body?.refreshToken;
       
       if (refreshToken && req.user) {
         // Clear refresh token from database
@@ -362,22 +362,23 @@ class AuthController {
           user.refreshToken = null;
           user.refreshTokenExpires = null;
           await user.save();
-          console.log('✅ User logged out:', user.email);
         }
       }
 
       // Clear cookies
-      res.clearCookie('refreshToken', {
+      res.clearCookie('__Host-refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       });
+      res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'strict', path: '/' });
       
-      res.clearCookie('accessToken', {
+      res.clearCookie('__Host-accessToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       });
+      res.clearCookie('accessToken', { httpOnly: true, sameSite: 'strict', path: '/' });
 
       res.json({
         success: true,
@@ -420,6 +421,7 @@ class AuthController {
 
       // Verify email
       user.isEmailVerified = true;
+      user.status = 'active';
       user.emailVerificationToken = undefined;
       user.emailVerificationExpires = undefined;
       await user.save();
@@ -451,16 +453,16 @@ class AuthController {
       const user = await User.findOne({ email });
       
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
+        return res.json({
+          success: true,
+          message: 'If the address requires verification, an email will be sent'
         });
       }
 
       if (user.isEmailVerified) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email already verified'
+        return res.json({
+          success: true,
+          message: 'If the address requires verification, an email will be sent'
         });
       }
 
@@ -493,9 +495,9 @@ class AuthController {
       const user = await User.findOne({ email });
       
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
+        return res.json({
+          success: true,
+          message: 'If the address is registered, a password reset email will be sent'
         });
       }
 
@@ -508,7 +510,7 @@ class AuthController {
 
       res.json({
         success: true,
-        message: 'Password reset email sent'
+        message: 'If the address is registered, a password reset email will be sent'
       });
 
     } catch (error) {
@@ -548,6 +550,8 @@ class AuthController {
       
       // Invalidate all refresh tokens by incrementing tokenVersion
       user.tokenVersion = (user.tokenVersion || 0) + 1;
+      user.refreshToken = undefined;
+      user.refreshTokenExpires = undefined;
       
       await user.save();
 
@@ -595,6 +599,8 @@ class AuthController {
       
       // Invalidate all refresh tokens
       user.tokenVersion = (user.tokenVersion || 0) + 1;
+      user.refreshToken = undefined;
+      user.refreshTokenExpires = undefined;
       
       await user.save();
 

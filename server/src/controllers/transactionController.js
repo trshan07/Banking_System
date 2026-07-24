@@ -16,24 +16,26 @@ exports.getUserTransactions = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const transactions = await Transaction.find({
+    const query = {
       $or: [
         { fromAccountId: { $in: accountIds } },
         { toAccountId: { $in: accountIds } }
       ]
-    })
+    };
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    const transactions = await Transaction.find(query)
       .populate('fromAccountId', 'accountNumber accountType')
       .populate('toAccountId', 'accountNumber accountType')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
-    const total = await Transaction.countDocuments({
-      $or: [
-        { fromAccountId: { $in: accountIds } },
-        { toAccountId: { $in: accountIds } }
-      ]
-    });
+    const total = await Transaction.countDocuments(query);
 
     res.json({
       success: true,
@@ -75,7 +77,8 @@ exports.getTransactionDetails = async (req, res) => {
       transaction.fromAccountId?.userId?.toString() === req.user._id.toString() ||
       transaction.toAccountId?.userId?.toString() === req.user._id.toString();
 
-    if (!hasAccess && req.user.role === 'customer') {
+    const canAuditAll = ['admin', 'superadmin'].includes(req.user.role);
+    if (!hasAccess && !canAuditAll) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to view this transaction'
@@ -101,10 +104,9 @@ exports.getTransactionDetails = async (req, res) => {
 exports.getAccountTransactions = async (req, res) => {
   try {
     const { accountId } = req.params;
-    const { page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20, startDate, endDate } = req.query;
 
-    // Verify account belongs to user (if customer)
-    if (req.user.role === 'customer') {
+    if (!['admin', 'superadmin'].includes(req.user.role)) {
       const account = await Account.findOne({
         _id: accountId,
         userId: req.user._id
@@ -335,7 +337,7 @@ exports.generateReport = async (req, res) => {
 
 const userCanAccessTransaction = (transaction, user) => {
   if (!transaction || !user) return false;
-  if (['employee', 'admin', 'superadmin'].includes(user.role)) return true;
+  if (['admin', 'superadmin'].includes(user.role)) return true;
 
   return (
     transaction.fromAccountId?.userId?.toString() === user._id.toString() ||
